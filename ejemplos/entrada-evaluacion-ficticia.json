@@ -1,0 +1,18 @@
+{
+  "aviso": "DATOS TOTALMENTE FICTICIOS PARA PRUEBAS; NO SON CV REALES",
+  "oferta": {
+    "cargo": "Desarrollador Frontend",
+    "requisitos": ["JavaScript", "React", "2 años de experiencia", "Pruebas automatizadas"]
+  },
+  "perfil_confirmado": {
+    "experiencia": ["3 años desarrollando con JavaScript y React"],
+    "habilidades": ["JavaScript", "React"],
+    "evidencia_pruebas_automatizadas": null
+  },
+  "examen": {"nota_objetiva": 78, "maximo": 100},
+  "restricciones": [
+    "No deducir atributos personales",
+    "No inventar habilidades ni certificaciones",
+    "No emitir decisión de contratación ni puntaje global sin rúbrica aprobada"
+  ]
+}

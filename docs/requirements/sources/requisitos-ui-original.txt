@@ -1,0 +1,265 @@
+%=====================================================%
+%   4. REQUISITOS                                     %
+%=====================================================%
+\clearpage
+\section{Requisitos funcionales y no funcionales de UI}\label{sec:requisitos}
+
+Esta sección presenta la lista de \textbf{20 requisitos funcionales (RF)} y \textbf{15 requisitos no funcionales (RNF)} de interfaz. Los RF-01 a RF-10 y los RNF-01 a RNF-05 provienen del levantamiento anterior; los demás se agregaron para cubrir los 32 RSF del sistema y las restricciones del entorno de la Tabla~\ref{tab:restricciones}. Las columnas \emph{RSF} y \emph{RSNF} indican el requerimiento del documento del sistema que cada requisito de UI materializa; la columna \emph{Personas} indica a quién beneficia.
+
+\subsection{Requisitos funcionales de UI (RF)}\label{sec:rf}
+
+\begingroup\footnotesize
+\begin{longtable}{>{\bfseries}p{1.3cm}p{8.3cm}p{2.4cm}p{1.6cm}p{1.7cm}}
+\caption{Lista de requisitos funcionales de interfaz (20).}\label{tab:rf}\\
+\hline
+\rowcolor{azul}\hdr{Código} & \hdr{Requisito} & \hdr{RSF origen} & \hdr{Personas} & \hdr{Prioridad} \\ \hline
+\endfirsthead
+\hline
+\rowcolor{azul}\hdr{Código} & \hdr{Requisito} & \hdr{RSF origen} & \hdr{Personas} & \hdr{Prioridad} \\ \hline
+\endhead
+\rfrow{RF-01}{La interfaz debe presentar un formulario de inicio de sesión (correo y contraseña) y, tras autenticar, redirigir al usuario a su panel según su rol: el reclutador al panel de ofertas y el postulante al listado de ofertas disponibles, mostrando solo las opciones de menú de su rol.}{RSF02}{Todas}{Alta}
+\rfrow{RF-02}{La interfaz debe ofrecer al reclutador un formulario para registrar una oferta (cargo, descripción, requisitos, experiencia y formación) con un selector de estado (Borrador, Publicada o Cerrada); el botón \emph{Publicar} permanece deshabilitado hasta completar los campos obligatorios.}{RSF05, RSF06}{P1, P2}{Alta}
+\rfrow{RF-03}{La interfaz debe mostrar al postulante las ofertas publicadas en tarjetas (cargo, resumen de requisitos y fecha), y presentar un botón \emph{Postular} en cada una.}{RSF08}{P3--P5}{Media}
+\rfrow{RF-04}{La interfaz debe presentar una zona de arrastrar y soltar para cargar el currículum, aceptar únicamente archivos PDF, mostrar una barra de progreso durante la carga con las opciones \emph{Cancelar} y \emph{Reintentar}, y rechazar de inmediato, con un mensaje, cualquier archivo que no sea PDF.}{RSF10}{P3--P5}{Alta}
+\rfrow{RF-05}{La interfaz debe mostrar al reclutador, en dos paneles lado a lado (en pestañas en pantallas estrechas), el PDF original del currículum y los datos extraídos por el sistema (datos personales, formación, experiencia y habilidades), permitiéndole identificar y corregir datos incorrectos.}{RSF16}{P1}{Alta}
+\rfrow{RF-06}{La interfaz debe permitir al reclutador crear un examen vinculado a una oferta: agregar, editar y eliminar preguntas con sus alternativas, marcar la alternativa correcta y definir el tiempo límite en minutos.}{RSF17, RSF18, RSF19}{P1}{Media}
+\rfrow{RF-07}{La interfaz debe mostrar al postulante un temporizador regresivo siempre visible durante el examen, que cambie a color rojo cuando queden 60 segundos o menos y que, al llegar a cero, envíe el examen automáticamente y muestre un mensaje de confirmación.}{RSF21}{P3--P5}{Alta}
+\rfrow{RF-08}{La interfaz debe mostrar al reclutador una tabla de postulantes por oferta (calificación del examen, compatibilidad CV--oferta y puntaje final) con ordenamiento por columna, filtro por nivel de compatibilidad e insignia de color con texto (Alta: verde, Media: amarillo, Baja: rojo).}{RSF25, RSF26, RSF30}{P1, P2}{Alta}
+\rfrow{RF-09}{La interfaz debe presentar, en una sola vista, la ficha del postulante con los datos extraídos del CV, el resultado del examen, la compatibilidad y el puntaje final, junto con los botones para preseleccionar o descartar.}{RSF27}{P1, P2}{Alta}
+\rfrow{RF-10}{La interfaz debe permitir al reclutador cambiar el estado de una postulación mediante un selector (En revisión, Preseleccionado, Avanza, No avanza) y mostrar al postulante el estado actual en una línea de progreso con la etapa vigente resaltada.}{RSF12, RSF31, RSF32}{P1, P3--P5}{Media}
+\rfrow{RF-11}{La interfaz debe presentar un formulario de registro de cuenta (nombre, correo y contraseña) con un selector de rol (Reclutador o Postulante) y un indicador de fortaleza de la contraseña; el botón \emph{Registrar} permanece deshabilitado hasta completar los campos obligatorios.}{RSF01}{Todas}{Alta}
+\rfrow{RF-12}{La interfaz debe ofrecer una pantalla de perfil con nombre, correo y datos de contacto editables; al pulsar \emph{Guardar cambios} muestra la confirmación ``Cambios guardados'' y deja los campos en solo lectura.}{RSF03}{Todas}{Media}
+\rfrow{RF-13}{La interfaz debe mostrar un menú lateral (en móvil, un menú desplegable) con únicamente las opciones del rol activo, resaltar la sección vigente y mantener visible la opción \emph{Cerrar sesión}.}{RSF04}{Todas}{Alta}
+\rfrow{RF-14}{La interfaz debe permitir al reclutador editar una oferta y cambiar su estado desde el listado mediante un menú de acciones; cada oferta muestra su código único y una insignia de estado, y una oferta cerrada deja de mostrar el botón \emph{Postular} al postulante.}{RSF05, RSF07}{P1, P2}{Alta}
+\rfrow{RF-15}{La interfaz debe abrir, al pulsar \emph{Postular}, la pantalla de postulación con el resumen de la oferta; el botón \emph{Enviar postulación} permanece deshabilitado mientras no exista un CV válido y, al pulsarlo, un modal solicita confirmación; al confirmar notifica ``Postulación registrada'' y la agrega a \emph{Mis postulaciones}.}{RSF09, RSF11}{P3--P5}{Alta}
+\rfrow{RF-16}{La interfaz debe indicar con el mensaje animado ``Leyendo currículum\ldots'' que el CV se está procesando y, al terminar, mostrar los datos extraídos por secciones; las secciones no detectadas muestran ``No detectado'' en lugar de ocultarse.}{RSF13, RSF14}{P1, P3--P5}{Alta}
+\rfrow{RF-17}{La interfaz debe autocompletar el perfil del postulante con los datos extraídos del CV, marcar los campos autocompletados y permitir editarlos con el botón \emph{Editar} antes de confirmar.}{RSF15}{P4}{Media}
+\rfrow{RF-18}{La interfaz debe mostrar el examen con el avance (por ejemplo, ``7 de 20 respondidas''), resaltar la alternativa marcada, guardar cada respuesta al instante y mantener visible el botón \emph{Enviar examen}, que pide confirmación antes de enviar.}{RSF20}{P3--P5}{Alta}
+\rfrow{RF-19}{La interfaz debe mostrar la calificación del examen, la compatibilidad CV--oferta (porcentaje y nivel Alta, Media o Baja con color y texto) y el puntaje final, y actualizarlos automáticamente tras calificar el examen.}{RSF22, RSF23, RSF24}{P1, P2}{Alta}
+\rfrow{RF-20}{La interfaz debe pedir confirmación en un modal cuando el reclutador registra una decisión (Avanza o No avanza), cambiar el color de la fila según la decisión, mostrar el resultado final con su fecha y deshabilitar el botón tras confirmar.}{RSF28, RSF29}{P1, P2}{Alta}
+\end{longtable}
+\endgroup
+
+\newpage
+\subsection{Requisitos no funcionales de UI (RNF)}\label{sec:rnf}
+
+\begingroup\footnotesize
+\begin{longtable}{>{\bfseries}p{1.4cm}p{2.8cm}p{7.2cm}p{2.0cm}p{2.0cm}}
+\caption{Lista de requisitos no funcionales de interfaz (15).}\label{tab:rnf}\\
+\hline
+\rowcolor{azul}\hdr{Código} & \hdr{Categoría} & \hdr{Requisito} & \hdr{RSNF origen} & \hdr{Restricción} \\ \hline
+\endfirsthead
+\hline
+\rowcolor{azul}\hdr{Código} & \hdr{Categoría} & \hdr{Requisito} & \hdr{RSNF origen} & \hdr{Restricción} \\ \hline
+\endhead
+\rnfrow{RNF-01}{Rendimiento}{Las pantallas de listado deben mostrar la vista esqueleto (\emph{skeleton loading}) en menos de 200 ms y completar la carga de datos en un máximo de 3 s bajo condiciones normales de uso.}{RSNF03, RSNF04}{C-04, C-06}
+\rnfrow{RNF-02}{Accesibilidad}{Todo texto debe tener un contraste mínimo de 4.5:1 respecto de su fondo (WCAG 2.1 AA) y ninguna información debe transmitirse únicamente mediante color.}{RSNF01}{C-01, C-02}
+\rnfrow{RNF-03}{Responsividad}{La interfaz debe ser utilizable desde pantallas de 360 px de ancho hasta escritorio, sin desplazamiento horizontal de la página.}{RSNF11}{C-08 a C-11}
+\rnfrow{RNF-04}{Fiabilidad}{El temporizador del examen debe actualizarse cada segundo, mantener una desviación máxima de $\pm$1 s respecto del reloj del servidor aunque la pestaña pierda el foco o se recargue, y completar el envío automático en un máximo de 3 s.}{RSNF17}{C-12}
+\rnfrow{RNF-05}{Usabilidad}{Los mensajes de error deben aparecer en menos de 1 s junto al campo afectado, en lenguaje claro, con ícono y texto, sin borrar los datos ya ingresados.}{RSNF02}{C-05}
+\rnfrow{RNF-06}{Consistencia visual}{Todos los componentes deben provenir del sistema de diseño Flowbite (Tailwind CSS) con una única paleta, tipografía y escala de espaciado definidas como tokens; no se admiten estilos de componente aislados.}{RSNF01, RSNF14}{General}
+\rnfrow{RNF-07}{Estados de la UI}{Cada pantalla que muestra datos debe contemplar los cinco estados operativos (ideal, vacío, carga con \emph{skeleton}, error y parcial o borde), cada uno con un mensaje claro y una acción de salida.}{RSNF01, RSNF02}{General}
+\rnfrow{RNF-08}{Retroalimentación}{Toda acción del usuario debe producir una respuesta visual en menos de 100 ms (estado presionado o indicador de espera) y una notificación (\emph{toast}) en menos de 1 s tras finalizar la operación.}{RSNF04}{C-06}
+\rnfrow{RNF-09}{Conectividad}{Ante la pérdida de conexión, la interfaz debe mostrar un aviso persistente, conservar localmente los datos ingresados y las respuestas del examen, y reintentar el envío automáticamente al recuperar la conexión, sin pérdida de datos.}{RSNF09, RSNF15}{C-05 a C-07}
+\rnfrow{RNF-10}{Accesibilidad táctil}{Los botones y controles interactivos deben medir al menos 44$\times$44 px y mantener una separación mínima de 8 px entre sí.}{RSNF11}{C-09}
+\rnfrow{RNF-11}{Navegación por teclado}{Toda funcionalidad debe poder operarse con teclado, con orden de tabulación lógico, foco visible y etiquetas accesibles en los controles que solo tienen ícono (WCAG 2.1.1 y 2.4.7).}{RSNF01}{General}
+\rnfrow{RNF-12}{Compatibilidad}{La interfaz debe verse y funcionar igual en las dos últimas versiones estables de Google Chrome, Microsoft Edge y Mozilla Firefox.}{RSNF10}{General}
+\rnfrow{RNF-13}{Legibilidad}{El texto base debe ser de 16 px como mínimo con interlineado de 1.5, y la interfaz debe ofrecer tema claro y oscuro, respetando por defecto la preferencia del sistema y manteniendo el contraste 4.5:1 en ambos temas.}{RSNF01, RSNF11}{C-01 a C-03}
+\rnfrow{RNF-14}{Prevención de errores}{Las acciones irreversibles o de alto impacto (enviar el examen manualmente, registrar la decisión final, cerrar una oferta) deben pedir confirmación explícita en un modal que describa la consecuencia, y los formularios deben validar en línea antes del envío.}{RSNF02, RSNF12}{General}
+\rnfrow{RNF-15}{Privacidad y sesión}{La interfaz debe enmascarar la contraseña (con opción de mostrarla), avisar con un modal al menos 60 s antes de que expire la sesión por inactividad sin interrumpir un examen en curso, y no mostrar datos personales de un postulante a usuarios sin rol autorizado.}{RSNF05, RSNF07, RSNF18}{General}
+\end{longtable}
+\endgroup
+
+
+%=====================================================%
+%   5. HISTORIAS DE USUARIO                           %
+%=====================================================%
+\clearpage
+\section{Historias de usuario}\label{sec:hu}
+
+Se redactaron \textbf{13 historias críticas} con la estructura \textit{Como [Rol de Usuario], quiero [Acción en la UI] para [Beneficio de Negocio]} y criterios de aceptación en Gherkin (\textit{Given--When--Then}, en español: Dado que, Cuando, Entonces). Las cinco primeras provienen del levantamiento anterior; las ocho restantes cubren el acceso, la postulación, el seguimiento, la creación de exámenes, la decisión del reclutador, la tolerancia a la desconexión y la explicación del puntaje.
+
+\historia{HU-01}{Revisión y corrección de los datos extraídos del CV}
+{Analista de Selección}
+{revisar, lado a lado, el PDF original del currículum y los datos que el sistema extrajo, y corregir cualquier dato incorrecto}
+{evitar decisiones de selección basadas en información errónea}
+{el reclutador abrió la postulación de un candidato cuyo currículum ya fue procesado y ve el PDF original a la izquierda y los datos extraídos a la derecha}
+{edita un campo extraído (por ejemplo, años de experiencia) y hace clic en el botón \emph{Guardar cambios}}
+{el sistema actualiza el campo en el panel derecho, lo marca como \emph{revisado} con un ícono de verificación y muestra el mensaje de confirmación ``Cambios guardados'' sin recargar la página.}
+{P1 $\cdot$ RF-05 $\cdot$ RSF16 $\cdot$ Pantalla S06}
+
+\historia{HU-02}{Examen en línea con envío automático al agotarse el tiempo}
+{Postulante}
+{ver un temporizador regresivo durante el examen y que este se envíe automáticamente cuando el tiempo llegue a cero}
+{completar mi evaluación dentro del plazo establecido sin perder las respuestas que ya marqué}
+{el postulante se encuentra en la pantalla del examen, con algunas alternativas ya marcadas y el temporizador regresivo visible en el encabezado}
+{el temporizador llega a 00:00}
+{el sistema envía el examen automáticamente, bloquea las alternativas de respuesta y muestra el mensaje ``Tiempo agotado: tu examen fue enviado'', conservando las respuestas marcadas hasta ese momento.}
+{P3, P5 $\cdot$ RF-07 $\cdot$ RSF21 $\cdot$ RNF-04 $\cdot$ Pantalla S08}
+
+\historia{HU-03}{Comparación de postulantes por compatibilidad}
+{Analista de Selección}
+{filtrar la tabla de postulantes por nivel de compatibilidad y verla ordenada por puntaje final}
+{revisar primero a los perfiles mejor evaluados y reducir el tiempo del proceso de selección}
+{el reclutador está en la tabla de postulantes de una oferta, donde cada fila muestra su puntaje final y una insignia de compatibilidad}
+{hace clic en el filtro \emph{Compatibilidad Alta}}
+{la tabla muestra solo los postulantes con insignia verde, ordenados por puntaje final de mayor a menor, y el contador de resultados del encabezado se actualiza (por ejemplo, ``8 de 40 postulantes'').}
+{P1 $\cdot$ RF-08 $\cdot$ RSF25 $\cdot$ Pantalla S09}
+
+\historia{HU-04}{Carga del currículum por arrastrar y soltar}
+{Postulante}
+{cargar mi currículum arrastrándolo hacia la zona de carga en formato PDF}
+{completar mi postulación de forma rápida sin tener que buscarlo en el explorador de archivos}
+{el postulante se encuentra en la pantalla de postulación de una oferta y ve la zona de carga etiquetada como \emph{Arrastra tu currículum en PDF}}
+{arrastra su archivo \emph{CV.pdf} a la zona y lo suelta}
+{la zona muestra la barra de progreso de carga y, al finalizar, el nombre del archivo con un ícono verde \emph{PDF válido}; si el archivo no fuera PDF, se rechaza de inmediato con un mensaje de error visible junto a la zona.}
+{P3--P5 $\cdot$ RF-04, RF-16 $\cdot$ RSF10 $\cdot$ Pantalla S05}
+
+\historia{HU-05}{Registro y publicación de una oferta de empleo}
+{Analista de Selección}
+{completar los datos y requisitos de una oferta y publicarla directamente desde el formulario}
+{que la vacante quede visible para los postulantes y empiece a recibir postulaciones}
+{el reclutador está en el formulario \emph{Nueva oferta}, con el cargo, la descripción, los requisitos, la experiencia y la formación ya ingresados}
+{hace clic en el botón \emph{Publicar oferta}}
+{el sistema valida que los campos obligatorios estén completos, cambia el estado de la oferta a \emph{Publicada}, la muestra en el listado del postulante con el botón \emph{Postular} activo y confirma con el mensaje ``Oferta publicada''.}
+{P1 $\cdot$ RF-02, RF-14 $\cdot$ RSF05--RSF07 $\cdot$ Pantallas S02, S03}
+
+\historia{HU-06}{Inicio de sesión con redirección según el rol}
+{Postulante}
+{iniciar sesión con mi correo y contraseña y llegar directamente a mi panel}
+{acceder rápido a las funciones que me corresponden sin navegar entre opciones que no uso}
+{el usuario se encuentra en la pantalla de acceso con una cuenta registrada}
+{ingresa su correo y su contraseña y pulsa \emph{Iniciar sesión}}
+{el sistema lo redirige a su panel según el rol (ofertas disponibles para el postulante, panel de ofertas para el reclutador) y el menú lateral muestra solo las opciones de ese rol. \newline \textbf{Y} si las credenciales son incorrectas, muestra el mensaje ``Correo o contraseña incorrectos'' junto al formulario sin borrar el correo ingresado.}
+{Todas $\cdot$ RF-01, RF-13 $\cdot$ RSF02, RSF04 $\cdot$ RNF-05 $\cdot$ Pantalla S01}
+
+\historia{HU-07}{Registro de cuenta eligiendo el rol}
+{Postulante}
+{crear mi cuenta indicando mi rol en un formulario con validación en línea}
+{empezar a usar el sistema sin errores de registro ni datos incompletos}
+{el usuario está en el formulario de registro con los campos vacíos y el botón \emph{Registrar} deshabilitado}
+{completa nombre, correo y contraseña, y selecciona el rol \emph{Postulante}}
+{el botón \emph{Registrar} se habilita, el indicador de fortaleza refleja la contraseña ingresada y, al pulsarlo, el sistema crea la cuenta, muestra ``Cuenta creada'' y lleva al usuario al inicio de sesión.}
+{Todas $\cdot$ RF-11 $\cdot$ RSF01 $\cdot$ Pantalla S01}
+
+\historia{HU-08}{Envío de la postulación con confirmación}
+{Postulante}
+{revisar mi postulación y confirmar su envío en un modal una vez cargado mi CV}
+{tener la seguridad de que mi postulación quedó registrada para la oferta correcta}
+{el postulante abrió la postulación de una oferta publicada y cargó un currículum en PDF válido, por lo que el botón \emph{Enviar postulación} está habilitado}
+{pulsa \emph{Enviar postulación} y confirma en el modal de confirmación}
+{el sistema muestra la notificación ``Postulación registrada'' y agrega la postulación a \emph{Mis postulaciones} con su estado inicial. \newline \textbf{Y} si todavía no hay un CV válido, el botón permanece deshabilitado.}
+{P3--P5 $\cdot$ RF-15 $\cdot$ RSF09, RSF11 $\cdot$ Pantallas S04, S05}
+
+\historia{HU-09}{Seguimiento del estado de mi postulación}
+{Postulante}
+{consultar en una línea de progreso en qué etapa se encuentra mi postulación}
+{saber cómo avanza mi proceso sin tener que contactar al reclutador}
+{el postulante tiene una postulación en estado \emph{En revisión} y abre \emph{Mis postulaciones}}
+{el reclutador cambia el estado a \emph{Preseleccionado} y el postulante actualiza la vista}
+{la línea de progreso resalta la etapa \emph{Preseleccionado} y el texto de estado se actualiza con el nuevo valor.}
+{P4 $\cdot$ RF-10 $\cdot$ RSF12, RSF32 $\cdot$ Pantalla S11}
+
+\historia{HU-10}{Creación de un examen con tiempo límite}
+{Analista de Selección}
+{crear un examen vinculado a una oferta con sus preguntas, la alternativa correcta y un tiempo límite}
+{evaluar a los postulantes de esa vacante con una prueba estandarizada}
+{el reclutador está en el formulario \emph{Nuevo examen} con la oferta ya seleccionada}
+{agrega una pregunta con cuatro alternativas, marca la correcta y define un tiempo límite de 30 minutos}
+{el sistema permite guardar el examen y lo muestra en la lista \emph{Exámenes de la oferta} con su tiempo límite. \newline \textbf{Y} el botón \emph{Agregar pregunta} se deshabilita mientras una fila esté incompleta o no tenga alternativa correcta marcada.}
+{P1 $\cdot$ RF-06 $\cdot$ RSF17--RSF19 $\cdot$ Pantalla S07}
+
+\historia{HU-11}{Preselección con confirmación desde la ficha del postulante}
+{Analista de Selección}
+{ver la ficha completa del postulante y registrar mi decisión con una confirmación}
+{evitar decisiones accidentales y dejar constancia de quién avanza en el proceso}
+{el reclutador está en la ficha de un postulante con el CV, el resultado del examen y el puntaje cargados}
+{pulsa \emph{Preseleccionar} y confirma en el modal que describe la consecuencia de la decisión}
+{el estado del postulante pasa a \emph{Preseleccionado}, la fila cambia de color en la tabla, se registra la fecha de la decisión y el botón se deshabilita tras confirmar.}
+{P1 $\cdot$ RF-09, RF-20 $\cdot$ RSF27--RSF29 $\cdot$ RNF-14 $\cdot$ Pantallas S09, S10}
+
+\historia{HU-12}{Examen que conserva mis respuestas ante una caída de conexión}
+{Postulante}
+{que el examen conserve mis respuestas y me avise cuando pierdo la conexión}
+{no perder mi evaluación por problemas de red ajenos a mí}
+{el postulante está respondiendo el examen con el temporizador en curso y ya marcó varias alternativas}
+{la conexión a internet se interrumpe durante unos segundos}
+{aparece un aviso persistente ``Sin conexión: tus respuestas se guardan en este dispositivo'', el temporizador continúa y, al recuperar la conexión, el sistema sincroniza las respuestas y muestra ``Respuestas sincronizadas''.}
+{P5 $\cdot$ RF-07, RF-18 $\cdot$ RSF20, RSF21 $\cdot$ RNF-04, RNF-09 $\cdot$ Pantalla S08}
+
+\historia{HU-13}{Compatibilidad explicada con porcentaje, color y texto}
+{Jefe de Gestión Humana}
+{ver la compatibilidad de un candidato como porcentaje con un nivel en color y texto junto a su puntaje final}
+{entender por qué un candidato aparece primero y poder auditar la decisión}
+{el jefe de gestión humana abrió la ficha de un postulante cuyo examen ya fue calificado}
+{revisa la sección de resultados de la ficha}
+{la ficha muestra el porcentaje de compatibilidad CV--oferta con el nivel \emph{Alta}, \emph{Media} o \emph{Baja} (color y texto), la calificación del examen y el puntaje final, y todos se actualizan solos tras calificar.}
+{P2 $\cdot$ RF-19 $\cdot$ RSF22--RSF24 $\cdot$ RNF-02 $\cdot$ Pantallas S09, S10}
+
+%=====================================================%
+%   6. MATRIZ DE TRAZABILIDAD (RTM)                   %
+%=====================================================%
+\begin{landscape}
+\section{Matriz de trazabilidad de requisitos (RTM)}\label{sec:rtm}
+
+La matriz vincula cada requerimiento con el componente de interfaz que lo resuelve, usando la biblioteca \textbf{Flowbite} (Tailwind CSS) como catálogo de componentes. La Tabla~\ref{tab:rtmrf} traza los 20 RF hacia los RSF del sistema, las pantallas, las personas y las historias de usuario; la Tabla~\ref{tab:rtmrnf} traza los 15 RNF hacia el mecanismo de interfaz y su método de verificación. El estado \textit{Pendiente} indica que la validación se hará sobre el prototipo.
+
+\begingroup\footnotesize
+\begin{longtable}{>{\bfseries}p{1.2cm}p{1.9cm}p{1.6cm}p{1.4cm}p{4.6cm}p{8.5cm}p{2.0cm}p{1.8cm}}
+\caption{RTM de requisitos funcionales: requisito, RSF de origen, pantalla, persona, componente de UI (Flowbite), criterio de aceptación, historia de usuario y estado.}\label{tab:rtmrf}\\
+\hline
+\rowcolor{azul}\hdr{RF} & \hdr{RSF} & \hdr{Pantalla} & \hdr{Persona} & \hdr{Componente de UI} & \hdr{Criterio de aceptación de interfaz} & \hdr{HU} & \hdr{Estado} \\ \hline
+\endfirsthead
+\hline
+\rowcolor{azul}\hdr{RF} & \hdr{RSF} & \hdr{Pantalla} & \hdr{Persona} & \hdr{Componente de UI} & \hdr{Criterio de aceptación de interfaz} & \hdr{HU} & \hdr{Estado} \\ \hline
+\endhead
+\rtmrow{RF-01}{RSF02}{S01}{Todas}{Formulario \emph{Sign in} (Card) con Input, Button y Alert}{Al autenticar, redirige al panel según el rol; con credenciales incorrectas muestra el error junto al formulario y conserva el correo.}{HU-06}
+\rtmrow{RF-02}{RSF05, RSF06}{S03}{P1, P2}{Modal \emph{Nueva oferta} con Input, Textarea, Select y Button}{El botón \emph{Publicar} permanece deshabilitado hasta completar los campos obligatorios; al guardar, la oferta aparece en el listado con su código único.}{HU-05}
+\rtmrow{RF-03}{RSF08}{S04}{P3--P5}{Card de oferta con Badge y Button}{La lista muestra solo ofertas publicadas, con cargo, resumen de requisitos, fecha y botón \emph{Postular} activo en cada tarjeta.}{HU-08}
+\rtmrow{RF-04}{RSF10}{S05}{P3--P5}{File input (zona \emph{Dropzone}) con Progress y Alert}{Solo acepta PDF; muestra barra de progreso con \emph{Cancelar} y \emph{Reintentar}; al terminar, el nombre del archivo con ícono verde; otro formato se rechaza al instante con mensaje.}{HU-04}
+\rtmrow{RF-05}{RSF16}{S06}{P1}{Rejilla de dos paneles (Tabs en móvil) con Input, Badge y Toast}{Los paneles PDF y datos se muestran lado a lado; al guardar, el campo corregido se marca con verificación y aparece ``Cambios guardados'' sin recargar.}{HU-01}
+\rtmrow{RF-06}{RSF17--RSF19}{S07}{P1}{Formulario con Accordion de preguntas, Input, Radio y Button}{\emph{Agregar pregunta} se deshabilita si una fila queda incompleta o sin alternativa correcta; el campo de tiempo valida minutos $\geq$ 1.}{HU-10}
+\rtmrow{RF-07}{RSF21}{S08}{P3--P5}{Temporizador (Badge y Progress personalizados) con Alert}{El temporizador siempre visible pasa a rojo con 60 s o menos; a las 00:00 se bloquean las alternativas, se conservan las respuestas y aparece ``Tiempo agotado: tu examen fue enviado''.}{HU-02, HU-12}
+\rtmrow{RF-08}{RSF25, RSF26, RSF30}{S09}{P1, P2}{Table ordenable con Dropdown de filtro, Badge y Pagination}{Al pulsar \emph{Puntaje} reordena de mayor a menor; el filtro de compatibilidad reduce la lista y actualiza el contador; la insignia usa color y texto.}{HU-03}
+\rtmrow{RF-09}{RSF27}{S10}{P1, P2}{Card de ficha con Tabs, Badge, Progress y Button}{La ficha reúne datos del CV, resultado del examen, compatibilidad y puntaje; \emph{Preseleccionar} y \emph{Descartar} se habilitan solo con la ficha cargada.}{HU-11}
+\rtmrow{RF-10}{RSF12, RSF31, RSF32}{S10, S11}{P1, P3--P5}{Select de estado y Stepper (línea de progreso)}{Al elegir un estado se refleja de inmediato en la tabla y en la línea de progreso del postulante, que resalta la etapa vigente.}{HU-09}
+\rtmrow{RF-11}{RSF01}{S01}{Todas}{Formulario de registro con Input, Select de rol, Progress (fortaleza) y Button}{El selector muestra Reclutador y Postulante; \emph{Registrar} se deshabilita mientras falten campos obligatorios; al crear la cuenta muestra ``Cuenta creada''.}{HU-07}
+\rtmrow{RF-12}{RSF03}{S12}{Todas}{Formulario de perfil con Input, Button y Toast}{Al pulsar \emph{Guardar cambios} aparece ``Cambios guardados'' y los campos quedan en solo lectura.}{---}
+\rtmrow{RF-13}{RSF04}{Todas}{Todas}{Sidebar, Navbar y Drawer (móvil) con Avatar}{El menú muestra solo las opciones del rol activo, resalta la sección vigente y mantiene visible \emph{Cerrar sesión}, que vuelve a la pantalla de acceso.}{HU-06}
+\rtmrow{RF-14}{RSF05, RSF07}{S02}{P1, P2}{Dropdown de acciones, Badge de estado y Modal}{Al cambiar de estado la insignia pasa a \emph{Cerrada} (gris) y se oculta el botón \emph{Postular} de esa oferta; cada oferta muestra su código único.}{HU-05}
+\rtmrow{RF-15}{RSF09, RSF11}{S04, S05}{P3--P5}{Card de resumen, Button deshabilitable, Modal y Toast}{\emph{Enviar postulación} se deshabilita sin CV válido; al confirmar en el modal aparece ``Postulación registrada'' y la postulación queda en \emph{Mis postulaciones}.}{HU-08}
+\rtmrow{RF-16}{RSF13, RSF14}{S05, S06}{P1, P3--P5}{Spinner y Skeleton, Card por sección y Badge}{Al cargar el PDF se muestra ``Leyendo currículum\ldots'' con animación; las secciones no detectadas muestran ``No detectado'' en lugar de ocultarse.}{HU-04}
+\rtmrow{RF-17}{RSF15}{S12}{P4}{Formulario autocompletado con Input, Badge y Button}{Los campos del perfil se completan con los datos del CV, se marcan como autocompletados y queda disponible el botón \emph{Editar}.}{---}
+\rtmrow{RF-18}{RSF20}{S08}{P3--P5}{Radio en Card, Progress de avance, Button y Modal}{Las alternativas marcadas se resaltan y se guardan al instante; se muestra ``n de N respondidas''; \emph{Enviar examen} siempre visible y con modal de confirmación.}{HU-12}
+\rtmrow{RF-19}{RSF22--RSF24}{S09, S10}{P1, P2}{Badge de calificación, Progress de compatibilidad y Card de puntaje}{La compatibilidad se muestra en porcentaje con color y texto (Alta verde, Media amarillo, Baja rojo); el puntaje final se actualiza tras calificar el examen.}{HU-13}
+\rtmrow{RF-20}{RSF28, RSF29}{S10}{P1, P2}{Modal de confirmación, Button y fila de Table con Badge}{Al decidir, un modal pide confirmación; la fila cambia de color según la decisión, se muestra el resultado final con fecha y el botón se deshabilita tras confirmar.}{HU-11}
+\end{longtable}
+\endgroup
+
+\begingroup\footnotesize
+\begin{longtable}{>{\bfseries}p{1.4cm}p{6.8cm}p{3.0cm}p{9.4cm}p{1.8cm}}
+\caption{RTM de requisitos no funcionales: requisito, mecanismo de interfaz, pantallas afectadas, método de verificación y estado.}\label{tab:rtmrnf}\\
+\hline
+\rowcolor{azul}\hdr{RNF} & \hdr{Mecanismo de interfaz (Flowbite / Tailwind)} & \hdr{Pantallas} & \hdr{Método de verificación} & \hdr{Estado} \\ \hline
+\endfirsthead
+\hline
+\rowcolor{azul}\hdr{RNF} & \hdr{Mecanismo de interfaz (Flowbite / Tailwind)} & \hdr{Pantallas} & \hdr{Método de verificación} & \hdr{Estado} \\ \hline
+\endhead
+RNF-01 & Skeleton y paginación & S02, S04, S09, S11 & Medir con las herramientas de desarrollo del navegador, con red limitada: esqueleto en menos de 200 ms y datos en menos de 3 s. & \est \\ \hline
+RNF-02 & Tokens de color con contraste verificado; Badge con ícono y texto & Todas & Auditoría de contraste (mínimo 4.5:1) y revisión de la interfaz en escala de grises. & \est \\ \hline
+RNF-03 & Rejilla responsiva de Tailwind, Drawer y Tabs & Todas & Prueba a 360, 768 y 1366 px de ancho sin desplazamiento horizontal. & \est \\ \hline
+RNF-04 & Temporizador sincronizado con la hora del servidor & S08 & Cambiar de pestaña 60 s y recargar: desviación máxima de 1 s y envío en menos de 3 s. & \est \\ \hline
+RNF-05 & Texto de ayuda, Alert e ícono junto al campo & S01, S03, S05, S12 & Provocar cinco errores típicos: mensaje en menos de 1 s y datos conservados. & \est \\ \hline
+RNF-06 & Archivo de configuración de Tailwind con los tokens y uso exclusivo de componentes Flowbite & Todas & Inspección de las pantallas contra la biblioteca: ningún componente fuera del sistema. & \est \\ \hline
+RNF-07 & Skeleton, Card de estado vacío, Alert de error y Banner de aviso parcial & S02, S04, S09, S11 & Lista de comprobación de 5 estados por pantalla principal (5/5). & \est \\ \hline
+RNF-08 & Estado de botón presionado, Spinner y Toast & Todas & Cronometrar la respuesta visual (100 ms) y el aviso de finalización (1 s). & \est \\ \hline
+RNF-09 & Banner de conexión (Alert persistente), almacenamiento local y cola de reenvío & S05, S06, S08 & Simular 60 s sin conexión durante un examen y una carga de CV: cero respuestas perdidas. & \est \\ \hline
+RNF-10 & Tamaño de botones y separación de 8 px & S04, S05, S08 & Revisión en un dispositivo de 360 px: todo control mide 44$\times$44 px o más. & \est \\ \hline
+RNF-11 & Anillo de foco visible, orden de tabulación y etiquetas de acceso & Todas & Recorrer con teclado los flujos HU-06, HU-04 y HU-02 sin usar el ratón. & \est \\ \hline
+RNF-12 & Componentes estándar sin estilos específicos de un navegador & Todas & Ejecutar los flujos críticos en Chrome, Edge y Firefox sin diferencias funcionales. & \est \\ \hline
+RNF-13 & Toggle de tema (modo oscuro de Flowbite) y escala tipográfica & Todas & Verificar tamaño base de 16 px y contraste 4.5:1 en tema claro y oscuro. & \est \\ \hline
+RNF-14 & Modal de confirmación y validación en línea de los Input & S08, S10, S02 & Intentar una acción de alto impacto sin confirmar: no se ejecuta. & \est \\ \hline
+RNF-15 & Input de contraseña con botón de mostrar, Modal de aviso de sesión & S01, Todas & Probar por rol que no se muestren datos ajenos y que el aviso aparezca 60 s antes de expirar. & \est \\ \hline
+\end{longtable}
+\endgroup
+\end{landscape}

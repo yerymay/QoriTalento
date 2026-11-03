@@ -1,0 +1,24 @@
+flowchart TD
+    GOV["M00 Gobernanza / ADR / bloqueos"] --> INF["M00 Infraestructura y contratos"]
+    INF --> U["M01 Usuarios"]
+    U --> J["M02 Ofertas"]
+    J --> A["M03 Borrador de postulación y PDF"]
+    A --> C["M04 Extracción clásica y confirmación"]
+    C --> AS["M03 Envío definitivo"]
+    AS --> EX["M05 Exámenes"]
+    EX --> GRADE["M06 Nota objetiva"]
+    C --> AI["M06 IA/Ollama: puntaje explicado"]
+    GRADE --> AI
+    AI --> SEL["M07 Resultados y decisión humana"]
+    AS --> TRACK["M08 Seguimiento"]
+    SEL --> TRACK
+    TRACK --> Q["V00 Pruebas y salida"]
+    INF --> UI["UI Flowbite / Sky / 5 estados por región"]
+    UI --> Q
+    B03{"B-03/B-09 identidad"} -.-> U
+    B01{"B-01/B-02 ofertas"} -.-> J
+    B04{"B-04 PDF"} -.-> A
+    B05{"B-05 intentos"} -.-> EX
+    B06{"B-06 rúbrica IA"} -.-> AI
+    B08{"B-08 transiciones"} -.-> SEL
+    B08 -.-> TRACK

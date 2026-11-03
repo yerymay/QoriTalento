@@ -1,0 +1,11 @@
+flowchart LR
+    User[Usuarios: candidato / reclutador] -->|HTTPS| Proxy[Proxy de entrada]
+    Proxy --> Astro[Astro: SSR + componentes interactivos]
+    Proxy --> API[Express: API /api/v1]
+    Astro -->|mismo origen| API
+    API --> DB[(MySQL InnoDB)]
+    API --> PDFs[(PDF privados)]
+    API --> Worker[Worker interno]
+    Worker --> DB
+    Worker --> Ollama[Ollama local: qwen2.5:7b-instruct]
+    API --> Provider[Proveedores correo/SMS por definir]

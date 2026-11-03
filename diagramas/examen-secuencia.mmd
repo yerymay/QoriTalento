@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant C as Candidato (Astro)
+    participant A as Express API
+    participant D as MySQL (hora UTC)
+    participant W as Worker (expiración)
+    C->>A: POST iniciar intento
+    A->>D: Transacción: crear intento y deadline UTC
+    D-->>A: attempt_id, server_now, deadline
+    A-->>C: Estado EN_PROGRESO + deadline
+    C->>A: PUT respuesta con revisión
+    A->>D: Lock intento + comprobar UTC_TIMESTAMP < deadline
+    alt Antes del plazo
+       D-->>A: Guardado y revisión confirmados
+       A-->>C: 200 accepted_at
+    else Vencido o cerrado
+       D-->>A: Rechazado
+       A-->>C: 410 EXAM_EXPIRED
+    end
+    W->>D: Conciliar intentos expirados
+    C->>A: Reanudar / consultar
+    A->>D: Consultar intento y respuestas aceptadas
+    D-->>A: Tiempo restante o expirado
+    A-->>C: Estado de intento y respuestas aceptadas
