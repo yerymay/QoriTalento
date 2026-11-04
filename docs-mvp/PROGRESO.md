@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-04):** infraestructura verificada contra MariaDB local; Etapa 0 completada. Base M01 implementada y comprobada, con activación pendiente de B-03. M02 implementado en su alcance habilitado (borradores, edición, publicación/cierre de empresa y consulta); publicación particular pendiente de B-01/B-02. M03-M08 y validación IHC integral siguen pendientes.
+**Estado actual (2026-11-04):** infraestructura verificada contra MariaDB local; Etapa 0 completada. Base M01 implementada y comprobada; en desarrollo el registro permite iniciar sesión de inmediato, mientras que en producción la activación sigue pendiente de B-03. M02 implementado en su alcance habilitado (borradores, edición, publicación/cierre de empresa y consulta); publicación particular pendiente de B-01/B-02. M03-M08 y validación IHC integral siguen pendientes.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -147,7 +147,19 @@ Estado de requisitos:
 - [x] RSF05, RSF06 y RSF08 implementados y comprobados.
 - [ ] RSF07/M02 completo: edición y publicación/cierre de empresa implementados; publicación de particulares sigue bloqueada por B-01/B-02. La recepción de postulaciones y su rechazo en ofertas cerradas corresponde a M03, aún no implementado.
 - [ ] UI-RF-02, UI-RF-03 y UI-RF-14 no se declaran completos: las transiciones usan acciones explícitas, no un selector arbitrario; el acceso a gestión se hace desde cada fila y Postular depende de M03.
-- [ ] B-03 sigue pendiente: cuentas nuevas permanecen inactivas y no pueden iniciar sesión. No se añadieron OTP ni rutas de activación.
+- [ ] B-03 sigue pendiente: en producción las cuentas nuevas permanecen inactivas y no pueden iniciar sesión. No se añadieron OTP ni rutas de activación. En desarrollo se permite iniciar sesión con cuentas recién registradas como comodidad local.
 - [ ] Validación IHC integral con usuarios reales, todos los navegadores, dispositivos físicos y auditoría formal de accesibilidad continúa pendiente.
 
 Guía de ejecución y contrato: [M02-OFERTAS.md](M02-OFERTAS.md).
+
+## Evidencia - Acceso inmediato en desarrollo (2026-11-04)
+
+- Cambio: `active()` permite cuentas `PENDING_VERIFICATION` solo con `NODE_ENV=development`; sigue bloqueando `DISABLED` y roles inválidos. El registro responde "Cuenta creada. Ya puedes iniciar sesión." en desarrollo.
+- Alcance: comodidad local para probar registro e inicio de sesión de postulante y reclutador. No implementa B-03, OTP, activación real ni rol administrador. En producción el comportamiento no cambia.
+- Archivos: Backend/src/modules/auth/services/auth.service.ts; Backend/tests/auth.test.ts; Frontend/src/modules/auth/components/{Acceso,Registro}.astro; Backend/openapi-implemented.yaml; README-COMENZAR.md; docs-mvp/PROGRESO.md.
+- Pruebas ejecutadas:
+  - Backend: `npm run check` (OK); `npm test` (44 aprobadas, 2 omitidas; auth 14/14); `npm run build` (OK).
+  - Frontend: `npm run check` (0 errores, 0 warnings, 0 hints); `npm run build` (9 rutas).
+- Resultado: en desarrollo, postulante y reclutador pueden registrarse e iniciar sesión de inmediato; en entorno de pruebas/producción el login de cuentas pendientes sigue devolviendo 403.
+- Problemas abiertos: B-03 sigue pendiente; la cuenta permanece `PENDING_VERIFICATION` en la base aunque el login se permita en desarrollo. No se repitió el login real en navegador en esta tarea.
+Estado: [x] Comodidad de desarrollo implementada / [ ] B-03 pendiente

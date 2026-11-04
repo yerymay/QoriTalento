@@ -255,7 +255,7 @@ components:
         application/json:
           schema: {$ref: '#/components/schemas/Error'}
     Registered:
-      description: Cuenta persistida e inactiva hasta verificación; no inicia sesión ni envía OTP.
+      description: Cuenta persistida. En producción queda inactiva hasta verificación; en desarrollo (NODE_ENV=development) se permite iniciar sesión para pruebas. No envía OTP.
       content:
         application/json:
           schema:
@@ -301,7 +301,7 @@ paths:
   /auth/candidates/register:
     post:
       tags: [Auth]
-      summary: Registrar postulante inactivo
+      summary: Registrar postulante (inactivo en producción)
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true
@@ -319,7 +319,7 @@ paths:
   /auth/recruiters/register:
     post:
       tags: [Auth]
-      summary: Registrar reclutador de empresa o particular inactivo
+      summary: Registrar reclutador de empresa o particular (inactivo en producción)
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true
@@ -342,7 +342,8 @@ paths:
         Cookie de navegador HttpOnly, SameSite=Strict, Path=/api; Secure en producción.
         Token aleatorio de 256 bits; solo su hash se guarda en MySQL.
         Caducidad por inactividad configurable con SESSION_IDLE_MINUTES (30 en desarrollo).
-        Sin cuentas activadas por la aplicación mientras B-03 siga pendiente.
+        En producción, sin cuentas activadas por la aplicación mientras B-03 siga pendiente;
+        en desarrollo se permite el acceso para pruebas.
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true

@@ -1,4 +1,4 @@
-﻿import { beforeAll, describe, expect, it } from 'vitest';
+﻿import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
 import { AppError } from '../src/shared/errors.js';
@@ -47,11 +47,25 @@ const client=(app: ReturnType<typeof createApp>)=>({
 });
 const cookie=(response:request.Response)=>response.headers['set-cookie'][0].split(';')[0];
 describe('M01: API, autenticación y permisos',()=>{
+  afterEach(()=>vi.unstubAllEnvs());
   it('registra postulante inactivo, normaliza correo y nunca devuelve el hash',async()=>{
     const {app,repo}=setup();const res=await client(app).post('/api/v1/auth/candidates/register',{...candidate,email:' NUEVO@EXAMPLE.TEST '});
     expect(res.status).toBe(201);expect(res.body.user.email).toBe('nuevo@example.test');expect(res.body.user.account_state).toBe('PENDING_VERIFICATION');
     expect(res.body.user.password_hash).toBeUndefined();expect(repo.users[1].password_hash).toMatch(/^scrypt\$/);expect(repo.users[1].password_hash).not.toContain(candidate.password);
     expect((await client(app).post('/api/v1/auth/login',{email:candidate.email,password:candidate.password})).status).toBe(403);
+  });
+  it('en desarrollo permite entrar con cuentas recién registradas',async()=>{
+    vi.stubEnv('NODE_ENV','development');const {app}=setup();
+    const postulante=await client(app).post('/api/v1/auth/candidates/register',candidate);
+    expect(postulante.status).toBe(201);expect(postulante.body.message).toContain('Ya puedes iniciar sesión');
+    expect((await client(app).post('/api/v1/auth/login',{email:candidate.email,password:candidate.password})).status).toBe(200);
+    const reclutador={...candidate,email:'reclutador@example.test',kind:'INDIVIDUAL',phone:'+51 999 888 777'};
+    expect((await client(app).post('/api/v1/auth/recruiters/register',reclutador)).status).toBe(201);
+    expect((await client(app).post('/api/v1/auth/login',{email:reclutador.email,password:reclutador.password})).status).toBe(200);
+  });
+  it('en desarrollo sigue bloqueando cuentas desactivadas',async()=>{
+    vi.stubEnv('NODE_ENV','development');const {app,repo}=setup();repo.users[0].account_state='DISABLED';
+    expect((await client(app).post('/api/v1/auth/login',credentials)).status).toBe(403);
   });
   it('rechaza correo duplicado y payloads inválidos sin elevar privilegios',async()=>{
     const {app}=setup();

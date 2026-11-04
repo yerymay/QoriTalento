@@ -39,10 +39,16 @@ export class AuthService {
     if (kind === 'COMPANY') corporate(address);
     if (kind === 'INDIVIDUAL' && !contact) throw new AppError(400, 'PHONE_REQUIRED', 'El reclutador particular necesita un teléfono.');
     const user = await this.repo.createUser({name, email: address, phone: contact, role, kind: kind as User['kind'], password_hash: await hashPassword(body.password)});
-    return { user: publicUser(user), message: 'Cuenta registrada. La activación está pendiente de verificación; todavía no puedes iniciar sesión.' };
+    const message = process.env.NODE_ENV === 'development'
+      ? 'Cuenta creada. Ya puedes iniciar sesión.'
+      : 'Cuenta registrada. La activación está pendiente de verificación; todavía no puedes iniciar sesión.';
+    return { user: publicUser(user), message };
   }
   private active(user: User) {
-    if (user.account_state !== 'ACTIVE' || !user.email_verified || (user.role === 'RECRUITER' && (!user.kind || (user.kind === 'INDIVIDUAL' && !user.phone_verified)))) throw new AppError(403, 'ACCOUNT_INACTIVE', 'Tu cuenta está pendiente de verificación o no está activa.');
+    if (user.account_state === 'DISABLED') throw new AppError(403, 'ACCOUNT_INACTIVE', 'Tu cuenta está desactivada.');
+    // Comodidad local: en desarrollo se permite entrar sin verificación previa (B-03 sigue pendiente).
+    const development = process.env.NODE_ENV === 'development';
+    if (!development && (user.account_state !== 'ACTIVE' || !user.email_verified || (user.role === 'RECRUITER' && (!user.kind || (user.kind === 'INDIVIDUAL' && !user.phone_verified))))) throw new AppError(403, 'ACCOUNT_INACTIVE', 'Tu cuenta está pendiente de verificación o no está activa.');
     if (user.role !== 'CANDIDATE' && user.role !== 'RECRUITER') throw new AppError(403, 'FORBIDDEN', 'Tu cuenta no tiene un rol permitido.');
   }
   async login(input: unknown) {
