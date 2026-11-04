@@ -1,0 +1,39 @@
+---
+import Campo from '../../auth/components/Campo.astro';
+---
+<div data-job-editor hidden class="space-y-5">
+  <a href="/reclutador/ofertas" class="q-link">Volver a mis ofertas</a>
+  <div data-individual-note class="q-notice" hidden>Puedes crear y editar tus borradores. La publicación para reclutadores particulares aún no está disponible.</div>
+  <form data-job-form class="q-card p-5 sm:p-7">
+    <fieldset data-job-fields class="min-w-0 space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3"><h2 class="text-xl font-semibold">Información de la oferta</h2><span data-editor-status class="q-job-badge" data-status="DRAFT">Borrador</span></div>
+      <p class="max-w-prose text-slate-600 dark:text-slate-300">Empieza por el cargo y guarda tu avance. Para publicar, añade una descripción y al menos un requisito. Los campos con * son obligatorios.</p>
+      <div class="grid gap-5 md:grid-cols-2">
+        <Campo id="title" label="Cargo" required min={1} max={180} />
+        <Campo id="area" label="Área (opcional)" max={120} />
+      </div>
+      <div class="space-y-2"><label for="description" class="block font-medium">Descripción del puesto</label><textarea id="description" name="description" rows="5" maxlength="10000" class="q-input" aria-describedby="description-help"></textarea><p id="description-help" class="text-slate-600 dark:text-slate-300">Describe las funciones, condiciones y lo que ofrece el puesto.</p></div>
+      <div class="space-y-2"><label for="requirements" class="block font-medium">Requisitos y habilidades</label><textarea id="requirements" name="requirements" rows="5" maxlength="50049" class="q-input" aria-describedby="requirements-help"></textarea><p id="requirements-help" class="text-slate-600 dark:text-slate-300">Escribe un requisito por línea. Hasta 50 requisitos de 1000 caracteres cada uno.</p></div>
+      <div class="grid gap-5 md:grid-cols-2">
+        <div class="space-y-2"><label for="experience_required" class="block font-medium">Experiencia requerida (opcional)</label><textarea id="experience_required" name="experience_required" rows="3" maxlength="2000" class="q-input" placeholder="Por ejemplo: sin experiencia previa"></textarea></div>
+        <div class="space-y-2"><label for="education_required" class="block font-medium">Formación académica (opcional)</label><textarea id="education_required" name="education_required" rows="3" maxlength="2000" class="q-input" placeholder="Por ejemplo: estudios técnicos en Sistemas"></textarea></div>
+      </div>
+      <Campo id="location" label="Ubicación y modalidad (opcional)" max={180} />
+      <div class="flex flex-wrap items-center gap-3 border-t border-slate-200 pt-5 dark:border-slate-700">
+        <button data-save-job class="q-primary" type="submit">Guardar borrador</button>
+        <button data-discard-job class="q-secondary" type="button">Descartar cambios</button>
+        <p data-dirty-message role="status" class="text-slate-600 dark:text-slate-300">Sin cambios pendientes.</p>
+      </div>
+    </fieldset>
+  </form>
+  <section data-publication class="q-card space-y-4 p-5 sm:p-7" hidden aria-labelledby="publication-title">
+    <div class="flex flex-wrap items-center justify-between gap-3"><h2 id="publication-title" class="text-xl font-semibold">Publicación</h2><span data-job-id class="text-slate-600 dark:text-slate-300"></span></div>
+    <p data-publication-help class="max-w-prose leading-relaxed text-slate-600 dark:text-slate-300"></p>
+    <div class="flex flex-wrap gap-3"><button data-publish-job type="button" class="q-primary" hidden>Publicar oferta</button><button data-close-job type="button" class="q-secondary" hidden>Cerrar oferta</button></div>
+  </section>
+</div>
+<dialog data-job-confirm aria-labelledby="job-confirm-title" aria-describedby="job-confirm-text" class="q-job-dialog m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+  <h2 id="job-confirm-title" class="text-xl font-semibold"></h2>
+  <p id="job-confirm-text" class="my-5 break-words leading-relaxed"></p>
+  <form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary" autofocus>Cancelar</button><button data-job-confirm-action value="confirm" class="q-primary">Confirmar</button></form>
+</dialog>

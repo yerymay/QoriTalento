@@ -1,3 +1,6 @@
+import { createOfertasRoutes } from './modules/ofertas/routes/ofertas.routes.js';
+import type { OfertasRepository } from './modules/ofertas/repositories/ofertas.repository.js';
+import { AuthService } from './modules/auth/services/auth.service.js';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -11,7 +14,7 @@ import { env } from './config/env.js';
 import { createSystemRoutes } from './modules/system/routes/system.routes.js';
 import type { SystemRepository } from './modules/system/repositories/system.repository.js';
 
-export function createApp(repository: SystemRepository, authRepository?: AuthRepository) {
+export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -22,6 +25,8 @@ export function createApp(repository: SystemRepository, authRepository?: AuthRep
 
   app.use(express.json({ limit: '100kb' }));
   if (authRepository) app.use('/api/v1', createAuthRoutes(authRepository, { idleMinutes: env.sessionIdleMinutes, secure: env.nodeEnv === 'production' }));
+
+  if (authRepository && ofertasRepository) app.use('/api/v1', createOfertasRoutes(ofertasRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
 
   const { controller } = createSystemRoutes(repository);
   app.get('/health', controller.health);

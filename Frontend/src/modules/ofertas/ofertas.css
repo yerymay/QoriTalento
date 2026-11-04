@@ -1,0 +1,17 @@
+@reference "../../styles/global.css";
+@layer components {
+  .q-job-row { @apply grid min-w-0 items-center gap-3 xl:grid-cols-[minmax(0,1fr)_8rem_10rem_7.5rem]; }
+  .q-job-badge { @apply inline-block max-w-full break-words rounded-md bg-slate-100 px-3 py-1 font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200; }
+  .q-job-badge[data-status="DRAFT"] { @apply bg-sky-100 text-sky-900 dark:bg-sky-950 dark:text-sky-200; }
+  .q-job-badge[data-status="PUBLISHED"] { @apply bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200; }
+}
+.q-ofertas { overflow-wrap: anywhere; }
+.q-ofertas textarea { resize: vertical; }
+.q-ofertas textarea::placeholder { color: var(--color-slate-600); }
+:root.dark .q-ofertas input::placeholder, :root.dark .q-ofertas textarea::placeholder { color: var(--color-slate-300); }
+.q-nav[aria-current="page"] { background: var(--color-sky-50); color: var(--color-sky-800); }
+:root.dark .q-nav[aria-current="page"] { background: var(--color-sky-950); color: var(--color-sky-200); }
+.q-ofertas button:active:focus-visible { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .q-ofertas .q-primary, .q-ofertas .q-secondary { transition: none; transform: none; }
+}

@@ -17,10 +17,10 @@
 
 ### Módulo 02 — Ofertas laborales
 
-- [ ] **RSF05 — Registro de oferta de empleo.** El sistema debe permitir al reclutador crear una oferta de empleo, generando un registro único que la identifica frente al resto de ofertas del sistema.
-- [ ] **RSF06 — Registro de datos y requisitos de la oferta.** El sistema debe permitir ingresar el cargo, la descripción, los requisitos, la experiencia y la formación exigidos, así como las demás condiciones de la oferta. Estos campos alimentan la comparación con el currículum del postulante.
+- [x] **RSF05 — Registro de oferta de empleo.** El sistema debe permitir al reclutador crear una oferta de empleo, generando un registro único que la identifica frente al resto de ofertas del sistema.
+- [x] **RSF06 — Registro de datos y requisitos de la oferta.** El sistema debe permitir ingresar el cargo, la descripción, los requisitos, la experiencia y la formación exigidos, así como las demás condiciones de la oferta. Estos campos alimentan la comparación con el currículum del postulante.
 - [ ] **RSF07 — Publicación, edición y cierre de la oferta.** El sistema debe permitir modificar una oferta en cualquier momento y cambiar su estado entre borrador, publicada y cerrada. Una oferta cerrada deja de recibir postulaciones.
-- [ ] **RSF08 — Visualización de ofertas disponibles.** El sistema debe mostrar al postulante el listado de ofertas que se encuentran publicadas, con la información principal de cada una para que pueda decidir a cuál postular.
+- [x] **RSF08 — Visualización de ofertas disponibles.** El sistema debe mostrar al postulante el listado de ofertas que se encuentran publicadas, con la información principal de cada una para que pueda decidir a cuál postular.
 
 ### Módulo 03 — Postulaciones y archivos PDF
 

@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-03):** infraestructura instalada y verificada contra MariaDB 12.2.2 en `127.0.0.1:3306`; Etapa 0 completada. Base de M01 implementada y comprobada (registro inactivo, sesiones, perfil y control de rol). La activación sigue pendiente de B-03; M02–M08 y la validación IHC siguen pendientes.
+**Estado actual (2026-11-04):** infraestructura verificada contra MariaDB local; Etapa 0 completada. Base M01 implementada y comprobada, con activación pendiente de B-03. M02 implementado en su alcance habilitado (borradores, edición, publicación/cierre de empresa y consulta); publicación particular pendiente de B-01/B-02. M03-M08 y validación IHC integral siguen pendientes.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -18,7 +18,7 @@
 ## Implementación funcional por módulos
 
 - [ ] M01: usuarios, registro, inicio/cierre, perfiles y permisos. Base implementada y comprobada; activación de cuentas pendiente de B-03. Ver evidencia a continuación.
-- [ ] M02: ofertas, requisitos, edición y publicación conforme a reglas aprobadas.
+- [ ] M02: base de ofertas, requisitos, edición y publicación/cierre de empresa implementada y comprobada; publicación particular pendiente de B-01/B-02. Ver evidencia M02.
 - [ ] M03: postular a ofertas y adjuntar CV PDF.
 - [ ] M04: extraer PDF con texto, revisar y confirmar perfil.
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
@@ -104,3 +104,50 @@ Captura/enlace local: capturas de revisión local de /login, /registro y /perfil
 Problemas abiertos: B-03 (proveedor, caducidad, reintentos y activación por correo/SMS); cuentas recién registradas permanecen inactivas y no pueden iniciar sesión. Los paneles de ofertas son puntos de llegada de M01, no implementan ofertas de M02. Falta validación IHC integral en navegadores y usuarios reales; no se marcan requisitos completos que dependen de ella o de módulos posteriores.
 Estado: [x] Base M01 implementada y probada / [ ] M01 completo por B-03
 ```
+
+## Evidencia - M02 ofertas (2026-11-04)
+
+- Alcance implementado: crear borradores con código único; guardar cargo, descripción, área, ubicación/modalidad, experiencia, formación y requisitos ordenados; editar ofertas propias; publicar borradores de empresa; cerrar publicadas; buscar/paginar y consultar ofertas publicadas como postulante.
+- Arquitectura: controllers → services → interfaces de repositorio → persistencia MySQL. Composición en server.ts y montaje en app.ts. Sesión activa y rol en las ocho operaciones; propiedad individual en consultas y mutaciones. Compartir empresa no concede permisos.
+- Integridad: SQL parametrizado; oferta y requisitos en una transacción; bloqueo de la oferta para editar/publicar/cerrar; errores controlados con request_id. Estado y propietario no se aceptan en formularios. Publicación/cierre repetidos son idempotentes; no hay reapertura ni estados arbitrarios.
+- Frontend: cinco rutas M02, componentes y servicio en modules/ofertas, marco compartido de M01. Sky/Inter, Tailwind v4 + Flowbite, claro/oscuro, carga inmediata, vacío, parcial, error y contenido. Búsqueda, filtros, confirmaciones, recuperación sin perder el formulario y protección de cambios ante salida voluntaria. Expiración limpia la sesión y oculta contenido privado.
+- Referencias consultadas: Figma eoMSNdb9Cl0OmQU6BqKuZD, nodos 11107:1243, 11107:1886, 11107:6848 y 11107:7307. Se usaron como guía, conservando componentes/tokens existentes y eliminando controles de demostración y navegación fuera de alcance. Skills Impeccable y Emil Kowalski aplicadas de forma complementaria.
+- Archivos: Backend/src/modules/ofertas/**; Backend/src/{app,server}.ts; Backend/openapi-implemented.yaml; Backend/tests/{ofertas.test,ofertas.mysql.test,migrate-ofertas}.ts; database/03_job_details.sql; Frontend/src/modules/ofertas/**; Frontend/src/modules/auth/{workspace.ts,components/Espacio.astro}; Frontend/src/pages/{reclutador,postulante}/*oferta*.astro; Frontend/tests/ofertas.browser.mjs.
+
+Comprobaciones ejecutadas:
+
+```powershell
+# Desde Backend/
+npm.cmd run check
+npm.cmd test
+npm.cmd run build
+npx.cmd tsx tests/migrate-ofertas.ts
+$env:TEST_MYSQL='1'
+npx.cmd vitest run tests/ofertas.mysql.test.ts
+
+# Desde Frontend/
+npm.cmd run check
+npm.cmd run build
+# Con Astro en 127.0.0.1:4321
+node tests/ofertas.browser.mjs
+```
+
+Resultados:
+
+- Backend: check y build correctos; 42 pruebas aprobadas (26 M02, 12 auth, 4 system). Las dos pruebas MySQL optativas se omiten en la suite habitual.
+- Integración MySQL optativa M02: 1 prueba aprobada contra la base local real. Comprueba persistencia de todos los campos, aislamiento por propietario, búsqueda literal/paginación, visibilidad de publicadas, bloqueo de particular, cierre, reversión completa tras fallo SQL y actualizaciones concurrentes sin perder campos. Solo crea/activa/elimina sus propios fixtures; no implementa activación de usuarios.
+- Migración: area y location ya existían en la base local al comprobarla; el ejecutor no realizó ALTER. Para instalaciones nuevas es necesario aplicar 03_job_details.sql después de 01_schema.sql y 02_auth_sessions.sql. El ejecutor detecta migración completa o parcial.
+- Frontend: Astro check con 0 errores, 0 warnings y 0 hints; build estático de 9 rutas correcto.
+- Navegador Chrome automatizado: API sintética, sin alterar cuentas/ofertas reales. Crear, editar, conservar datos al fallar, publicar/cancelar/cerrar con confirmación, búsqueda/filtros, borrador incompleto, bloqueo particular, detalle no disponible, información parcial, carga, vacío, error/reintento, tema oscuro, menú móvil, descarte confirmado, cierre voluntario con cambios y expiración. Sin errores JavaScript ni desbordamiento horizontal en las vistas capturadas a 1440 y 390 px.
+- Evidencia visual local (ignorada por git): .impeccable/review/m02-*.png (7 capturas) y m02-browser-result.json. No es una prueba de sesión real de extremo a extremo en navegador: la integración real de persistencia se prueba por separado.
+- Detector Impeccable ejecutado una vez: aviso de color base en badge, revisado como sobrescrito por el color de estado. Revisión independiente final: disposición ship en el alcance de código/capturas suministradas. Se corrigieron contraste de placeholder oscuro y pérdida de cambios al cerrar sesión. Se conservó la identidad visual existente, sin cambiar el sistema de diseño.
+
+Estado de requisitos:
+
+- [x] RSF05, RSF06 y RSF08 implementados y comprobados.
+- [ ] RSF07/M02 completo: edición y publicación/cierre de empresa implementados; publicación de particulares sigue bloqueada por B-01/B-02. La recepción de postulaciones y su rechazo en ofertas cerradas corresponde a M03, aún no implementado.
+- [ ] UI-RF-02, UI-RF-03 y UI-RF-14 no se declaran completos: las transiciones usan acciones explícitas, no un selector arbitrario; el acceso a gestión se hace desde cada fila y Postular depende de M03.
+- [ ] B-03 sigue pendiente: cuentas nuevas permanecen inactivas y no pueden iniciar sesión. No se añadieron OTP ni rutas de activación.
+- [ ] Validación IHC integral con usuarios reales, todos los navegadores, dispositivos físicos y auditoría formal de accesibilidad continúa pendiente.
+
+Guía de ejecución y contrato: [M02-OFERTAS.md](M02-OFERTAS.md).

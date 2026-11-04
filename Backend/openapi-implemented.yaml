@@ -1,11 +1,11 @@
 ﻿openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
-  version: 0.2.0
+  version: 0.3.0
   description: >-
-    Sistema y M01 básico. Registro persistente e inactivo, sesiones y perfil propio.
-    Activación y OTP pendientes de B-03: no se implementan rutas de verificación.
-    Las rutas de ofertas y otros módulos del contrato planeado no están implementadas.
+    Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
+    Activación y OTP pendientes de B-03. Publicación de particulares y moderación
+    pendientes de B-01/B-02. Los módulos M03-M08 todavía no están implementados.
 servers:
   - url: /api/v1
 components:
@@ -76,6 +76,176 @@ components:
       properties:
         user: {$ref: '#/components/schemas/User'}
         expires_at: {type: string, format: date-time}
+    JobInput:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          maxLength: 10000
+          default: ""
+        requirements:
+          type: array
+          maxItems: 50
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - description
+            properties:
+              description:
+                type: string
+                minLength: 1
+                maxLength: 1000
+        area:
+          type: string
+          nullable: true
+          maxLength: 120
+        location:
+          type: string
+          nullable: true
+          maxLength: 180
+        experience_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+        education_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+    JobPatch:
+      type: object
+      additionalProperties: false
+      minProperties: 1
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          maxLength: 10000
+          default: ""
+        requirements:
+          type: array
+          maxItems: 50
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - description
+            properties:
+              description:
+                type: string
+                minLength: 1
+                maxLength: 1000
+        area:
+          type: string
+          nullable: true
+          maxLength: 120
+        location:
+          type: string
+          nullable: true
+          maxLength: 180
+        experience_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+        education_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+    PublishedJob:
+      type: object
+      required:
+        - title
+        - description
+        - requirements
+        - area
+        - location
+        - experience_required
+        - education_required
+        - id
+        - status
+        - published_at
+        - closed_at
+        - created_at
+        - updated_at
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        description:
+          type: string
+          maxLength: 10000
+          default: ""
+        requirements:
+          type: array
+          maxItems: 50
+          default: []
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - description
+            properties:
+              description:
+                type: string
+                minLength: 1
+                maxLength: 1000
+        area:
+          type: string
+          nullable: true
+          maxLength: 120
+        location:
+          type: string
+          nullable: true
+          maxLength: 180
+        experience_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+        education_required:
+          type: string
+          nullable: true
+          maxLength: 2000
+        id:
+          type: string
+        status:
+          type: string
+          description: DRAFT, PUBLISHED o CLOSED; estados heredados desconocidos no admiten cambios.
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    OwnedJob:
+      allOf:
+        - $ref: "#/components/schemas/PublishedJob"
+        - type: object
+          required:
+            - owner_user_id
+          properties:
+            owner_user_id:
+              type: string
   responses:
     Error:
       description: Error controlado; el código y mensaje indican el motivo. No incluye información interna.
@@ -274,3 +444,390 @@ paths:
         '409': {$ref: '#/components/responses/Error'}
         '413': {$ref: '#/components/responses/Error'}
         '503': {$ref: '#/components/responses/Error'}
+  /jobs:
+    get:
+      tags:
+        - Ofertas
+      summary: Listar ofertas publicadas para el postulante
+      description: Sesión activa del rol correspondiente. No admite user_id ni owner_user_id como filtros. Respuestas sin
+        caché; lista vacía válida.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 180
+          description: Texto literal en cargo, descripción o ubicación; también código QT-id.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - total
+                  - page
+                  - page_size
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PublishedJob"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  page_size:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /jobs/{jobId}:
+    get:
+      tags:
+        - Ofertas
+      summary: Consultar detalle de una oferta publicada
+      description: Oferta ajena o no disponible en el alcance devuelve 404.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+          description: Decimal positivo, máximo BIGINT UNSIGNED.
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublishedJob"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /recruiter/jobs:
+    get:
+      tags:
+        - Ofertas
+      summary: Listar ofertas propias del reclutador
+      description: Sesión activa del rol correspondiente. No admite user_id ni owner_user_id como filtros. Respuestas sin
+        caché; lista vacía válida.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 180
+          description: Texto literal en cargo, descripción o ubicación; también código QT-id.
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10000
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum:
+              - DRAFT
+              - PUBLISHED
+              - CLOSED
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                  - total
+                  - page
+                  - page_size
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/OwnedJob"
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  page_size:
+                    type: integer
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - Ofertas
+      summary: Crear oferta en borrador
+      description: Propietario obtenido de la sesión. Solo cargo obligatorio. COMPANY e INDIVIDUAL pueden guardar borradores;
+        no se aplica una cuota aún no definida.
+      security:
+        - CookieSession: []
+      parameters:
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "201":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedJob"
+          headers:
+            Location:
+              schema:
+                type: string
+              description: Ruta del detalle propio.
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobInput"
+  /recruiter/jobs/{jobId}:
+    get:
+      tags:
+        - Ofertas
+      summary: Consultar oferta propia, incluidos borradores y cerradas
+      description: Oferta ajena o no disponible en el alcance devuelve 404.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+          description: Decimal positivo, máximo BIGINT UNSIGNED.
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedJob"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+    patch:
+      tags:
+        - Ofertas
+      summary: Editar datos y requisitos de una oferta propia
+      description: PATCH conserva campos omitidos y sustituye requirements si se incluye. No modifica estado ni propietario.
+        Una publicada debe conservar descripción y al menos un requisito. Guardado transaccional con bloqueo de la oferta.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+          description: Decimal positivo, máximo BIGINT UNSIGNED.
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedJob"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobPatch"
+  /recruiter/jobs/{jobId}/publish:
+    post:
+      tags:
+        - Ofertas
+      summary: Publicar borrador propio de empresa
+      description: "Solo COMPANY: DRAFT → PUBLISHED, con descripción y al menos un requisito. INDIVIDUAL devuelve 403
+        PUBLICATION_PENDING_RULES por B-01/B-02. Repetir PUBLISHED es idempotente. No reabre CLOSED; otros estados
+        devuelven 409."
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+          description: Decimal positivo, máximo BIGINT UNSIGNED.
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedJob"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+  /recruiter/jobs/{jobId}/close:
+    post:
+      tags:
+        - Ofertas
+      summary: Cerrar oferta publicada propia
+      description: PUBLISHED → CLOSED. La oferta deja de aparecer en listado/detalle de postulantes. Repetir CLOSED es
+        idempotente; otros estados devuelven 409. La recepción de postulaciones corresponde a M03, aún no implementado.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+          description: Decimal positivo, máximo BIGINT UNSIGNED.
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedJob"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false

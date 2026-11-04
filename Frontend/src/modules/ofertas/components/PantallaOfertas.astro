@@ -1,0 +1,22 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+import Listado from './Listado.astro';
+import Editor from './Editor.astro';
+import Detalle from './Detalle.astro';
+import '../ofertas.css';
+interface Props { role: 'RECRUITER' | 'CANDIDATE'; view?: 'list' | 'new' | 'edit' | 'detail' }
+const { role, view = 'list' } = Astro.props;
+const owned = role === 'RECRUITER';
+const title = view === 'new' ? 'Nueva oferta' : view === 'edit' ? 'Gestionar oferta' : view === 'detail' ? 'Una oportunidad para crecer' : owned ? 'Mis ofertas de empleo' : 'Encuentra tu próxima oportunidad';
+const description = view === 'list' ? owned ? 'Gestiona cada oportunidad, desde el borrador hasta el cierre.' : 'Tu talento merece un lugar donde crecer.' : view === 'detail' ? 'Conoce el cargo y lo que busca el equipo.' : 'Define el perfil que necesita tu equipo.';
+---
+<Espacio view="home" role={role} title={title} description={description}>
+  <div data-ofertas data-job-view={view} data-job-owned={String(owned)} class="q-ofertas space-y-5">
+    {owned && view === 'list' && <div class="flex justify-end"><a href="/reclutador/nueva-oferta" class="q-primary inline-flex items-center">Crear oferta</a></div>}
+    <div data-job-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
+    <div data-job-recovery class="flex flex-wrap gap-3" hidden><button data-job-retry type="button" class="q-secondary">Reintentar</button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link">Volver al listado</a></div>
+    <div data-job-loading class="q-card space-y-4 p-6" role="status" hidden><p>Cargando oferta…</p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
+    {view === 'list' ? <Listado owned={owned} /> : view === 'detail' ? <Detalle /> : <Editor />}
+  </div>
+</Espacio>
+<script>import { initOfertas } from '../ofertas'; initOfertas();</script>

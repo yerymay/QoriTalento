@@ -8,11 +8,12 @@ export function initWorkspace(){
   const expiry=el<HTMLDialogElement>('[data-expiry]'), confirm=el<HTMLDialogElement>('[data-confirm]');
   let session:Session|undefined, saving=false, refreshing=false, lastRefresh=0, loadingNow=false;
   const notice=(text:string,tone:'error'|'success'='error')=>{feedback.textContent=text;feedback.dataset.tone=tone;feedback.hidden=false;};
-  const clear=()=>{content.hidden=true;el('[data-home]').hidden=true;el('[data-identity]').textContent='Sesión no disponible';form?.reset();session=undefined;expiry.close();confirm.close();};
+  const clear=()=>{content.hidden=true;el('[data-home]').hidden=true;el('[data-identity]').textContent='Sesión no disponible';form?.reset();session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared'));};
   const failure=(error:unknown)=>{
     notice(error instanceof Error?error.message:'No se pudo completar la operación.');
     if(error instanceof ApiError && [401,403].includes(error.status)){clear();el('[data-signin]').hidden=false;}else el('[data-retry]').hidden=false;
   };
+  document.addEventListener('qori:auth-error',event=>failure((event as CustomEvent).detail));
   const editable=(value:boolean)=>{
     form?.querySelectorAll<HTMLInputElement>('input').forEach(input=>input.readOnly=!value);
     if(form){el('[data-actions]').hidden=!value;el('[data-edit]').hidden=value;el('[data-verification-warning]').hidden=!value;}
@@ -26,13 +27,14 @@ export function initWorkspace(){
     const home=el<HTMLAnchorElement>('[data-home]');home.href=homeFor(user.role);home.hidden=false;
     el('[data-home-label]').textContent=user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades';
     if(root.dataset.view==='home')home.setAttribute('aria-current','page');content.hidden=false;
+    document.dispatchEvent(new CustomEvent('qori:session',{detail:session}));
   };
   const load=async()=>{
     if(loadingNow)return;loadingNow=true;loading.hidden=false;content.hidden=true;el('[data-retry]').hidden=true;feedback.hidden=true;
     try{session=await auth.me();if(root.dataset.role && root.dataset.role!==session.user.role){location.replace(homeFor(session.user.role));return;}fill();}
     catch(error){failure(error);}finally{loading.hidden=true;loadingNow=false;}
   };
-  const logout=async()=>{try{await auth.logout();clear();location.replace('/login');}catch(error){failure(error);}};
+  const logout=async()=>{const guard={allowed:Promise.resolve(true)};document.dispatchEvent(new CustomEvent('qori:before-logout',{detail:guard}));if(!await guard.allowed)return;try{await auth.logout();clear();location.replace('/login');}catch(error){failure(error);}};
   const refresh=async()=>{
     if(refreshing || !session)return;refreshing=true;
     try{session=await auth.refresh();lastRefresh=Date.now();expiry.close();}catch(error){failure(error);expiry.close();}finally{refreshing=false;}
