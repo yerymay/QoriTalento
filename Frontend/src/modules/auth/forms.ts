@@ -9,7 +9,7 @@ export function initAuthForm() {
   const kind=form.elements.namedItem('kind') as HTMLSelectElement|null;
   const phone=form.elements.namedItem('phone') as HTMLInputElement|null;
   let busy=false, complete=false;
-  const show=(text:string)=>{message.textContent=text;message.hidden=false;message.focus();};
+  const show=(text:string,tone:'error'|'success')=>{message.textContent=text;message.dataset.tone=tone;message.hidden=false;message.focus();};
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
     const group=form.querySelector<HTMLElement>('[data-recruiter]');if(group)group.hidden=!recruiter;
@@ -36,10 +36,10 @@ export function initAuthForm() {
     const data=Object.fromEntries(new FormData(form));
     try {
       if(registration){const selected=String(data.role) as Role;delete data.role;if(selected==='CANDIDATE')delete data.kind;
-        const result=await auth.register(selected,data);complete=true;password.value='';show(result.message);
+        const result=await auth.register(selected,data);complete=true;password.value='';show(result.message,'success');
         form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select').forEach(input=>input.disabled=true);
       }else{const session=await auth.login(data);password.value='';location.assign(homeFor(session.user.role));}
-    }catch(error){show(error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.');}
+    }catch(error){show(error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.','error');}
     finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?'Cuenta registrada':registration?'Registrar':'Iniciar sesión';submit.disabled=complete;validate();}
   });
   validate();

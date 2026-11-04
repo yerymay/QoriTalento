@@ -10,6 +10,8 @@
 :root { color-scheme: light; }
 :root.dark { color-scheme: dark; }
 body { font-family: var(--font-sans); }
+::selection { background: var(--color-sky-200); color: var(--color-sky-950); }
+:root.dark ::selection { background: var(--color-sky-800); color: white; }
 
 @layer components {
   .q-input { @apply block min-h-12 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-base text-slate-900 focus:border-sky-600 focus:ring-2 focus:ring-sky-500 read-only:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-900; }
@@ -22,4 +24,13 @@ body { font-family: var(--font-sans); }
 }
 [hidden] { display: none !important; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-sky-600); outline-offset: 3px; }
+input, select, textarea { caret-color: var(--color-sky-700); }
+input::placeholder { color: var(--color-slate-600); }
+.q-notice[data-tone="error"] { border-color: var(--color-red-300); background: var(--color-red-50); color: var(--color-red-900); }
+.q-notice[data-tone="success"] { border-color: var(--color-emerald-300); background: var(--color-emerald-50); color: var(--color-emerald-950); }
+:root.dark .q-notice[data-tone="error"] { border-color: var(--color-red-700); background: var(--color-red-950); color: var(--color-red-100); }
+:root.dark .q-notice[data-tone="success"] { border-color: var(--color-emerald-700); background: var(--color-emerald-950); color: var(--color-emerald-100); }
+@media (hover: hover) and (pointer: fine) { .q-primary, .q-secondary { transition: background-color 160ms ease, border-color 160ms ease, transform 160ms cubic-bezier(.23,1,.32,1); } }
+.q-primary:active, .q-secondary:active { transform: scale(.97); }
+:root.dark .q-control-icon { filter: brightness(0) invert(1); opacity: .85; }
 @media (prefers-reduced-motion: reduce) { .animate-pulse { animation: none; } }

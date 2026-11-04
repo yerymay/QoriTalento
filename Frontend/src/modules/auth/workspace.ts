@@ -7,7 +7,7 @@ export function initWorkspace(){
   const form=document.querySelector<HTMLFormElement>('[data-profile]');
   const expiry=el<HTMLDialogElement>('[data-expiry]'), confirm=el<HTMLDialogElement>('[data-confirm]');
   let session:Session|undefined, saving=false, refreshing=false, lastRefresh=0, loadingNow=false;
-  const notice=(text:string)=>{feedback.textContent=text;feedback.hidden=false;};
+  const notice=(text:string,tone:'error'|'success'='error')=>{feedback.textContent=text;feedback.dataset.tone=tone;feedback.hidden=false;};
   const clear=()=>{content.hidden=true;el('[data-home]').hidden=true;el('[data-identity]').textContent='Sesión no disponible';form?.reset();session=undefined;expiry.close();confirm.close();};
   const failure=(error:unknown)=>{
     notice(error instanceof Error?error.message:'No se pudo completar la operación.');
@@ -57,7 +57,7 @@ export function initWorkspace(){
         confirm.returnValue='cancel';confirm.showModal();await new Promise<void>(resolve=>confirm.addEventListener('close',()=>resolve(),{once:true}));if(confirm.returnValue!=='save')return;
       }
       saving=true;const button=el<HTMLButtonElement>('[data-save]');button.disabled=true;button.textContent='Guardando…';form.setAttribute('aria-busy','true');
-      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Tu cuenta necesita verificación antes de volver a ingresar.');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados');}}
+      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Tu cuenta necesita verificación antes de volver a ingresar.','success');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados','success');}}
       catch(error){failure(error);}finally{saving=false;button.disabled=false;button.textContent='Guardar cambios';form.removeAttribute('aria-busy');}
     });
   }
