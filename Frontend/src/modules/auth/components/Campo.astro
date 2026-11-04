@@ -1,0 +1,13 @@
+﻿---
+interface Props { id:string; label:string; type?:'text'|'email'|'password'|'tel'; required?:boolean; autocomplete?:string; min?:number; max?:number; icon?:string }
+const {id,label,type='text',required=false,autocomplete,min,max,icon}=Astro.props;
+---
+<div class="space-y-2">
+  <label for={id} class="block font-medium">{label}{required && <span aria-hidden="true"> *</span>}</label>
+  <div class="relative">
+    {icon && <img src={`/images/auth/${icon}.svg`} alt="" class="pointer-events-none absolute left-3 top-4" />}
+    <input id={id} name={id} type={type} required={required} autocomplete={autocomplete} minlength={min} maxlength={max}
+      aria-describedby={`${id}-error`} class:list={['q-input',{'pl-11':!!icon}]} />
+  </div>
+  <p id={`${id}-error`} data-field-error={id} class="text-red-700 dark:text-red-300" aria-live="polite" hidden></p>
+</div>

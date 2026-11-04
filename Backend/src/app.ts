@@ -1,24 +1,29 @@
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import express from 'express';
+import express, { type ErrorRequestHandler } from 'express';
+import { AppError } from './shared/errors.js';
+import { createAuthRoutes } from './modules/auth/routes/auth.routes.js';
+import type { AuthRepository } from './modules/auth/repositories/auth.repository.js';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yaml';
 import { env } from './config/env.js';
 import { createSystemRoutes } from './modules/system/routes/system.routes.js';
 import type { SystemRepository } from './modules/system/repositories/system.repository.js';
 
-export function createApp(repository: SystemRepository) {
+export function createApp(repository: SystemRepository, authRepository?: AuthRepository) {
   const app = express();
   app.disable('x-powered-by');
-  app.use(express.json({ limit: '100kb' }));
   app.use((_req, res, next) => {
     res.locals.requestId = randomUUID();
     res.setHeader('X-Request-ID', res.locals.requestId);
     next();
   });
 
-  const { routes, controller } = createSystemRoutes(repository);
+  app.use(express.json({ limit: '100kb' }));
+  if (authRepository) app.use('/api/v1', createAuthRoutes(authRepository, { idleMinutes: env.sessionIdleMinutes, secure: env.nodeEnv === 'production' }));
+
+  const { controller } = createSystemRoutes(repository);
   app.get('/health', controller.health);
   // Endpoint documentado también por OpenAPI. No implica DB disponible.
   app.get('/api/v1/system/health', controller.health);
@@ -36,5 +41,16 @@ export function createApp(repository: SystemRepository) {
       error: { code: 'NOT_FOUND', message: 'Ruta no encontrada', request_id: res.locals.requestId },
     });
   });
+  const handleError: ErrorRequestHandler = (error, _req, res, _next) => {
+    const malformed = error?.type === 'entity.parse.failed';
+    const tooLarge = error?.type === 'entity.too.large';
+    const status = error instanceof AppError ? error.status : malformed ? 400 : tooLarge ? 413 : 503;
+    res.status(status).json({ error: {
+      code: error instanceof AppError ? error.code : malformed ? 'INVALID_JSON' : tooLarge ? 'PAYLOAD_TOO_LARGE' : 'SERVICE_UNAVAILABLE',
+      message: error instanceof AppError ? error.message : malformed ? 'El JSON no es válido.' : tooLarge ? 'El formulario es demasiado grande.' : 'No se pudo completar la operación. Intenta de nuevo.',
+      request_id: res.locals.requestId,
+    }});
+  };
+  app.use(handleError);
   return app;
 }

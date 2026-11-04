@@ -1,0 +1,37 @@
+﻿---
+import Campo from './Campo.astro';
+import Marca from './Marca.astro';
+import Tema from './Tema.astro';
+---
+<main class="min-h-screen lg:grid lg:grid-cols-[minmax(360px,39%)_1fr]">
+  <section class="relative flex flex-col justify-between gap-12 overflow-hidden bg-sky-900 px-6 py-8 text-white sm:p-12 lg:min-h-screen lg:p-14">
+    <img src="/images/auth/2f5ba.svg" alt="" class="pointer-events-none absolute left-64 top-[420px]" />
+    <img src="/images/auth/9fb29.svg" alt="" class="pointer-events-none absolute -left-30 -top-28" />
+    <div class="relative"><Marca inverse /></div>
+    <div class="relative max-w-lg space-y-6">
+      <h1 class="text-4xl font-bold leading-tight lg:text-5xl">Grandes equipos.<br />Nuevas posibilidades.</h1>
+      <p class="text-lg leading-7 text-sky-200">Un proceso de selección más claro para quienes buscan talento y quienes quieren crecer.</p>
+      <ul class="hidden space-y-4 lg:block">
+        {[['354be','Un proceso de selección claro, etapa por etapa'],['0661e','Resultados y comparación en un solo lugar'],['ea363','Evaluaciones y seguimiento sin sorpresas']].map(([icon,label])=><li class="flex items-center gap-3"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/10"><img src={`/images/auth/${icon}.svg`} alt="" /></span>{label}</li>)}
+      </ul>
+    </div>
+    <p class="relative hidden text-sky-200 lg:block">Hecho para conectar personas y posibilidades.</p>
+  </section>
+  <section class="relative flex flex-col justify-center bg-white p-6 py-12 dark:bg-slate-950 sm:p-12">
+    <div class="mb-8 self-end"><Tema /></div>
+    <div class="mx-auto w-full max-w-md space-y-6">
+      <header><h2 class="text-3xl font-bold">Bienvenido de nuevo</h2><p class="mt-2 text-slate-600 dark:text-slate-300">Conecta talento con oportunidades.</p></header>
+      <form method="post" data-auth-form="login" class="space-y-5" novalidate>
+        <Campo id="email" label="Correo electrónico" type="email" required autocomplete="username" max={254} icon="838d2" />
+        <Campo id="password" label="Contraseña" type="password" required autocomplete="current-password" max={128} icon="13411" />
+        <button data-password type="button" aria-pressed="false" class="q-secondary inline-flex items-center gap-2"><img src="/images/auth/3de77.svg" alt="" />Mostrar contraseña</button>
+        <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
+        <button data-submit type="submit" class="q-primary flex w-full items-center justify-center gap-2">Iniciar sesión<img src="/images/auth/eb2c8.svg" alt="" /></button>
+      </form>
+      <p class="flex flex-wrap items-center justify-center gap-2 text-slate-600 dark:text-slate-300">¿Aún no tienes cuenta? <a href="/registro" class="q-link">Crear una cuenta</a></p>
+      <p class="q-notice flex gap-3"><img src="/images/auth/6fd92.svg" alt="" class="mt-1 self-start" />Ingresa con una cuenta activa. Las cuentas nuevas quedan pendientes de verificación.</p>
+      <noscript>Activa JavaScript para iniciar sesión.</noscript>
+    </div>
+  </section>
+</main>
+<script>import { initAuthForm } from '../forms'; initAuthForm();</script>

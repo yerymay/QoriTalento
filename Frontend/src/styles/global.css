@@ -10,3 +10,16 @@
 :root { color-scheme: light; }
 :root.dark { color-scheme: dark; }
 body { font-family: var(--font-sans); }
+
+@layer components {
+  .q-input { @apply block min-h-12 w-full rounded-lg border border-slate-300 bg-slate-50 px-3 py-3 text-base text-slate-900 focus:border-sky-600 focus:ring-2 focus:ring-sky-500 read-only:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:read-only:bg-slate-900; }
+  .q-primary { @apply min-h-11 rounded-lg bg-sky-700 px-5 py-3 text-base font-semibold text-white hover:bg-sky-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-not-allowed disabled:bg-slate-500 dark:disabled:bg-slate-700; }
+  .q-secondary { @apply min-h-11 rounded-lg border border-slate-300 bg-white px-4 py-2 text-base font-medium text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800; }
+  .q-card { @apply rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900; }
+  .q-notice { @apply rounded-lg border border-sky-200 bg-sky-50 p-4 leading-relaxed text-slate-700 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-100; }
+  .q-link { @apply inline-flex min-h-11 items-center font-semibold text-sky-700 underline underline-offset-4 dark:text-sky-300; }
+  .q-nav { @apply flex min-h-11 items-center gap-3 rounded-lg px-4 py-3 font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:hover:bg-slate-800; }
+}
+[hidden] { display: none !important; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--color-sky-600); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .animate-pulse { animation: none; } }

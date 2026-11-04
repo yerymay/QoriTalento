@@ -1,0 +1,48 @@
+﻿---
+import Marca from './Marca.astro';
+import Tema from './Tema.astro';
+import Campo from './Campo.astro';
+interface Props { view?:'profile'|'home'; role?:'CANDIDATE'|'RECRUITER' }
+const {view='profile',role}=Astro.props;
+---
+<div data-workspace data-view={view} data-role={role} class="min-h-screen lg:grid lg:grid-cols-[270px_1fr]">
+  <aside class="flex flex-col gap-6 border-b border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:min-h-screen lg:border-r">
+    <div class="flex flex-wrap items-center justify-between gap-3"><Marca /><button data-menu class="q-secondary lg:hidden" type="button" aria-expanded="false" aria-controls="account-nav">Menú</button></div>
+    <div class="rounded-xl border border-slate-200 p-3 dark:border-slate-700"><p class="text-slate-600 dark:text-slate-300">Mi espacio</p><p data-space class="font-semibold">Tu cuenta</p></div>
+    <nav id="account-nav" aria-label="Navegación principal" class="hidden space-y-3 lg:block">
+      <a data-home href="/login" class="q-nav" hidden><img src="/images/auth/a5cea.svg" alt="" /><span data-home-label>Ofertas</span></a>
+      <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><img src="/images/auth/2922a.svg" alt="" />Mi perfil</a>
+    </nav>
+    <button data-logout type="button" class="q-secondary flex items-center gap-3 lg:mt-auto"><img src="/images/auth/9ba58.svg" alt="" />Cerrar sesión</button>
+    <p class="hidden border-t border-slate-200 pt-5 text-slate-600 dark:border-slate-700 dark:text-slate-300 lg:block">Hecho para conectar<br />personas y posibilidades.</p>
+  </aside>
+  <div class="min-w-0">
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:px-9"><p data-identity class="break-words">Cargando tu cuenta…</p><Tema /></header>
+    <main class="space-y-6 p-4 sm:p-9">
+      <header><p class="font-semibold uppercase tracking-wide text-sky-700 dark:text-sky-300">Tu siguiente paso</p><h1 class="mt-2 text-4xl font-bold">{view==='profile'?'Mi perfil':role==='RECRUITER'?'Mis ofertas':'Encuentra tu próxima oportunidad'}</h1><p class="mt-2 text-slate-600 dark:text-slate-300">{view==='profile'?'Mantén tus datos de contacto actualizados.':'Tu espacio según el rol de tu cuenta.'}</p></header>
+      <div data-loading role="status" class="q-card space-y-5 p-6"><p>Cargando tu cuenta…</p><div class="h-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div></div>
+      <div data-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
+      <button data-retry type="button" class="q-secondary" hidden>Reintentar</button>
+      <a data-signin href="/login" class="q-primary inline-flex items-center" hidden>Iniciar sesión</a>
+      <section data-private hidden>
+        {view==='profile' ? <form data-profile method="post" class="q-card space-y-5 p-6" novalidate>
+          <div class="flex flex-wrap items-center justify-between gap-4"><h2 class="text-xl font-semibold">Datos personales</h2><button data-edit type="button" class="q-secondary">Editar</button></div>
+          <Campo id="name" label="Nombre completo" required min={2} max={160} autocomplete="name" />
+          <Campo id="email" label="Correo electrónico" type="email" required max={254} autocomplete="email" />
+          <Campo id="phone" label="Teléfono de contacto" type="tel" min={7} max={32} autocomplete="tel" />
+          <p data-partial class="q-notice" hidden>No has añadido un teléfono. Puedes completarlo con «Editar».</p>
+          <p data-verification-warning class="q-notice" hidden>Cambiar el correo (o el teléfono de un reclutador particular) cierra tus sesiones y deja tu cuenta pendiente de verificación. La verificación aún no está disponible.</p>
+          <div data-actions class="flex flex-wrap gap-3" hidden><button data-save type="submit" class="q-primary">Guardar cambios</button><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
+        </form> : <div class="q-card space-y-4 p-8"><h2 class="text-xl font-semibold">Tu cuenta está lista</h2><p>La gestión y búsqueda de ofertas estará disponible cuando se implemente el módulo de ofertas.</p><a href="/perfil" class="q-primary inline-flex items-center">Revisar mi perfil</a></div>}
+      </section>
+      <noscript>Activa JavaScript para consultar tu cuenta. Tus datos personales solo se cargan después de validar la sesión.</noscript>
+    </main>
+  </div>
+</div>
+<dialog data-expiry aria-labelledby="expiry-title" class="m-auto max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+  <h2 id="expiry-title" class="text-xl font-bold">Tu sesión está por terminar</h2><p class="my-4">Llevas un tiempo sin actividad. Continúa para mantener tu sesión.</p><div class="flex flex-wrap gap-3"><button data-continue class="q-primary" type="button">Continuar sesión</button><button data-end class="q-secondary" type="button">Cerrar sesión</button></div>
+</dialog>
+<dialog data-confirm aria-labelledby="confirm-title" class="m-auto max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+  <h2 id="confirm-title" class="text-xl font-bold">Se necesitará verificar tu cuenta</h2><p class="my-4">Este cambio cerrará tus sesiones. No podrás volver a ingresar hasta verificar tus nuevos datos; esa función todavía no está disponible.</p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary">Cancelar</button><button value="save" class="q-primary">Guardar y cerrar sesión</button></form>
+</dialog>
+<script>import { initWorkspace } from '../workspace'; initWorkspace();</script>

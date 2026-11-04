@@ -1,42 +1,276 @@
-openapi: 3.0.3
+﻿openapi: 3.0.3
 info:
-  title: Qori Talento API — endpoints realmente implementados
-  version: 0.1.0
-  description: >
-    Primer ejemplo de integración de las cuatro capas. Solo documenta rutas funcionales
-    de este scaffold. Los demás endpoints de los ocho módulos figuran en el contrato
-    SDD de referencia contratos/openapi-3.1-draft.yaml y aún NO están implementados.
+  title: Qori Talento API — endpoints implementados
+  version: 0.2.0
+  description: >-
+    Sistema y M01 básico. Registro persistente e inactivo, sesiones y perfil propio.
+    Activación y OTP pendientes de B-03: no se implementan rutas de verificación.
+    Las rutas de ofertas y otros módulos del contrato planeado no están implementadas.
 servers:
   - url: /api/v1
+components:
+  securitySchemes:
+    CookieSession: {type: apiKey, in: cookie, name: qt_session}
+  parameters:
+    ClientHeader:
+      name: X-Qori-Client
+      in: header
+      required: true
+      schema: {type: string, enum: [web]}
+      description: Cabecera obligatoria en mutaciones JSON; no se habilita CORS.
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message, request_id]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            request_id: {type: string, format: uuid}
+    ProfileInput:
+      type: object
+      additionalProperties: false
+      required: [name, email]
+      properties:
+        name: {type: string, minLength: 2, maxLength: 160}
+        email: {type: string, format: email, maxLength: 254}
+        phone: {type: string, nullable: true, minLength: 7, maxLength: 32}
+    RegisterCandidate:
+      type: object
+      additionalProperties: false
+      required: [name, email, password]
+      properties:
+        name: {type: string, minLength: 2, maxLength: 160}
+        email: {type: string, format: email, maxLength: 254}
+        password: {type: string, format: password, minLength: 8, maxLength: 128, writeOnly: true}
+        phone: {type: string, nullable: true, maxLength: 32}
+    RegisterRecruiter:
+      type: object
+      additionalProperties: false
+      required: [name, email, password, kind]
+      properties:
+        name: {type: string, minLength: 2, maxLength: 160}
+        email: {type: string, format: email, maxLength: 254, description: Correo corporativo para COMPANY; filtro básico de proveedores públicos conocidos.}
+        password: {type: string, format: password, minLength: 8, maxLength: 128, writeOnly: true}
+        kind: {type: string, enum: [COMPANY, INDIVIDUAL]}
+        phone: {type: string, nullable: true, maxLength: 32, description: Obligatorio para INDIVIDUAL.}
+    User:
+      type: object
+      required: [id, name, email, phone, role, kind, account_state, email_verified, phone_verified]
+      properties:
+        id: {type: string}
+        name: {type: string}
+        email: {type: string, format: email}
+        phone: {type: string, nullable: true}
+        role: {type: string, enum: [CANDIDATE, RECRUITER]}
+        kind: {type: string, nullable: true, enum: [COMPANY, INDIVIDUAL, null]}
+        account_state: {type: string}
+        email_verified: {type: boolean}
+        phone_verified: {type: boolean}
+    Session:
+      type: object
+      required: [user, expires_at]
+      properties:
+        user: {$ref: '#/components/schemas/User'}
+        expires_at: {type: string, format: date-time}
+  responses:
+    Error:
+      description: Error controlado; el código y mensaje indican el motivo. No incluye información interna.
+      headers:
+        X-Request-ID: {schema: {type: string, format: uuid}, description: Identificador de la solicitud.}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Registered:
+      description: Cuenta persistida e inactiva hasta verificación; no inicia sesión ni envía OTP.
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [user, message]
+            properties:
+              user: {$ref: '#/components/schemas/User'}
+              message: {type: string}
+    Session:
+      description: Datos de la cuenta propia y vencimiento del servidor; nunca incluye el token.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Session'}
 paths:
   /system/health:
     get:
       tags: [Sistema]
-      summary: Comprobar que la API está activa
+      summary: Comprobar API sin depender de MySQL
       responses:
         '200':
-          description: API activa, incluso si MySQL está caído
+          description: API activa
           content:
             application/json:
               schema:
                 type: object
-                required: [status, service]
                 properties:
-                  status: { type: string, example: ok }
-                  service: { type: string, example: qori-talento-api }
+                  status: {type: string, example: ok}
+                  service: {type: string, example: qori-talento-api}
   /system/db-check:
     get:
       tags: [Sistema]
-      summary: Comprobar conexión real a MySQL (solo desarrollo)
-      description: No está montada cuando NODE_ENV=production.
+      summary: Comprobar MySQL (solo fuera de producción)
       responses:
         '200':
-          description: Consulta SELECT 1 ejecutada correctamente
+          description: SELECT 1 ejecutado
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  connected: { type: boolean, example: true }
-        '503':
-          description: MySQL no está disponible; no incluye credenciales ni errores internos
+                  connected: {type: boolean}
+        '503': {$ref: '#/components/responses/Error'}
+  /auth/candidates/register:
+    post:
+      tags: [Auth]
+      summary: Registrar postulante inactivo
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterCandidate'}
+      responses:
+        '201': {$ref: '#/components/responses/Registered'}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /auth/recruiters/register:
+    post:
+      tags: [Auth]
+      summary: Registrar reclutador de empresa o particular inactivo
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/RegisterRecruiter'}
+      responses:
+        '201': {$ref: '#/components/responses/Registered'}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Iniciar sesión con cuenta activa y verificada
+      description: >-
+        Cookie de navegador HttpOnly, SameSite=Strict, Path=/api; Secure en producción.
+        Token aleatorio de 256 bits; solo su hash se guarda en MySQL.
+        Caducidad por inactividad configurable con SESSION_IDLE_MINUTES (30 en desarrollo).
+        Sin cuentas activadas por la aplicación mientras B-03 siga pendiente.
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [email, password]
+              properties:
+                email: {type: string, format: email, maxLength: 254}
+                password: {type: string, format: password, maxLength: 128, writeOnly: true}
+      responses:
+        '200':
+          description: Sesión iniciada; se establece qt_session.
+          headers:
+            Set-Cookie: {schema: {type: string}, description: Cookie HttpOnly; el token no aparece en JSON.}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Session'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revocar sesión actual y borrar cookie (idempotente)
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: false}
+      responses:
+        '204': {description: Sesión revocada; cookie eliminada.}
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /auth/session/refresh:
+    post:
+      tags: [Auth]
+      summary: Renovar por actividad una sesión que todavía no ha expirado
+      security: [{CookieSession: []}]
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: false}
+      responses:
+        '200': {$ref: '#/components/responses/Session'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /me:
+    get:
+      tags: [Auth]
+      summary: Consultar solo el perfil de la sesión validada
+      security: [{CookieSession: []}]
+      responses:
+        '200': {$ref: '#/components/responses/Session'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+    patch:
+      tags: [Auth]
+      summary: Actualizar nombre, correo y teléfono propios
+      description: >-
+        No acepta user_id, role, kind ni account_state. Cambiar el correo invalida su verificación;
+        cambiar el teléfono de un particular invalida su verificación telefónica.
+        Ambos casos dejan la cuenta pendiente y revocan todas sus sesiones en la misma transacción.
+      security: [{CookieSession: []}]
+      parameters: [{$ref: '#/components/parameters/ClientHeader'}]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/ProfileInput'}
+      responses:
+        '200':
+          description: Cambios persistidos; verification_required indica si debe verificarse otra vez.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user, verification_required]
+                properties:
+                  user: {$ref: '#/components/schemas/User'}
+                  verification_required: {type: boolean}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '413': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}

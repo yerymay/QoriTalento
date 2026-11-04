@@ -1,0 +1,7 @@
+﻿<button data-theme type="button" class="q-secondary" aria-label="Cambiar tema claro u oscuro">Tema</button>
+<script>
+  document.querySelectorAll('[data-theme]').forEach(button=>button.addEventListener('click',()=>{
+    const dark=document.documentElement.classList.toggle('dark');
+    try{localStorage.setItem('qori-theme',dark?'dark':'light');}catch{/* Preferencia opcional. */}
+  }));
+</script>

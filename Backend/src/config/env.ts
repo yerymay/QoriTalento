@@ -8,7 +8,10 @@ function integerEnvironment(name: string, fallback: number): number {
   return value;
 }
 
+// Valor t?cnico local; producci?n exige una duraci?n configurada expl?citamente.
+if (process.env.NODE_ENV === 'production' && !process.env.SESSION_IDLE_MINUTES) throw new Error('Configura SESSION_IDLE_MINUTES antes de producci?n');
 export const env = {
+  sessionIdleMinutes: integerEnvironment('SESSION_IDLE_MINUTES', 30),
   nodeEnv: process.env.NODE_ENV ?? 'development',
   port: integerEnvironment('PORT', 3001),
   dbHost: process.env.DB_HOST ?? '127.0.0.1',
