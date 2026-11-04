@@ -1,0 +1,1339 @@
+openapi: 3.1.0
+info:
+  title: Qori Talento API — BORRADOR SDD Fase 4
+  version: 0.4.0-draft
+  description: Contrato preliminar para validación; NO representa endpoints implementados. Reglas bloqueadas
+    y rutas condicionadas deben aprobarse antes de codificar. La propiedad individual de ofertas se impone
+    en el servidor.
+servers:
+- url: /api/v1
+  description: Ruta API propuesta bajo mismo origen HTTPS
+tags:
+- name: Auth
+- name: Ofertas
+- name: Moderacion
+- name: Postulaciones
+- name: CV
+- name: Examenes
+- name: Evaluacion
+- name: Seleccion
+- name: Seguimiento
+security:
+- CookieSession: []
+components:
+  securitySchemes:
+    CookieSession:
+      type: apiKey
+      in: cookie
+      name: qt_session
+      description: Cookie HttpOnly Secure SameSite; diseño de sesión pendiente de aprobación técnica.
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: object
+          required:
+          - code
+          - message
+          - request_id
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            request_id:
+              type: string
+            field_errors:
+              type: object
+              additionalProperties:
+                type: string
+    JobInput:
+      type: object
+      required:
+      - title
+      - description
+      - requirements
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          minLength: 1
+        requirements:
+          type: array
+          items:
+            type: object
+            required:
+            - description
+            properties:
+              description:
+                type: string
+              importance:
+                type: string
+                description: Política de ponderación pendiente
+    Job:
+      type: object
+      required:
+      - id
+      - title
+      - status
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+          - DRAFT
+          - PENDING_MODERATION
+          - PUBLISHED
+          - CLOSED
+        owner_user_id:
+          type: string
+          description: Solo visible internamente a dueño autorizado; nunca filtro aceptado en el body
+    RegisterRecruiter:
+      type: object
+      required:
+      - name
+      - email
+      - password
+      - kind
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+        kind:
+          type: string
+          enum:
+          - COMPANY
+          - INDIVIDUAL
+        phone:
+          type: string
+          description: Obligatorio si INDIVIDUAL, verificación posterior
+    Application:
+      type: object
+      required:
+      - id
+      - job_id
+      - status
+      properties:
+        id:
+          type: string
+        job_id:
+          type: string
+        status:
+          type: string
+        submitted_at:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    Attempt:
+      type: object
+      required:
+      - id
+      - status
+      - server_now_utc
+      - deadline_at_utc
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - EXPIRED
+        server_now_utc:
+          type: string
+          format: date-time
+        deadline_at_utc:
+          type: string
+          format: date-time
+        accepted_answers:
+          type: array
+          items:
+            type: object
+            properties:
+              question_id:
+                type: string
+              option_id:
+                type: string
+              revision:
+                type: integer
+    AnswerPut:
+      type: object
+      required:
+      - option_id
+      - client_revision
+      properties:
+        option_id:
+          type: string
+        client_revision:
+          type: integer
+          minimum: 1
+    AnswerAccepted:
+      type: object
+      required:
+      - saved
+      - revision
+      - accepted_at_utc
+      - deadline_at_utc
+      properties:
+        saved:
+          type: boolean
+          const: true
+        revision:
+          type: integer
+        accepted_at_utc:
+          type: string
+          format: date-time
+        deadline_at_utc:
+          type: string
+          format: date-time
+    AiEvaluation:
+      type: object
+      required:
+      - id
+      - status
+      - model
+      - human_decision_required
+      properties:
+        id:
+          type: string
+        status:
+          type: string
+          enum:
+          - PENDING
+          - READY
+          - NEEDS_REVIEW
+          - FAILED
+        model:
+          type: string
+          const: qwen2.5:7b-instruct
+        score:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          maximum: 100
+          description: Solo cuando rúbrica aprobada y validación exitosa
+        explanation:
+          type:
+          - string
+          - 'null'
+        evidence:
+          type: array
+          items:
+            type: object
+            properties:
+              criterion_id:
+                type: string
+              source_ref:
+                type: string
+              finding:
+                type: string
+        human_decision_required:
+          type: boolean
+          const: true
+  responses:
+    NotFound:
+      description: No existe o no es visible para principal (no enumerar recursos ajenos)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Sesión ausente o inválida
+    Conflict:
+      description: Conflicto de estado/cuota/concurrencia
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+paths:
+  /auth/recruiters/register:
+    post:
+      tags:
+      - Auth
+      summary: Registrar reclutador inactivo por empresa/particular
+      operationId: post_auth_recruiters_register
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRecruiter'
+      security: []
+  /auth/candidates/register:
+    post:
+      tags:
+      - Auth
+      summary: Registrar postulante
+      operationId: post_auth_candidates_register
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      security: []
+  /auth/email/verify:
+    post:
+      tags:
+      - Auth
+      summary: Verificar correo con enlace tokenizado
+      operationId: post_auth_email_verify
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      security: []
+  /auth/phone/verify:
+    post:
+      tags:
+      - Auth
+      summary: Verificar teléfono de particular
+      operationId: post_auth_phone_verify
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                challenge_id:
+                  type: string
+                code:
+                  type: string
+      security: []
+  /auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Iniciar sesión y establecer cookie
+      operationId: post_auth_login
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+      security: []
+  /auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Cerrar sesión
+      operationId: post_auth_logout
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /me:
+    get:
+      tags:
+      - Auth
+      summary: Leer datos del usuario autenticado
+      operationId: get_me
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  role:
+                    type: string
+                  account_state:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /jobs:
+    get:
+      tags:
+      - Ofertas
+      summary: Listar ofertas publicadas; acceso anónimo sujeto a decisión
+      operationId: get_jobs
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      x-business-blocker: 'Política de acceso a ofertas públicas: autenticación opcional por definir'
+  /jobs/{jobId}:
+    get:
+      tags:
+      - Ofertas
+      summary: Ver detalle de oferta publicada
+      operationId: get_jobs_jobId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/jobs:
+    get:
+      tags:
+      - Ofertas
+      summary: Listar exclusivamente ofertas propias
+      operationId: get_recruiter_jobs
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags:
+      - Ofertas
+      summary: Crear oferta propia en borrador
+      operationId: post_recruiter_jobs
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobInput'
+  /recruiter/jobs/{jobId}:
+    patch:
+      tags:
+      - Ofertas
+      summary: Editar oferta propia
+      operationId: patch_recruiter_jobs_jobId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobInput'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/jobs/{jobId}/publish:
+    post:
+      tags:
+      - Ofertas
+      summary: Publicar o solicitar moderación con control de cuota
+      operationId: post_recruiter_jobs_jobId_publish
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-business-blocker: Definición de activo/moderador pendiente
+  /recruiter/jobs/{jobId}/close:
+    post:
+      tags:
+      - Ofertas
+      summary: Cerrar oferta propia
+      operationId: post_recruiter_jobs_jobId_close
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /moderation/jobs:
+    get:
+      tags:
+      - Moderacion
+      summary: Listado para responsable de moderación (rol no aprobado)
+      operationId: get_moderation_jobs
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      x-business-blocker: No se ha definido actor/rol/permisos de moderación
+  /moderation/jobs/{jobId}/review:
+    post:
+      tags:
+      - Moderacion
+      summary: Aprobar o rechazar primera oferta particular
+      operationId: post_moderation_jobs_jobId_review
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision:
+                  type: string
+                  enum:
+                  - APPROVE
+                  - REJECT
+                reason:
+                  type: string
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-business-blocker: No implementar hasta definir rol responsable
+  /jobs/{jobId}/applications:
+    post:
+      tags:
+      - Postulaciones
+      summary: Crear postulación de usuario candidato
+      operationId: post_jobs_jobId_applications
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/applications:
+    get:
+      tags:
+      - Postulaciones
+      summary: Listar postulaciones propias
+      operationId: get_candidate_applications
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /candidate/applications/{appId}:
+    get:
+      tags:
+      - Postulaciones
+      summary: Consultar postulación propia
+      operationId: get_candidate_applications_appId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/applications/{appId}/submit:
+    post:
+      tags:
+      - Postulaciones
+      summary: Confirmar postulación y perfil
+      operationId: post_candidate_applications_appId_submit
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/applications/{appId}/cv:
+    post:
+      tags:
+      - CV
+      summary: Subir PDF digital propio en multipart/form-data
+      operationId: post_candidate_applications_appId_cv
+      responses:
+        '202':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+  /candidate/applications/{appId}/cv-extraction:
+    get:
+      tags:
+      - CV
+      summary: Consultar estado de extracción clásica
+      operationId: get_candidate_applications_appId_cv_extraction
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  suggested_fields:
+                    type: object
+                    additionalProperties: true
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/applications/{appId}/profile-confirmation:
+    put:
+      tags:
+      - CV
+      summary: Confirmar campos corregidos por el postulante
+      operationId: put_candidate_applications_appId_profile_confirmation
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                confirmed_fields:
+                  type: object
+                  additionalProperties: true
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/applications/{appId}/cv:
+    get:
+      tags:
+      - CV
+      summary: Descargar CV de postulación solo de oferta propia
+      operationId: get_recruiter_applications_appId_cv
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-response-content-type: application/pdf privado protegido
+  /recruiter/applications/{appId}/notes:
+    post:
+      tags:
+      - CV
+      summary: Agregar nota sin editar perfil de origen
+      operationId: post_recruiter_applications_appId_notes
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/jobs/{jobId}/exams:
+    post:
+      tags:
+      - Examenes
+      summary: Crear examen para oferta propia
+      operationId: post_recruiter_jobs_jobId_exams
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                time_limit_minutes:
+                  type: integer
+                  minimum: 1
+                questions:
+                  type: array
+                  items:
+                    type: object
+                    additionalProperties: true
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/exams:
+    get:
+      tags:
+      - Examenes
+      summary: Listar evaluaciones asignadas
+      operationId: get_candidate_exams
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /candidate/exams/{examId}/attempts:
+    post:
+      tags:
+      - Examenes
+      summary: Iniciar intento con deadline del servidor
+      operationId: post_candidate_exams_examId_attempts
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: examId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/attempts/{attemptId}:
+    get:
+      tags:
+      - Examenes
+      summary: Reanudar y ver respuestas aceptadas y tiempo servidor
+      operationId: get_candidate_attempts_attemptId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/attempts/{attemptId}/answers/{questionId}:
+    put:
+      tags:
+      - Examenes
+      summary: Aceptar respuesta solo antes del deadline
+      operationId: put_candidate_attempts_attemptId_answers_questionId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AnswerAccepted'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AnswerPut'
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-expired-response: 410 EXAM_EXPIRED; cliente no cuenta respuestas locales pendientes
+  /candidate/attempts/{attemptId}/finish:
+    post:
+      tags:
+      - Examenes
+      summary: Finalizar intento de forma idempotente
+      operationId: post_candidate_attempts_attemptId_finish
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Attempt'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: attemptId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/applications/{appId}/ai-evaluations:
+    post:
+      tags:
+      - Evaluacion
+      summary: Solicitar evaluación IA asíncrona
+      operationId: post_recruiter_applications_appId_ai_evaluations
+      responses:
+        '202':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  evaluation_id:
+                    type: string
+                  status:
+                    type: string
+                    const: PENDING
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-business-blocker: Rúbrica/validación de score aún pendiente; solo pruebas sintéticas antes de aprobación
+  /recruiter/applications/{appId}/ai-evaluations/{evaluationId}:
+    get:
+      tags:
+      - Evaluacion
+      summary: Consultar evaluación con explicación y evidencia validada
+      operationId: get_recruiter_applications_appId_ai_evaluations_evaluationId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiEvaluation'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: evaluationId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/jobs/{jobId}/results:
+    get:
+      tags:
+      - Evaluacion
+      summary: Resultados de postulantes solo de oferta propia
+      operationId: get_recruiter_jobs_jobId_results
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/applications/{appId}/decisions:
+    post:
+      tags:
+      - Seleccion
+      summary: Registrar decisión exclusivamente humana autorizada
+      operationId: post_recruiter_applications_appId_decisions
+      responses:
+        '201':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                decision:
+                  type: string
+                  enum:
+                  - PRESELECT
+                  - ADVANCE
+                  - REJECT
+                reason:
+                  type: string
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+      x-business-blocker: Transiciones y permisos extra por aprobar
+  /recruiter/applications/{appId}:
+    get:
+      tags:
+      - Seleccion
+      summary: Ficha de postulante de oferta propia
+      operationId: get_recruiter_applications_appId
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /candidate/applications/{appId}/timeline:
+    get:
+      tags:
+      - Seguimiento
+      summary: Consultar historial de una postulación propia
+      operationId: get_candidate_applications_appId_timeline
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: appId
+        in: path
+        required: true
+        schema:
+          type: string
+  /recruiter/jobs/{jobId}/applications:
+    get:
+      tags:
+      - Seguimiento
+      summary: Consultar postulaciones de una oferta propia
+      operationId: get_recruiter_jobs_jobId_applications
+      responses:
+        '200':
+          description: Respuesta de operación propuesta
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+      parameters:
+      - name: jobId
+        in: path
+        required: true
+        schema:
+          type: string

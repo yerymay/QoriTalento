@@ -1,0 +1,37 @@
+<section aria-labelledby="conexion-heading" class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-900">
+  <h2 id="conexion-heading" class="text-lg font-semibold">Primera integración técnica</h2>
+  <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Comprobación real entre Astro, Express y MySQL.</p>
+  <dl class="mt-5 space-y-3">
+    <div class="flex justify-between gap-3"><dt>API Express</dt><dd id="api-status" role="status">Comprobando…</dd></div>
+    <div class="flex justify-between gap-3"><dt>Base de datos</dt><dd id="db-status" role="status">Comprobando…</dd></div>
+  </dl>
+  <button id="recheck" type="button" class="mt-5 min-h-11 rounded-lg bg-sky-600 px-5 py-2.5 font-medium text-white hover:bg-sky-700 focus:outline-none focus:ring-4 focus:ring-sky-300 dark:focus:ring-sky-800">Volver a comprobar</button>
+</section>
+<script>
+  import { getJson } from '../services/api';
+  const api = document.querySelector<HTMLElement>('#api-status');
+  const db = document.querySelector<HTMLElement>('#db-status');
+  const button = document.querySelector<HTMLButtonElement>('#recheck');
+
+  async function verify() {
+    if (!api || !db || !button) return;
+    button.disabled = true;
+    api.textContent = 'Comprobando…';
+    db.textContent = 'Comprobando…';
+    try {
+      const result = await getJson<{ status: string }>('system/health');
+      api.textContent = result.status === 'ok' ? 'Conectada' : 'Respuesta inesperada';
+    } catch {
+      api.textContent = 'No disponible';
+    }
+    try {
+      const result = await getJson<{ connected: boolean }>('system/db-check');
+      db.textContent = result.connected ? 'Conectada' : 'No disponible';
+    } catch {
+      db.textContent = 'Sin conexión (revisa MySQL)';
+    }
+    button.disabled = false;
+  }
+  button?.addEventListener('click', verify);
+  void verify();
+</script>

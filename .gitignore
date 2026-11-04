@@ -1,0 +1,14 @@
+# No reemplazar .gitignore existente sin comparar.
+README-COMENZAR.md
+AGENTS.MD
+node_modules/
+**/node_modules/
+**/dist/
+**/.astro/
+.env
+**/.env
+**/.env.*
+!**/.env.example
+*.log
+storage/
+uploads/

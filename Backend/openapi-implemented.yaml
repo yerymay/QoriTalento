@@ -1,0 +1,42 @@
+openapi: 3.0.3
+info:
+  title: Qori Talento API — endpoints realmente implementados
+  version: 0.1.0
+  description: >
+    Primer ejemplo de integración de las cuatro capas. Solo documenta rutas funcionales
+    de este scaffold. Los demás endpoints de los ocho módulos figuran en el contrato
+    SDD de referencia contratos/openapi-3.1-draft.yaml y aún NO están implementados.
+servers:
+  - url: /api/v1
+paths:
+  /system/health:
+    get:
+      tags: [Sistema]
+      summary: Comprobar que la API está activa
+      responses:
+        '200':
+          description: API activa, incluso si MySQL está caído
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, service]
+                properties:
+                  status: { type: string, example: ok }
+                  service: { type: string, example: qori-talento-api }
+  /system/db-check:
+    get:
+      tags: [Sistema]
+      summary: Comprobar conexión real a MySQL (solo desarrollo)
+      description: No está montada cuando NODE_ENV=production.
+      responses:
+        '200':
+          description: Consulta SELECT 1 ejecutada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected: { type: boolean, example: true }
+        '503':
+          description: MySQL no está disponible; no incluye credenciales ni errores internos
