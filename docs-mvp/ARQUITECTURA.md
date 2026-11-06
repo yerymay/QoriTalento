@@ -70,7 +70,8 @@ Frontend/src/
 - Exámenes: servidor es autoridad de tiempo/respuestas; frontend muestra cuenta atrás informativa.
 - IA: backend llama Ollama local, con revisión humana y sin exponer el modelo directamente al navegador.
 - Respuestas y errores documentados con OpenAPI; publicar Swagger de endpoints **implementados** y mantener el contrato SDD **planeado** separado.
-- Estados UI (Ideal/Vacío/Parcial/Carga/Error) por región, Flowbite reutilizable, Sky/Inter, light/dark, sin navegación "Estados de UI".
+- Estados UI (Ideal/Vacío/Parcial/Carga/Error) por región, Flowbite reutilizable, Sky/Inter, light/dark, sin navegación "Estados de UI". Toda vista principal debe contemplar estos cinco estados: Ideal (contenido completo), Vacío (explica ausencia y siguiente acción), Parcial (datos incompletos), Carga (esqueleto de la estructura esperada) y Error (causa comprensible y recuperación).
+- Estados de botones: Reposo, Hover, Presionado, Ejecución y Éxito. Los botones reutilizan `q-primary` o `q-secondary`; Ejecución bloquea duplicados de inmediato y, solo si la operación supera 220 ms, añade `q-button-loading` y `aria-busy="true"` para mostrar shimmer sin ocultar la acción. Éxito se comunica con texto inequívoco y un aviso semántico persistente, por ejemplo `Oferta publicada`. Se respeta `prefers-reduced-motion` y todos los estados conservan foco visible y contraste.
 
 ## Flujo verificable inicial (conexión de las capas)
 

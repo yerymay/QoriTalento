@@ -14,6 +14,8 @@ export function initOfertas() {
   const form = root.querySelector<HTMLFormElement>('[data-job-form]');
   const dialog = root.querySelector<HTMLDialogElement>('[data-job-confirm]');
   const search = root.querySelector<HTMLFormElement>('[data-job-search]');
+  const listControls=[...root.querySelectorAll<HTMLElement>('[data-job-list-control]')];
+  const listError=root.querySelector<HTMLElement>('[data-job-list-error]');
   let session: Session | undefined, job: Job | undefined, page = 1, epoch = 0;
   let busy = false, dirty = false, baseline = '', query = new URLSearchParams();
   let id = new URLSearchParams(location.search).get('id') ?? '';
@@ -55,11 +57,10 @@ export function initOfertas() {
     el('[data-save-job]').textContent = job ? 'Guardar cambios' : 'Guardar borrador';
     if (!job) return;
     el('[data-job-id]').textContent = 'QT-' + job.id;
-    el('[data-publish-job]').hidden = job.status !== 'DRAFT' || session?.user.kind !== 'COMPANY';
+    el('[data-publish-job]').hidden = job.status !== 'DRAFT';
     el('[data-close-job]').hidden = job.status !== 'PUBLISHED';
     el('[data-publication-help]').textContent = job.status === 'DRAFT'
-      ? session?.user.kind === 'INDIVIDUAL' ? 'El borrador está guardado. La publicación para particulares aún no está disponible.'
-        : !job.description || !job.requirements.length ? 'Completa y guarda la descripción y al menos un requisito para habilitar la publicación.' : 'Al publicar, los postulantes podrán consultar esta oferta. Guarda los cambios antes de publicarla.'
+      ? !job.description || !job.requirements.length ? 'Completa y guarda la descripción y al menos un requisito para habilitar la publicación.' : 'Al publicar, los postulantes podrán consultar esta oferta. Guarda los cambios antes de publicarla.'
       : job.status === 'PUBLISHED' ? 'Visible para los postulantes. Cerrar la oferta la retira del listado disponible; no se podrá reabrir.'
         : 'Esta oferta está cerrada y ya no aparece entre las oportunidades disponibles. Puedes corregir su información, pero no reabrirla.';
   };
@@ -89,7 +90,8 @@ export function initOfertas() {
   };
   const loadList = async () => {
     const run = ++epoch, loading = el('[data-job-list-loading]'), list = el('[data-job-list]');
-    loading.hidden = false; list.replaceChildren(); el('[data-job-empty]').hidden = true;
+    loading.hidden = false; list.replaceChildren(); el('[data-job-empty]').hidden = true; listError && (listError.hidden = true);
+    listControls.forEach(control => control.hidden = true);
     el('[data-job-pagination]').hidden = true; el('[data-job-count]').textContent = '';
     feedback.hidden = true; recovery.hidden = true;
     const params = new URLSearchParams(query); params.set('page', String(page)); params.set('page_size', '20');
@@ -121,6 +123,7 @@ export function initOfertas() {
       el('[data-job-count]').textContent = `${result.total} ${result.total === 1 ? 'oferta encontrada' : 'ofertas encontradas'}`;
       const empty = result.items.length === 0;
       el('[data-job-empty]').hidden = !empty;
+      listControls.forEach(control => control.hidden = empty && !query.toString());
       if (empty) {
         text(root, '[data-empty-title]', query.toString() ? 'No encontramos ofertas con esos filtros' : owned ? 'Tu próxima contratación empieza aquí' : 'Aún no hay ofertas publicadas');
         text(root, '[data-empty-text]', query.toString() ? 'Prueba con otro cargo o limpia los filtros para ver las ofertas disponibles.' : owned ? 'Crea tu primera oferta. Puedes guardarla como borrador y completarla cuando estés listo.' : 'Vuelve más adelante para conocer nuevas oportunidades.');
@@ -130,7 +133,11 @@ export function initOfertas() {
       el('[data-page-label]').textContent = `Página ${page} de ${pages}`;
       el<HTMLButtonElement>('[data-page-prev]').disabled = page <= 1;
       el<HTMLButtonElement>('[data-page-next]').disabled = page >= pages;
-    } catch (error) { if (run === epoch) failure(error, true); }
+    } catch (error) { if (run === epoch) {
+      if (error instanceof ApiError && (error.status === 401 || ['ACCOUNT_INACTIVE', 'FORBIDDEN'].includes(error.code ?? ''))) { document.dispatchEvent(new CustomEvent('qori:auth-error', { detail: error })); }
+      else if (listError) { feedback.hidden = true; recovery.hidden = true; listError.hidden = false; }
+      else failure(error, true);
+    } }
     finally { if (run === epoch) loading.hidden = true; }
   };
   const load = async () => {
@@ -187,12 +194,14 @@ export function initOfertas() {
     if (await confirm('¿Descartar los cambios?', 'Se recuperará la última versión guardada de esta oferta.', 'Descartar cambios')) { fillEditor(); feedback.hidden = true; field('title').focus(); }
   });
   for (const action of ['publish', 'close'] as const) {
-    root.querySelector(`[data-${action}-job]`)?.addEventListener('click', async () => {
+    root.querySelector(`[data-${action}-job]`)?.addEventListener('click', async event => {
       if (!job || busy || dirty || !session) return;
       const accepted = await confirm(action === 'publish' ? '¿Publicar esta oferta?' : '¿Cerrar esta oferta?',
         action === 'publish' ? `«${job.title}» será visible para los postulantes.` : `«${job.title}» dejará de estar disponible. No podrás reabrirla.`,
         action === 'publish' ? 'Publicar oferta' : 'Cerrar oferta');
       if (!accepted || busy || !job || dirty) return;
+      const actionButton=event.currentTarget as HTMLButtonElement;
+      const shimmerTimeout=window.setTimeout(()=>{ actionButton.classList.add('q-button-loading'); actionButton.setAttribute('aria-busy','true'); },220);
       const run = epoch; setBusy(true);
       try {
         const value = await ofertas.transition(job.id, action);
@@ -201,7 +210,7 @@ export function initOfertas() {
         notice(action === 'publish' ? 'Oferta publicada. Los postulantes ya pueden consultarla.' : 'Oferta cerrada. Ya no aparece entre las oportunidades disponibles.', 'success');
         feedback.focus();
       } catch (error) { if (run === epoch) { failure(error); feedback.focus(); } }
-      finally { if (session) setBusy(false); }
+      finally { window.clearTimeout(shimmerTimeout); actionButton.classList.remove('q-button-loading'); actionButton.removeAttribute('aria-busy'); if (session) setBusy(false); }
     });
   }
   search?.addEventListener('submit', event => {
@@ -213,6 +222,7 @@ export function initOfertas() {
   root.querySelector('[data-reset-search]')?.addEventListener('click', () => { search?.reset(); query = new URLSearchParams(); page = 1; void load(); });
   root.querySelector('[data-page-prev]')?.addEventListener('click', () => { if (page > 1) { page--; void load(); } });
   root.querySelector('[data-page-next]')?.addEventListener('click', () => { page++; void load(); });
+  root.querySelector('[data-job-list-retry]')?.addEventListener('click', () => void loadList());
   el('[data-job-retry]').addEventListener('click', () => void load());
   document.addEventListener('qori:session', event => { session = (event as CustomEvent<Session>).detail; void load(); });
   document.addEventListener('qori:session-cleared', () => {

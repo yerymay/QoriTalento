@@ -4,8 +4,8 @@ info:
   version: 0.3.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Activación y OTP pendientes de B-03. Publicación de particulares y moderación
-    pendientes de B-01/B-02. Los módulos M03-M08 todavía no están implementados.
+    Activación y OTP pendientes de B-03. Cualquier reclutador puede publicar una oferta completa;
+    las definiciones futuras de cuota y moderación siguen pendientes de B-01/B-02. Los módulos M03-M08 todavía no están implementados.
 servers:
   - url: /api/v1
 components:
@@ -743,10 +743,9 @@ paths:
     post:
       tags:
         - Ofertas
-      summary: Publicar borrador propio de empresa
-      description: "Solo COMPANY: DRAFT → PUBLISHED, con descripción y al menos un requisito. INDIVIDUAL devuelve 403
-        PUBLICATION_PENDING_RULES por B-01/B-02. Repetir PUBLISHED es idempotente. No reabre CLOSED; otros estados
-        devuelven 409."
+      summary: Publicar borrador propio
+      description: "Cualquier reclutador: DRAFT → PUBLISHED, con descripción y al menos un requisito. Repetir PUBLISHED
+        es idempotente. No reabre CLOSED; otros estados devuelven 409."
       security:
         - CookieSession: []
       parameters:

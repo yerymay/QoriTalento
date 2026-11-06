@@ -105,6 +105,13 @@ Problemas abiertos: B-03 (proveedor, caducidad, reintentos y activación por cor
 Estado: [x] Base M01 implementada y probada / [ ] M01 completo por B-03
 ```
 
+## Decisión de publicación M02 (2026-11-06)
+
+- Decisión aprobada: cualquier reclutador puede publicar directamente una oferta propia completa; ya no se bloquea por `kind=INDIVIDUAL`.
+- Condiciones conservadas: solo DRAFT → PUBLISHED, descripción y al menos un requisito; cerrar sigue siendo PUBLISHED → CLOSED y no hay reapertura.
+- Evidencia: `Backend/npm.cmd run check`, `npm.cmd test` (44 pruebas aprobadas, 2 omitidas) y `npm.cmd run build`; `Frontend/npm.cmd run check` (0 errores) y `npm.cmd run build` (9 rutas).
+- Pendientes sin cambio: B-01/B-02 solo definen una futura cuota o moderación; no bloquean la publicación directa aprobada.
+
 ## Evidencia - M02 ofertas (2026-11-04)
 
 - Alcance implementado: crear borradores con código único; guardar cargo, descripción, área, ubicación/modalidad, experiencia, formación y requisitos ordenados; editar ofertas propias; publicar borradores de empresa; cerrar publicadas; buscar/paginar y consultar ofertas publicadas como postulante.

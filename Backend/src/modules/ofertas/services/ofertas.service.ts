@@ -99,7 +99,6 @@ export class OfertasService {
     if (Object.keys(object(input)).length) return invalid('Esta acción no admite campos adicionales.');
     const result = await this.repo.changeOwned(jobId(id), actor.id, current => {
       if (action === 'publish') {
-        if (actor.kind !== 'COMPANY') throw new AppError(403, 'PUBLICATION_PENDING_RULES', 'Puedes guardar borradores. La publicación de reclutadores particulares está pendiente de definir cuota y moderación.');
         if (current.status === 'PUBLISHED') return {};
         if (current.status !== 'DRAFT') throw new AppError(409, 'INVALID_JOB_STATE', 'Solo se pueden publicar ofertas en borrador. Una oferta cerrada no se puede reabrir.');
         complete(current);

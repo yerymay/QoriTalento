@@ -102,14 +102,14 @@ describe('M02: ofertas con sesión, propiedad y transiciones explícitas', () =>
     expect(repo.jobs[0].title).toBe(input.title);
     expect((await call('get', base, undefined, 1)).body.items).toEqual([]);
   });
-  it('permite borradores de particular y bloquea su publicación sin inventar cuotas', async () => {
+  it('permite que un reclutador particular publique una oferta completa', async () => {
     const created = await call('post', base, input, 3);
     expect(created.status).toBe(201);
     expect((await call('patch', base + '/1', { title: 'Borrador particular' }, 3)).status).toBe(200);
     const res = await call('post', base + '/1/publish', {}, 3);
-    expect(res.status).toBe(403);
-    expect(res.body.error.code).toBe('PUBLICATION_PENDING_RULES');
-    expect(repo.jobs[0].status).toBe('DRAFT');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('PUBLISHED');
+    expect(res.body.published_at).toBeTruthy();
   });
   it('admite borradores parciales, valida publicación y no vacía una oferta publicada', async () => {
     await call('post', base, { title: 'Borrador' });
