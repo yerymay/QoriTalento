@@ -2,8 +2,8 @@
 
 ## Reglas confirmadas (no modificar sin decisión explícita)
 
-- **RN-01 (DEC-01).** Rol postulante o reclutador. Reclutador de empresa: correo corporativo no público; particular: verifica teléfono por SMS/WhatsApp. Toda cuenta nueva queda inactiva hasta verificar correo. Particular también necesita verificar teléfono.
-- **RN-02 (DEC-02, actualizado 2026-11-06).** Cualquier reclutador puede publicar directamente una oferta completa. La definición futura de cuota de ofertas activas y de moderación no bloquea la publicación mientras B-01/B-02 siga abierta; no inventar reglas adicionales.
+- **RN-01 (DEC-01, actualizado 2026-11-06).** Rol postulante o reclutador. Toda cuenta nueva queda activa al registrarse y puede iniciar sesión de inmediato; no requiere aprobación de superadministrador, OTP ni verificación previa. Reclutador de empresa: correo corporativo no público; particular: teléfono de contacto obligatorio.
+- **RN-02 (DEC-02, actualizado 2026-11-06).** Cualquier reclutador puede crear y publicar directamente varias ofertas propias completas, sin cuota ni moderación previa. No inventar límites o aprobaciones adicionales.
 - **RN-03 (DEC-03).** Un reclutador solo ve y administra ofertas creadas por él, y los expedientes de candidatos de esas ofertas. Compartir empresa **no** concede acceso. En backend se verifica propietario en cada operación.
 - **RN-04 (DEC-04).** CV únicamente PDF digital con texto; extracción clásica (sin OCR ni IA generativa para extraer). Documentos almacenados fuera de la carpeta pública.
 - **RN-05 (DEC-05/06).** Servidor determina inicio/límite de examen; respuestas recibidas y aceptadas antes del límite; guardado por pregunta. Reconectar no suspende el reloj; la UI no controla el resultado oficial.
@@ -16,9 +16,9 @@
 
 | ID | Pregunta pendiente | Bloquea |
 |---|---|---|
-| B-01 | ¿Qué estados de oferta cuentan en un eventual máximo de 2 activas? | cuota futura M02; no bloquea publicación |
-| B-02 | ¿Quién modera la primera oferta y cómo se autoriza? | moderación futura M02; no bloquea publicación |
-| B-03 | Proveedor de correo/SMS, caducidad OTP, reintentos y activación | registro/activación real M01 |
+| B-01 | Resuelta 2026-11-06: no hay máximo de ofertas activas para reclutadores. | no bloquea M02 |
+| B-02 | Resuelta 2026-11-06: no hay moderación previa de ofertas. | no bloquea M02 |
+| B-03 | Resuelta 2026-11-06: no hay activación externa; el registro activa la cuenta de inmediato. | no bloquea M01 |
 | B-04 | Tamaño, antivirus/validación, retención, duplicados | envío/almacenamiento M03–04 |
 | B-05 | Cantidad de intentos, versión de examen, edición y borde de expiración | operación completa M05 |
 | B-06 | Rúbrica, pesos, evidencias y umbrales de evaluación IA | puntuación IA real M06 |

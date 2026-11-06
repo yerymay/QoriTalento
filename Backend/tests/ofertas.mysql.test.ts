@@ -62,6 +62,6 @@ describe.skipIf(process.env.TEST_MYSQL !== '1')('M02 con MySQL real', () => {
     const individual = await call('post', 'recruiter/jobs', body, 3);
     if (individual.status === 201) jobs.push(individual.body.id);
     expect(individual.status).toBe(201);
-    expect((await call('post', 'recruiter/jobs/' + individual.body.id + '/publish', {}, 3)).body.error.code).toBe('PUBLICATION_PENDING_RULES');
+    expect((await call('post', 'recruiter/jobs/' + individual.body.id + '/publish', {}, 3)).body.status).toBe('PUBLISHED');
   });
 });

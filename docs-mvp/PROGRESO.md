@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-04):** infraestructura verificada contra MariaDB local; Etapa 0 completada. Base M01 implementada y comprobada; en desarrollo el registro permite iniciar sesión de inmediato, mientras que en producción la activación sigue pendiente de B-03. M02 implementado en su alcance habilitado (borradores, edición, publicación/cierre de empresa y consulta); publicación particular pendiente de B-01/B-02. M03-M08 y validación IHC integral siguen pendientes.
+**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03-M08 y validación IHC integral siguen pendientes.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -17,8 +17,8 @@
 
 ## Implementación funcional por módulos
 
-- [ ] M01: usuarios, registro, inicio/cierre, perfiles y permisos. Base implementada y comprobada; activación de cuentas pendiente de B-03. Ver evidencia a continuación.
-- [ ] M02: base de ofertas, requisitos, edición y publicación/cierre de empresa implementada y comprobada; publicación particular pendiente de B-01/B-02. Ver evidencia M02.
+- [ ] M01: usuarios, registro, inicio/cierre, perfiles y permisos. Registro activo e inicio inmediato; pendiente la validación IHC integral. Ver evidencia a continuación.
+- [ ] M02: base de ofertas, requisitos, edición y publicación/cierre para cualquier reclutador implementada y comprobada; pendiente la validación IHC integral y M03 para recepción de postulaciones. Ver evidencia M02.
 - [ ] M03: postular a ofertas y adjuntar CV PDF.
 - [ ] M04: extraer PDF con texto, revisar y confirmar perfil.
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
@@ -101,8 +101,8 @@ Resultado real:
 - Chrome: sin desplazamiento horizontal en los dos anchos revisados; comportamiento del formulario conforme a las comprobaciones anteriores. Se ajustó el acceso móvil para mostrar el formulario antes del panel de marca, se redujo el espacio vacío del registro en escritorio y se distinguieron visualmente errores y éxitos. Perfil visual comprobado con datos sintéticos; no constituye prueba de sesión real en navegador.
 - OpenAPI implementado actualizado solo con rutas funcionales de M01; la verificación no figura como implementada.
 Captura/enlace local: capturas de revisión local de /login, /registro y /perfil (1440 px y 390 px); no se incorporaron al repositorio. Rutas locales: http://127.0.0.1:4321/login, /registro y /perfil cuando Astro usa el puerto predeterminado.
-Problemas abiertos: B-03 (proveedor, caducidad, reintentos y activación por correo/SMS); cuentas recién registradas permanecen inactivas y no pueden iniciar sesión. Los paneles de ofertas son puntos de llegada de M01, no implementan ofertas de M02. Falta validación IHC integral en navegadores y usuarios reales; no se marcan requisitos completos que dependen de ella o de módulos posteriores.
-Estado: [x] Base M01 implementada y probada / [ ] M01 completo por B-03
+Problemas abiertos: falta validación IHC integral en navegadores y usuarios reales; no se marcan requisitos completos que dependen de ella o de módulos posteriores.
+Estado: [x] Base M01 implementada y probada / [ ] M01 completo por validación IHC integral
 ```
 
 ## Decisión de publicación M02 (2026-11-06)
@@ -110,7 +110,7 @@ Estado: [x] Base M01 implementada y probada / [ ] M01 completo por B-03
 - Decisión aprobada: cualquier reclutador puede publicar directamente una oferta propia completa; ya no se bloquea por `kind=INDIVIDUAL`.
 - Condiciones conservadas: solo DRAFT → PUBLISHED, descripción y al menos un requisito; cerrar sigue siendo PUBLISHED → CLOSED y no hay reapertura.
 - Evidencia: `Backend/npm.cmd run check`, `npm.cmd test` (44 pruebas aprobadas, 2 omitidas) y `npm.cmd run build`; `Frontend/npm.cmd run check` (0 errores) y `npm.cmd run build` (9 rutas).
-- Pendientes sin cambio: B-01/B-02 solo definen una futura cuota o moderación; no bloquean la publicación directa aprobada.
+- Decisiones registradas: B-01/B-02 quedan resueltas: no hay cuota ni moderación previa para las ofertas de reclutadores.
 
 ## Evidencia - M02 ofertas (2026-11-04)
 
@@ -145,28 +145,28 @@ Resultados:
 - Integración MySQL optativa M02: 1 prueba aprobada contra la base local real. Comprueba persistencia de todos los campos, aislamiento por propietario, búsqueda literal/paginación, visibilidad de publicadas, bloqueo de particular, cierre, reversión completa tras fallo SQL y actualizaciones concurrentes sin perder campos. Solo crea/activa/elimina sus propios fixtures; no implementa activación de usuarios.
 - Migración: area y location ya existían en la base local al comprobarla; el ejecutor no realizó ALTER. Para instalaciones nuevas es necesario aplicar 03_job_details.sql después de 01_schema.sql y 02_auth_sessions.sql. El ejecutor detecta migración completa o parcial.
 - Frontend: Astro check con 0 errores, 0 warnings y 0 hints; build estático de 9 rutas correcto.
-- Navegador Chrome automatizado: API sintética, sin alterar cuentas/ofertas reales. Crear, editar, conservar datos al fallar, publicar/cancelar/cerrar con confirmación, búsqueda/filtros, borrador incompleto, bloqueo particular, detalle no disponible, información parcial, carga, vacío, error/reintento, tema oscuro, menú móvil, descarte confirmado, cierre voluntario con cambios y expiración. Sin errores JavaScript ni desbordamiento horizontal en las vistas capturadas a 1440 y 390 px.
+- Navegador Chrome automatizado: API sintética, sin alterar cuentas/ofertas reales. Crear, editar, conservar datos al fallar, publicar/cancelar/cerrar con confirmación, búsqueda/filtros, borrador incompleto, publicación de reclutador particular, detalle no disponible, información parcial, carga, vacío, error/reintento, tema oscuro, menú móvil, descarte confirmado, cierre voluntario con cambios y expiración. Sin errores JavaScript ni desbordamiento horizontal en las vistas capturadas a 1440 y 390 px.
 - Evidencia visual local (ignorada por git): .impeccable/review/m02-*.png (7 capturas) y m02-browser-result.json. No es una prueba de sesión real de extremo a extremo en navegador: la integración real de persistencia se prueba por separado.
 - Detector Impeccable ejecutado una vez: aviso de color base en badge, revisado como sobrescrito por el color de estado. Revisión independiente final: disposición ship en el alcance de código/capturas suministradas. Se corrigieron contraste de placeholder oscuro y pérdida de cambios al cerrar sesión. Se conservó la identidad visual existente, sin cambiar el sistema de diseño.
 
 Estado de requisitos:
 
 - [x] RSF05, RSF06 y RSF08 implementados y comprobados.
-- [ ] RSF07/M02 completo: edición y publicación/cierre de empresa implementados; publicación de particulares sigue bloqueada por B-01/B-02. La recepción de postulaciones y su rechazo en ofertas cerradas corresponde a M03, aún no implementado.
+- [ ] RSF07/M02 completo: edición y publicación/cierre para cualquier reclutador implementados. La recepción de postulaciones y su rechazo en ofertas cerradas corresponde a M03, aún no implementado.
 - [ ] UI-RF-02, UI-RF-03 y UI-RF-14 no se declaran completos: las transiciones usan acciones explícitas, no un selector arbitrario; el acceso a gestión se hace desde cada fila y Postular depende de M03.
-- [ ] B-03 sigue pendiente: en producción las cuentas nuevas permanecen inactivas y no pueden iniciar sesión. No se añadieron OTP ni rutas de activación. En desarrollo se permite iniciar sesión con cuentas recién registradas como comodidad local.
+- [x] B-03 resuelta: las cuentas nuevas quedan activas y pueden iniciar sesión de inmediato, sin OTP ni aprobación externa.
 - [ ] Validación IHC integral con usuarios reales, todos los navegadores, dispositivos físicos y auditoría formal de accesibilidad continúa pendiente.
 
 Guía de ejecución y contrato: [M02-OFERTAS.md](M02-OFERTAS.md).
 
-## Evidencia - Acceso inmediato en desarrollo (2026-11-04)
+## Decisión — acceso inmediato (2026-11-06)
 
-- Cambio: `active()` permite cuentas `PENDING_VERIFICATION` solo con `NODE_ENV=development`; sigue bloqueando `DISABLED` y roles inválidos. El registro responde "Cuenta creada. Ya puedes iniciar sesión." en desarrollo.
-- Alcance: comodidad local para probar registro e inicio de sesión de postulante y reclutador. No implementa B-03, OTP, activación real ni rol administrador. En producción el comportamiento no cambia.
-- Archivos: Backend/src/modules/auth/services/auth.service.ts; Backend/tests/auth.test.ts; Frontend/src/modules/auth/components/{Acceso,Registro}.astro; Backend/openapi-implemented.yaml; README-COMENZAR.md; docs-mvp/PROGRESO.md.
+- Cambio: las cuentas se crean con estado `ACTIVE`; `active()` sigue bloqueando `DISABLED` y roles inválidos. El registro responde "Cuenta creada. Ya puedes iniciar sesión." en cualquier entorno.
+- Alcance: postulantes y reclutadores pueden registrarse e iniciar sesión de inmediato, sin OTP, verificación ni aprobación de superadministrador.
+- Archivos: Backend/src/modules/auth/services/auth.service.ts; Backend/src/modules/auth/persistence/mysql-auth.repository.ts; Backend/tests/auth.test.ts; Frontend/src/modules/auth/components/{Acceso,Registro,Espacio}.astro; Backend/openapi-implemented.yaml; docs-mvp/REGLAS-NEGOCIO.md; docs-mvp/PROGRESO.md.
 - Pruebas ejecutadas:
   - Backend: `npm run check` (OK); `npm test` (44 aprobadas, 2 omitidas; auth 14/14); `npm run build` (OK).
   - Frontend: `npm run check` (0 errores, 0 warnings, 0 hints); `npm run build` (9 rutas).
-- Resultado: en desarrollo, postulante y reclutador pueden registrarse e iniciar sesión de inmediato; en entorno de pruebas/producción el login de cuentas pendientes sigue devolviendo 403.
-- Problemas abiertos: B-03 sigue pendiente; la cuenta permanece `PENDING_VERIFICATION` en la base aunque el login se permita en desarrollo. No se repitió el login real en navegador en esta tarea.
-Estado: [x] Comodidad de desarrollo implementada / [ ] B-03 pendiente
+- Resultado: `npm.cmd run check`, `npm.cmd test` (44 pruebas aprobadas, 2 MySQL omitidas) y `npm.cmd run build` del backend correctos; `npm.cmd run check` y `npm.cmd run build` del frontend correctos. Postulante y reclutador pueden registrarse e iniciar sesión de inmediato en desarrollo y producción.
+- Problemas abiertos: no se añadió OTP ni verificación porque la decisión vigente no las requiere.
+Estado: [x] B-03 resuelta y validada

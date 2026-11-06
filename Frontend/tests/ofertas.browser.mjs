@@ -46,7 +46,6 @@ await page.route('**/api/v1/**', async route => {
   }
   if (method === 'PATCH' && job) { patches++; Object.assign(job, route.request().postDataJSON()); return respond(200, job); }
   if (action && job) {
-    if (action === 'publish' && kind === 'INDIVIDUAL') return error(403, 'PUBLICATION_PENDING_RULES', 'Publicación no disponible.');
     job.status = action === 'publish' ? 'PUBLISHED' : 'CLOSED';
     job[action === 'publish' ? 'published_at' : 'closed_at'] = new Date().toISOString();
     return respond(200, job);

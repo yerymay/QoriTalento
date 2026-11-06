@@ -59,7 +59,7 @@ export function initWorkspace(){
         confirm.returnValue='cancel';confirm.showModal();await new Promise<void>(resolve=>confirm.addEventListener('close',()=>resolve(),{once:true}));if(confirm.returnValue!=='save')return;
       }
       saving=true;const button=el<HTMLButtonElement>('[data-save]');button.disabled=true;button.textContent='Guardando…';form.setAttribute('aria-busy','true');
-      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Tu cuenta necesita verificación antes de volver a ingresar.','success');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados','success');}}
+      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Por seguridad, inicia sesión nuevamente con tus datos actualizados.','success');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados','success');}}
       catch(error){failure(error);}finally{saving=false;button.disabled=false;button.textContent='Guardar cambios';form.removeAttribute('aria-busy');}
     });
   }

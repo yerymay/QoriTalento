@@ -1,6 +1,6 @@
 # M02 — Ofertas laborales
 
-M02 permite que cualquier reclutador publique una oferta completa. Las definiciones futuras de cuota y moderación siguen pendientes de B-01/B-02; la activación de cuentas depende de B-03. No se añadieron reglas de cuota, pesos de requisitos, postulación ni reapertura.
+M02 permite que cualquier reclutador publique varias ofertas completas sin cuota ni moderación previa. Las cuentas quedan activas al registrarse. No se añadieron pesos de requisitos, postulación ni reapertura.
 
 ## Preparación local
 
@@ -25,7 +25,7 @@ API: `http://127.0.0.1:3001`. Frontend: `http://127.0.0.1:4321`. El proxy `/api`
 
 - Reclutador: `/reclutador/ofertas`, `/reclutador/nueva-oferta` y `/reclutador/editar-oferta?id=...`.
 - Postulante: `/postulante/ofertas` y `/postulante/oferta?id=...`.
-- Las páginas cargan los datos tras validar una sesión activa del rol correcto. Registrar una cuenta no la activa; B-03 sigue abierto.
+- Las páginas cargan los datos tras validar una sesión activa del rol correcto. Registrar una cuenta la activa y permite iniciar sesión de inmediato.
 - Basta el cargo para guardar un borrador. Cualquier reclutador puede publicar una oferta con descripción y al menos un requisito. Área, ubicación/modalidad, experiencia y formación pueden completarse posteriormente; los datos ausentes se muestran como no especificados.
 - Editar conserva el estado. Publicar y cerrar son acciones separadas, con confirmación. Cerrar retira la oferta del listado y del detalle de postulantes; no permite reabrirla.
 - Guardar, publicar y cerrar bloquean envíos repetidos mientras se procesa la solicitud. Los errores de guardado conservan el formulario. Descartar y cerrar sesión con cambios requieren confirmación; la expiración invalida inmediatamente el acceso.

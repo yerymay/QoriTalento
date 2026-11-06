@@ -39,16 +39,10 @@ export class AuthService {
     if (kind === 'COMPANY') corporate(address);
     if (kind === 'INDIVIDUAL' && !contact) throw new AppError(400, 'PHONE_REQUIRED', 'El reclutador particular necesita un teléfono.');
     const user = await this.repo.createUser({name, email: address, phone: contact, role, kind: kind as User['kind'], password_hash: await hashPassword(body.password)});
-    const message = process.env.NODE_ENV === 'development'
-      ? 'Cuenta creada. Ya puedes iniciar sesión.'
-      : 'Cuenta registrada. La activación está pendiente de verificación; todavía no puedes iniciar sesión.';
-    return { user: publicUser(user), message };
+    return { user: publicUser(user), message: 'Cuenta creada. Ya puedes iniciar sesión.' };
   }
   private active(user: User) {
     if (user.account_state === 'DISABLED') throw new AppError(403, 'ACCOUNT_INACTIVE', 'Tu cuenta está desactivada.');
-    // Comodidad local: en desarrollo se permite entrar sin verificación previa (B-03 sigue pendiente).
-    const development = process.env.NODE_ENV === 'development';
-    if (!development && (user.account_state !== 'ACTIVE' || !user.email_verified || (user.role === 'RECRUITER' && (!user.kind || (user.kind === 'INDIVIDUAL' && !user.phone_verified))))) throw new AppError(403, 'ACCOUNT_INACTIVE', 'Tu cuenta está pendiente de verificación o no está activa.');
     if (user.role !== 'CANDIDATE' && user.role !== 'RECRUITER') throw new AppError(403, 'FORBIDDEN', 'Tu cuenta no tiene un rol permitido.');
   }
   async login(input: unknown) {
@@ -86,8 +80,7 @@ export class AuthService {
     const profile = {name: text(body.name, 'Nombre', 2, 160), email: email(body.email), phone: phone(body.phone)};
     if (user.kind === 'COMPANY') corporate(profile.email);
     if (user.kind === 'INDIVIDUAL' && !profile.phone) throw new AppError(400, 'PHONE_REQUIRED', 'El teléfono es obligatorio para reclutadores particulares.');
-    // La persistencia invalida verificaciones y sesiones si cambian datos verificados.
     const updated = await this.repo.updateProfile(user.id, profile);
-    return {user: publicUser(updated), verification_required: updated.account_state !== 'ACTIVE'};
+    return {user: publicUser(updated), verification_required: user.email !== profile.email || (user.kind === 'INDIVIDUAL' && user.phone !== profile.phone)};
   }
 }

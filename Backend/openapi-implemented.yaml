@@ -4,8 +4,7 @@ info:
   version: 0.3.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Activación y OTP pendientes de B-03. Cualquier reclutador puede publicar una oferta completa;
-    las definiciones futuras de cuota y moderación siguen pendientes de B-01/B-02. Los módulos M03-M08 todavía no están implementados.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. Los módulos M03-M08 todavía no están implementados.
 servers:
   - url: /api/v1
 components:
@@ -255,7 +254,7 @@ components:
         application/json:
           schema: {$ref: '#/components/schemas/Error'}
     Registered:
-      description: Cuenta persistida. En producción queda inactiva hasta verificación; en desarrollo (NODE_ENV=development) se permite iniciar sesión para pruebas. No envía OTP.
+      description: Cuenta persistida y activa; puede iniciar sesión inmediatamente. No requiere OTP, verificación ni aprobación externa.
       content:
         application/json:
           schema:
@@ -301,7 +300,7 @@ paths:
   /auth/candidates/register:
     post:
       tags: [Auth]
-      summary: Registrar postulante (inactivo en producción)
+      summary: Registrar postulante (activo de inmediato)
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true
@@ -319,7 +318,7 @@ paths:
   /auth/recruiters/register:
     post:
       tags: [Auth]
-      summary: Registrar reclutador de empresa o particular (inactivo en producción)
+      summary: Registrar reclutador de empresa o particular (activo de inmediato)
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true
@@ -342,8 +341,7 @@ paths:
         Cookie de navegador HttpOnly, SameSite=Strict, Path=/api; Secure en producción.
         Token aleatorio de 256 bits; solo su hash se guarda en MySQL.
         Caducidad por inactividad configurable con SESSION_IDLE_MINUTES (30 en desarrollo).
-        En producción, sin cuentas activadas por la aplicación mientras B-03 siga pendiente;
-        en desarrollo se permite el acceso para pruebas.
+        Las cuentas nuevas quedan activas y pueden iniciar sesión de inmediato, sin verificación ni aprobación externa.
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
         required: true
@@ -418,9 +416,7 @@ paths:
       tags: [Auth]
       summary: Actualizar nombre, correo y teléfono propios
       description: >-
-        No acepta user_id, role, kind ni account_state. Cambiar el correo invalida su verificación;
-        cambiar el teléfono de un particular invalida su verificación telefónica.
-        Ambos casos dejan la cuenta pendiente y revocan todas sus sesiones en la misma transacción.
+        No acepta user_id, role, kind ni account_state. Cambiar el correo o teléfono revoca todas las sesiones en la misma transacción; la cuenta se mantiene activa.
       security: [{CookieSession: []}]
       parameters: [{$ref: '#/components/parameters/ClientHeader'}]
       requestBody:
@@ -430,7 +426,7 @@ paths:
             schema: {$ref: '#/components/schemas/ProfileInput'}
       responses:
         '200':
-          description: Cambios persistidos; verification_required indica si debe verificarse otra vez.
+          description: Cambios persistidos; verification_required indica que se cerró la sesión y debe iniciarse nuevamente por seguridad, no que se requiera una verificación externa.
           content:
             application/json:
               schema:

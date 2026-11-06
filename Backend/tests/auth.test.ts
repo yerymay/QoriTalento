@@ -13,7 +13,7 @@ export class MemoryAuth implements AuthRepository {
   async findByEmail(email: string) { return this.users.find(u=>u.email===email) ?? null; }
   async createUser(input: NewUser) {
     if (await this.findByEmail(input.email)) throw new AppError(409,'EMAIL_IN_USE','Ese correo ya está registrado.');
-    const user: User = {...input,id:String(this.users.length+1),account_state:'PENDING_VERIFICATION',email_verified:false,phone_verified:false};
+    const user: User = {...input,id:String(this.users.length+1),account_state:'ACTIVE',email_verified:false,phone_verified:false};
     this.users.push(user); return user;
   }
   async createSession(hash: string,id: string,expires: Date) { this.sessions.set(hash,{id,expires}); }
@@ -27,7 +27,7 @@ export class MemoryAuth implements AuthRepository {
     const user=this.users.find(u=>u.id===id)!;
     if(this.users.some(u=>u.id!==id && u.email===profile.email)) throw new AppError(409,'EMAIL_IN_USE','Correo registrado.');
     if(user.email!==profile.email || (user.kind==='INDIVIDUAL' && user.phone!==profile.phone)) {
-      user.account_state='PENDING_VERIFICATION';user.email_verified=false;
+      user.account_state='ACTIVE';user.email_verified=false;
       for(const [hash,s] of this.sessions) if(s.id===id) this.sessions.delete(hash);
     }
     Object.assign(user,profile);return user;
@@ -48,14 +48,14 @@ const client=(app: ReturnType<typeof createApp>)=>({
 const cookie=(response:request.Response)=>response.headers['set-cookie'][0].split(';')[0];
 describe('M01: API, autenticación y permisos',()=>{
   afterEach(()=>vi.unstubAllEnvs());
-  it('registra postulante inactivo, normaliza correo y nunca devuelve el hash',async()=>{
+  it('registra postulante activo, normaliza correo y nunca devuelve el hash',async()=>{
     const {app,repo}=setup();const res=await client(app).post('/api/v1/auth/candidates/register',{...candidate,email:' NUEVO@EXAMPLE.TEST '});
-    expect(res.status).toBe(201);expect(res.body.user.email).toBe('nuevo@example.test');expect(res.body.user.account_state).toBe('PENDING_VERIFICATION');
+    expect(res.status).toBe(201);expect(res.body.user.email).toBe('nuevo@example.test');expect(res.body.user.account_state).toBe('ACTIVE');
     expect(res.body.user.password_hash).toBeUndefined();expect(repo.users[1].password_hash).toMatch(/^scrypt\$/);expect(repo.users[1].password_hash).not.toContain(candidate.password);
-    expect((await client(app).post('/api/v1/auth/login',{email:candidate.email,password:candidate.password})).status).toBe(403);
+    expect((await client(app).post('/api/v1/auth/login',{email:candidate.email,password:candidate.password})).status).toBe(200);
   });
-  it('en desarrollo permite entrar con cuentas recién registradas',async()=>{
-    vi.stubEnv('NODE_ENV','development');const {app}=setup();
+  it('permite entrar con cuentas recién registradas en cualquier entorno',async()=>{
+    const {app}=setup();
     const postulante=await client(app).post('/api/v1/auth/candidates/register',candidate);
     expect(postulante.status).toBe(201);expect(postulante.body.message).toContain('Ya puedes iniciar sesión');
     expect((await client(app).post('/api/v1/auth/login',{email:candidate.email,password:candidate.password})).status).toBe(200);
@@ -63,8 +63,8 @@ describe('M01: API, autenticación y permisos',()=>{
     expect((await client(app).post('/api/v1/auth/recruiters/register',reclutador)).status).toBe(201);
     expect((await client(app).post('/api/v1/auth/login',{email:reclutador.email,password:reclutador.password})).status).toBe(200);
   });
-  it('en desarrollo sigue bloqueando cuentas desactivadas',async()=>{
-    vi.stubEnv('NODE_ENV','development');const {app,repo}=setup();repo.users[0].account_state='DISABLED';
+  it('sigue bloqueando cuentas desactivadas',async()=>{
+    const {app,repo}=setup();repo.users[0].account_state='DISABLED';
     expect((await client(app).post('/api/v1/auth/login',credentials)).status).toBe(403);
   });
   it('rechaza correo duplicado y payloads inválidos sin elevar privilegios',async()=>{
@@ -78,12 +78,11 @@ describe('M01: API, autenticación y permisos',()=>{
     expect((await client(app).post('/api/v1/auth/recruiters/register',{...candidate,kind:'COMPANY'})).status).toBe(201);
     expect(repo.users[1].role).toBe('RECRUITER');expect(repo.users[1].kind).toBe('COMPANY');
   });
-  it('rechaza credenciales erróneas, cuentas inactivas y particular sin teléfono verificado',async()=>{
+  it('rechaza credenciales erróneas y cuentas desactivadas',async()=>{
     const {app,repo}=setup();
     expect((await client(app).post('/api/v1/auth/login',{...credentials,password:'incorrecta'})).status).toBe(401);
     expect((await client(app).post('/api/v1/auth/login',{...credentials,email:'nadie@example.test'})).body.error.code).toBe('INVALID_CREDENTIALS');
-    repo.users[0].account_state='PENDING_VERIFICATION';expect((await client(app).post('/api/v1/auth/login',credentials)).status).toBe(403);
-    Object.assign(repo.users[0],{account_state:'ACTIVE',role:'RECRUITER',kind:'INDIVIDUAL'});expect((await client(app).post('/api/v1/auth/login',credentials)).status).toBe(403);
+    repo.users[0].account_state='DISABLED';expect((await client(app).post('/api/v1/auth/login',credentials)).status).toBe(403);
   });
   it('inicia, consulta, renueva y cierra sesión revocándola en servidor',async()=>{
     const {app,repo}=setup();const login=await client(app).post('/api/v1/auth/login',credentials);

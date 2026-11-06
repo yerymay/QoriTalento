@@ -2,7 +2,6 @@
 import Campo from './Campo.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
-const development = import.meta.env.DEV;
 interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
 const { initialRole='RECRUITER' } = Astro.props;
 ---
@@ -40,7 +39,7 @@ const { initialRole='RECRUITER' } = Astro.props;
         <button data-submit type="submit" class="q-primary flex w-full items-center justify-center gap-2">Iniciar sesión<img src="/images/auth/eb2c8.svg" alt="" /></button>
       </form>
       <p class="flex flex-wrap items-center justify-center gap-2 text-slate-600 dark:text-slate-300">¿Aún no tienes cuenta? <a data-register-link href={`/registro?role=${initialRole}`} class="q-link">Crear una cuenta</a></p>
-      <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">{development ? 'En desarrollo, tu cuenta se activa al registrarte y puedes iniciar sesión de inmediato.' : 'Las cuentas nuevas quedan pendientes de verificación antes de poder ingresar.'}</p>
+      <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">Tu cuenta queda lista al registrarte y puedes iniciar sesión de inmediato.</p>
       <noscript>Activa JavaScript para iniciar sesión.</noscript>
     </div>
   </section>

@@ -29,7 +29,7 @@ export class MySqlAuthRepository implements AuthRepository {
     try {
       await connection.beginTransaction();
       const [result] = await connection.execute<ResultSetHeader>(
-        'INSERT INTO users (full_name,email_normalized,password_hash,role,phone) VALUES (?,?,?,?,?)',
+        "INSERT INTO users (full_name,email_normalized,password_hash,role,phone,account_state) VALUES (?,?,?,?,?,'ACTIVE')",
         [user.name,user.email,user.password_hash,user.role,user.phone]);
       const id = String(result.insertId);
       if (user.role === 'RECRUITER') await connection.execute('INSERT INTO recruiter_profiles (user_id,recruiter_kind) VALUES (?,?)',[id,user.kind]);
@@ -60,9 +60,8 @@ export class MySqlAuthRepository implements AuthRepository {
       const previous = await this.userById(connection,id);
       const emailChanged = previous.email !== profile.email;
       const phoneChanged = previous.kind === 'INDIVIDUAL' && previous.phone !== profile.phone;
-      await connection.execute(`UPDATE users SET full_name=?,email_normalized=?,phone=?,
-        email_verified_at=IF(?,NULL,email_verified_at),account_state=IF(?,'PENDING_VERIFICATION',account_state) WHERE id=?`,
-        [profile.name,profile.email,profile.phone,emailChanged,emailChanged || phoneChanged,id]);
+      await connection.execute(`UPDATE users SET full_name=?,email_normalized=?,phone=?, account_state='ACTIVE' WHERE id=?`,
+        [profile.name,profile.email,profile.phone,id]);
       if (phoneChanged) await connection.execute('UPDATE recruiter_profiles SET phone_verified_at=NULL WHERE user_id=?',[id]);
       if (emailChanged || phoneChanged) await connection.execute('DELETE FROM auth_sessions WHERE user_id=?',[id]);
       const user = await this.userById(connection,id);

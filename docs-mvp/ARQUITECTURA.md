@@ -83,4 +83,4 @@ Frontend/src/
 
 ## No implementar aún
 
-Sin autorización adicional: publicar oferta particular, enviar OTP reales, permitir cambios de estado arbitrarios, calcular scores IA reales, habilitar roles de jefe RRHH ni fijar retención. Revisar `REGLAS-NEGOCIO.md`.
+Sin autorización adicional: enviar OTP reales, permitir cambios de estado arbitrarios, calcular scores IA reales, habilitar roles de jefe RRHH ni fijar retención. Reclutadores pueden publicar varias ofertas propias sin moderación previa. Revisar `REGLAS-NEGOCIO.md`.
