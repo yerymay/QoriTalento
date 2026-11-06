@@ -3,25 +3,28 @@ import Campo from './Campo.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 const development = import.meta.env.DEV;
+interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
+const { initialRole='CANDIDATE' } = Astro.props;
+const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulante';
 ---
 <header class="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-9"><Marca /><Tema /></header>
 <main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-9">
   <div class="grid items-start gap-10 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
     <section class="hidden space-y-5 pt-6 lg:block"><p class="font-semibold text-sky-700 dark:text-sky-300">Qori Talento</p><h1 class="max-w-md text-4xl font-bold leading-tight">Un espacio para cada paso del proceso.</h1><p class="max-w-sm leading-7 text-slate-600 dark:text-slate-300">{development ? 'Elige cómo participar. En desarrollo, tu cuenta se activa al registrarte.' : 'Elige cómo participar. Tu cuenta quedará pendiente hasta que se habilite la verificación.'}</p></section>
     <section class="q-card mx-auto w-full max-w-xl p-6 sm:p-8">
-      <div class="mb-7"><h1 class="text-3xl font-bold">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300">Completa tus datos para registrarte.</p></div>
+      <div class="mb-7"><h1 class="text-3xl font-bold">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300">Completa tus datos para registrarte.</p><p class="mt-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-200"><span class="h-2 w-2 rounded-full bg-sky-600"></span>Crearás una cuenta como: <span data-role-summary>{selectedRoleLabel}</span></p></div>
       <form method="post" data-auth-form="register" class="space-y-5" novalidate>
         <Campo id="name" label="Nombre completo" required autocomplete="name" min={2} max={160} />
         <Campo id="email" label="Correo electrónico" type="email" required autocomplete="email" max={254} />
         <Campo id="password" label="Contraseña" type="password" required autocomplete="new-password" min={8} max={128} />
         <button data-password type="button" aria-pressed="false" class="q-secondary">Mostrar contraseña</button>
         <p data-strength class="text-slate-600 dark:text-slate-300" aria-live="polite">Fortaleza: escribe al menos 8 caracteres.</p>
-        <div class="space-y-2"><label for="role" class="block font-medium">Quiero registrarme como</label><select id="role" name="role" class="q-input"><option value="CANDIDATE">Postulante</option><option value="RECRUITER">Reclutador</option></select></div>
+        <div class="space-y-2"><label for="role" class="block font-medium">Quiero registrarme como</label><select id="role" data-role-control class="q-input cursor-not-allowed opacity-75" aria-describedby="role-help" disabled><option value="CANDIDATE" selected={initialRole==='CANDIDATE'}>Postulante</option><option value="RECRUITER" selected={initialRole==='RECRUITER'}>Reclutador</option></select><input data-role-value type="hidden" name="role" value={initialRole} /><p id="role-help" class="text-sm text-slate-600 dark:text-slate-300">El rol fue elegido al iniciar el registro.</p></div>
         <div data-recruiter hidden class="space-y-2"><label for="kind" class="block font-medium">Tipo de reclutador</label><select id="kind" name="kind" class="q-input"><option value="COMPANY">Empresa (correo corporativo)</option><option value="INDIVIDUAL">Particular (requiere verificar teléfono)</option></select></div>
         <Campo id="phone" label="Teléfono de contacto" type="tel" autocomplete="tel" min={7} max={32} />
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
         <button data-submit type="submit" class="q-primary w-full" disabled>Registrar</button>
-        <a href="/login" class="q-secondary inline-flex items-center">Ya tengo cuenta</a>
+        <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a href={`/login?role=${initialRole}`} class="q-link">Inicia sesión</a></p>
         <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">{development ? 'En desarrollo, tu cuenta se activa al registrarte y podrás iniciar sesión de inmediato.' : 'La verificación todavía no está disponible. No podrás iniciar sesión con esta cuenta por ahora.'}</p>
       </form>
       <noscript>Activa JavaScript para registrar tu cuenta.</noscript>

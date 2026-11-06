@@ -3,6 +3,8 @@ import Campo from './Campo.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 const development = import.meta.env.DEV;
+interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
+const { initialRole='RECRUITER' } = Astro.props;
 ---
 <main class="min-h-screen lg:grid lg:grid-cols-[minmax(360px,39%)_1fr]">
   <section class="relative hidden flex-col justify-between gap-12 overflow-hidden bg-sky-900 px-6 py-8 text-white sm:p-12 lg:flex lg:min-h-screen lg:p-14">
@@ -22,14 +24,22 @@ const development = import.meta.env.DEV;
     <div class="mb-10 flex items-center justify-between gap-4 lg:justify-end"><div class="lg:hidden"><Marca /></div><Tema /></div>
     <div class="mx-auto w-full max-w-md space-y-6">
       <header><h2 class="text-3xl font-bold">Bienvenido de nuevo</h2><p class="mt-2 text-slate-600 dark:text-slate-300">Conecta talento con oportunidades.</p></header>
-      <form method="post" data-auth-form="login" class="space-y-5" novalidate>
+      <form method="post" data-auth-form="login" data-initial-role={initialRole} class="space-y-5" novalidate>
+        <fieldset class="space-y-2">
+          <legend class="block text-sm font-medium text-slate-700 dark:text-slate-200">Ingresar como</legend>
+          <div class="grid grid-cols-2 rounded-xl bg-slate-100 p-1 dark:bg-slate-800" role="group" aria-label="Tipo de acceso">
+            <button data-role-choice data-role="RECRUITER" data-role-label="Reclutador" type="button" aria-pressed="true" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-semibold text-sky-800 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-200"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="7" width="16" height="13" rx="2"/><path d="M9 7V5a3 3 0 0 1 6 0v2M3 12h18"/></svg>Reclutador</button>
+            <button data-role-choice data-role="CANDIDATE" data-role-label="Postulante" type="button" aria-pressed="false" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:bg-slate-900 dark:text-white"><svg aria-hidden="true" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></svg>Postulante</button>
+          </div>
+          <p data-role-hint class="text-sm text-slate-600 dark:text-slate-300">Accede a tus ofertas y procesos de selección.</p>
+        </fieldset>
         <Campo id="email" label="Correo electrónico" type="email" required autocomplete="username" max={254} icon="838d2" />
         <Campo id="password" label="Contraseña" type="password" required autocomplete="current-password" max={128} icon="13411" />
         <button data-password type="button" aria-pressed="false" class="q-secondary inline-flex items-center gap-2"><img src="/images/auth/3de77.svg" alt="" class="q-control-icon" />Mostrar contraseña</button>
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
         <button data-submit type="submit" class="q-primary flex w-full items-center justify-center gap-2">Iniciar sesión<img src="/images/auth/eb2c8.svg" alt="" /></button>
       </form>
-      <p class="flex flex-wrap items-center justify-center gap-2 text-slate-600 dark:text-slate-300">¿Aún no tienes cuenta? <a href="/registro" class="q-link">Crear una cuenta</a></p>
+      <p class="flex flex-wrap items-center justify-center gap-2 text-slate-600 dark:text-slate-300">¿Aún no tienes cuenta? <a data-register-link href={`/registro?role=${initialRole}`} class="q-link">Crear una cuenta</a></p>
       <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">{development ? 'En desarrollo, tu cuenta se activa al registrarte y puedes iniciar sesión de inmediato.' : 'Las cuentas nuevas quedan pendientes de verificación antes de poder ingresar.'}</p>
       <noscript>Activa JavaScript para iniciar sesión.</noscript>
     </div>

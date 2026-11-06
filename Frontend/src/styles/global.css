@@ -25,6 +25,7 @@ body { font-family: var(--font-sans); }
 [hidden] { display: none !important; }
 a:focus-visible, button:focus-visible { outline: 2px solid var(--color-sky-600); outline-offset: 3px; }
 input, select, textarea { caret-color: var(--color-sky-700); }
+form > button[data-password] { display: none; }
 input::placeholder { color: var(--color-slate-600); }
 .q-notice[data-tone="error"] { border-color: var(--color-red-300); background: var(--color-red-50); color: var(--color-red-900); }
 .q-notice[data-tone="success"] { border-color: var(--color-emerald-300); background: var(--color-emerald-50); color: var(--color-emerald-950); }

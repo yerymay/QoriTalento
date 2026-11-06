@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import View from '../modules/auth/components/Acceso.astro';
+const role = Astro.url.searchParams.get('role') === 'CANDIDATE' ? 'CANDIDATE' : 'RECRUITER';
 ---
-<BaseLayout title="Qori Talento - Iniciar sesión"><View  /></BaseLayout>
+<BaseLayout title="Qori Talento - Iniciar sesión"><View initialRole={role} /></BaseLayout>

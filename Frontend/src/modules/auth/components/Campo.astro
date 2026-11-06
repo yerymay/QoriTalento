@@ -1,13 +1,17 @@
 ﻿---
 interface Props { id:string; label:string; type?:'text'|'email'|'password'|'tel'; required?:boolean; autocomplete?:string; min?:number; max?:number; icon?:string }
 const {id,label,type='text',required=false,autocomplete,min,max,icon}=Astro.props;
+const isPassword = type === 'password';
 ---
 <div class="space-y-2">
   <label for={id} class="block font-medium">{label}{required && <span aria-hidden="true"> *</span>}</label>
   <div class="relative">
     {icon && <img src={`/images/auth/${icon}.svg`} alt="" class="q-control-icon pointer-events-none absolute left-3 top-4" />}
     <input id={id} name={id} type={type} required={required} autocomplete={autocomplete} minlength={min} maxlength={max}
-      aria-describedby={`${id}-error`} class:list={['q-input',{'pl-11':!!icon}]} />
+      aria-describedby={`${id}-error`} class:list={['q-input',{'pl-11':!!icon,'pr-12':isPassword}]} />
+    {isPassword && <button type="button" data-password aria-pressed="false" aria-label="Mostrar contraseña" title="Mostrar contraseña" class="absolute inset-y-0 right-0 inline-flex min-w-12 items-center justify-center rounded-r-lg text-slate-500 hover:text-sky-700 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-sky-600 dark:text-slate-400 dark:hover:text-sky-300">
+      <img data-password-icon src="/images/auth/3de77.svg" alt="" class="q-control-icon h-[18px] w-[18px]" />
+    </button>}
   </div>
   <p id={`${id}-error`} data-field-error={id} class="text-red-700 dark:text-red-300" aria-live="polite" hidden></p>
 </div>

@@ -5,13 +5,15 @@ export function initAuthForm() {
   const submit=form.querySelector<HTMLButtonElement>('[data-submit]')!;
   const message=form.querySelector<HTMLElement>('[data-message]')!;
   const password=form.elements.namedItem('password') as HTMLInputElement;
-  const role=form.elements.namedItem('role') as HTMLSelectElement|null;
+  const role=form.querySelector<HTMLSelectElement>('#role');
+  const roleValue=form.querySelector<HTMLInputElement>('[data-role-value]');
   const kind=form.elements.namedItem('kind') as HTMLSelectElement|null;
   const phone=form.elements.namedItem('phone') as HTMLInputElement|null;
   let busy=false, complete=false;
   const show=(text:string,tone:'error'|'success')=>{message.textContent=text;message.dataset.tone=tone;message.hidden=false;message.focus();};
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
+    const roleSummary=form.parentElement?.querySelector<HTMLElement>('[data-role-summary]');if(roleSummary)roleSummary.textContent=recruiter?'Reclutador':'Postulante';
     const group=form.querySelector<HTMLElement>('[data-recruiter]');if(group)group.hidden=!recruiter;
     if(kind)kind.disabled=!recruiter;
     if(phone)phone.required=!!recruiter && kind?.value==='INDIVIDUAL';
@@ -25,11 +27,38 @@ export function initAuthForm() {
     const input=event.target, error=document.getElementById(`${input.id}-error`);
     if(error){error.hidden=input.validity.valid;error.textContent=input.validity.valid?'':input.validity.valueMissing?'Completa este campo.':input.type==='email'?'Ingresa un correo válido.':`Revisa este campo${input.minLength>0?`; mínimo ${input.minLength} caracteres`:''}.`;input.setAttribute('aria-invalid',String(!input.validity.valid));}
   });
-  form.querySelector<HTMLButtonElement>('[data-password]')?.addEventListener('click',event=>{
+  form.querySelector<HTMLButtonElement>('[data-password-legacy]')?.addEventListener('click',event=>{
     const button=event.currentTarget as HTMLButtonElement;password.type=password.type==='password'?'text':'password';button.setAttribute('aria-pressed',String(password.type==='text'));
     // Mantener el icono de Figma sin reconstruir el control.
     const image=button.querySelector('img');button.textContent=password.type==='text'?'Ocultar contraseña':'Mostrar contraseña';if(image)button.prepend(image);
   });
+  form.querySelector<HTMLButtonElement>('[data-password]')?.addEventListener('click',event=>{
+    const button=event.currentTarget as HTMLButtonElement;
+    password.type=password.type==='password'?'text':'password';
+    const visible=password.type==='text';
+    button.setAttribute('aria-pressed',String(visible));
+    button.setAttribute('aria-label',visible?'Ocultar contraseña':'Mostrar contraseña');
+    button.setAttribute('title',visible?'Ocultar contraseña':'Mostrar contraseña');
+  });
+  const choices=[...form.querySelectorAll<HTMLButtonElement>('[data-role-choice]')];
+  const hint=form.querySelector<HTMLElement>('[data-role-hint]');
+  const registerLink=form.parentElement?.querySelector<HTMLAnchorElement>('[data-register-link]');
+  choices.forEach(choice=>choice.addEventListener('click',()=>{
+    choices.forEach(item=>{
+      const selected=item===choice;
+      item.setAttribute('aria-pressed',String(selected));
+      item.classList.toggle('bg-white',selected);item.classList.toggle('dark:bg-slate-900',selected);
+      item.classList.toggle('text-slate-900',selected);item.classList.toggle('dark:text-white',selected);
+      item.classList.toggle('shadow-sm',selected);item.classList.toggle('text-sky-800',!selected);item.classList.toggle('dark:text-sky-200',!selected);
+    });
+    if(registerLink)registerLink.href=`/registro?role=${choice.dataset.role}`;
+    if(hint)hint.textContent=choice.dataset.roleLabel==='Reclutador'?'Accede a tus ofertas y procesos de selección.':'Encuentra oportunidades y sigue tus postulaciones.';
+  }));
+  const requestedRole=new URLSearchParams(window.location.search).get('role');
+  if(registration && role && (requestedRole==='CANDIDATE' || requestedRole==='RECRUITER')){role.value=requestedRole;if(roleValue)roleValue.value=requestedRole;}
+  const initialRole=requestedRole==='CANDIDATE' || requestedRole==='RECRUITER' ? requestedRole : form.dataset.initialRole;
+  const initialChoice=choices.find(choice=>choice.dataset.role===initialRole);
+  initialChoice?.click();
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy || complete || !form.reportValidity())return;
     busy=true;submit.disabled=true;submit.textContent=registration?'Registrando…':'Iniciando sesión…';form.setAttribute('aria-busy','true');message.hidden=true;

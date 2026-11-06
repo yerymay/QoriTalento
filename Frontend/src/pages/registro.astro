@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import View from '../modules/auth/components/Registro.astro';
+const role = Astro.url.searchParams.get('role') === 'RECRUITER' ? 'RECRUITER' : 'CANDIDATE';
 ---
-<BaseLayout title="Qori Talento - Crear cuenta"><View  /></BaseLayout>
+<BaseLayout title="Qori Talento - Crear cuenta"><View initialRole={role} /></BaseLayout>
