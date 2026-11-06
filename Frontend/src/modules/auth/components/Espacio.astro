@@ -1,8 +1,8 @@
-﻿---
+---
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 import Campo from './Campo.astro';
-interface Props { view?:'profile'|'home'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
+interface Props { view?:'profile'|'home'|'applications'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
 <div data-workspace data-view={view} data-role={role} class="min-h-screen lg:grid lg:grid-cols-[270px_1fr]">
@@ -11,6 +11,7 @@ const {view='profile',role,title,description}=Astro.props;
     <div class="hidden rounded-xl border border-slate-200 p-3 dark:border-slate-700 lg:block"><p class="text-slate-600 dark:text-slate-300">Mi espacio</p><p data-space class="font-semibold">Tu cuenta</p></div>
     <nav id="account-nav" aria-label="Navegación principal" class="hidden space-y-3 lg:block">
       <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2M3 12h18"/></svg><span data-home-label>Ofertas</span></a>
+      <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden>Mis postulaciones</a>
       <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><img src="/images/auth/2922a.svg" alt="" class="q-control-icon" />Mi perfil</a>
     </nav>
     <button data-logout type="button" class="q-secondary flex items-center gap-3 lg:mt-auto"><img src="/images/auth/9ba58.svg" alt="" class="q-control-icon" />Cerrar sesión</button>

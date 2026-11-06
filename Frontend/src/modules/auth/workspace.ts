@@ -1,4 +1,4 @@
-﻿import {auth,homeFor,type Session} from './auth.service';
+import {auth,homeFor,type Session} from './auth.service';
 import {ApiError} from '../compartido/services/api';
 export function initWorkspace(){
   const root=document.querySelector<HTMLElement>('[data-workspace]');if(!root)return;
@@ -8,7 +8,7 @@ export function initWorkspace(){
   const expiry=el<HTMLDialogElement>('[data-expiry]'), confirm=el<HTMLDialogElement>('[data-confirm]');
   let session:Session|undefined, saving=false, refreshing=false, lastRefresh=0, loadingNow=false;
   const notice=(text:string,tone:'error'|'success'='error')=>{feedback.textContent=text;feedback.dataset.tone=tone;feedback.hidden=false;};
-  const clear=()=>{content.hidden=true;el('[data-home]').hidden=true;el('[data-identity]').textContent='Sesión no disponible';form?.reset();session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared'));};
+  const clear=()=>{content.hidden=true;el('[data-home]').hidden=true;el('[data-app-nav]').hidden=true;el('[data-identity]').textContent='Sesión no disponible';form?.reset();session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared'));};
   const failure=(error:unknown)=>{
     notice(error instanceof Error?error.message:'No se pudo completar la operación.');
     if(error instanceof ApiError && [401,403].includes(error.status)){clear();el('[data-signin]').hidden=false;}else el('[data-retry]').hidden=false;
@@ -25,7 +25,7 @@ export function initWorkspace(){
     el('[data-identity]').textContent=`${user.name} · ${user.role==='RECRUITER'?'Reclutador':'Postulante'}`;
     el('[data-space]').textContent=user.role==='RECRUITER'?'Panel de reclutamiento':'Portal de talento';
     const home=el<HTMLAnchorElement>('[data-home]');home.href=homeFor(user.role);home.hidden=false;
-    el('[data-home-label]').textContent=user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades';
+    el('[data-home-label]').textContent=user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades';el('[data-app-nav]').hidden=user.role!=='CANDIDATE';
     if(root.dataset.view==='home')home.setAttribute('aria-current','page');content.hidden=false;
     document.dispatchEvent(new CustomEvent('qori:session',{detail:session}));
   };

@@ -3,7 +3,7 @@ import type { Job, JobChange, JobFilter, JobInput, JobScope, OfertasRepository }
 
 const columns = `SELECT CAST(id AS CHAR) AS id, CAST(owner_user_id AS CHAR) AS owner_user_id,
  title, description, area, location, experience_required, education_required, status,
- published_at, closed_at, created_at, updated_at FROM jobs`;
+ published_at, closed_at, process_finished_at, created_at, updated_at FROM jobs`;
 const iso = (value: Date | string | null): string | null => value === null ? null : new Date(value).toISOString();
 function scopeWhere(scope: JobScope) {
   if (scope.ownerId) return { sql: 'owner_user_id=?', values: [scope.ownerId] };
@@ -19,7 +19,7 @@ async function hydrate(connection: PoolConnection, rows: RowDataPacket[]): Promi
   return rows.map(row => ({
     id: row.id, owner_user_id: row.owner_user_id, title: row.title, description: row.description,
     area: row.area, location: row.location, experience_required: row.experience_required, education_required: row.education_required,
-    status: row.status, published_at: iso(row.published_at), closed_at: iso(row.closed_at),
+    status: row.status, published_at: iso(row.published_at), closed_at: iso(row.closed_at), process_finished_at: iso(row.process_finished_at),
     created_at: iso(row.created_at)!, updated_at: iso(row.updated_at)!,
     requirements: requirements.filter(item => item.job_id === row.id).map(item => ({ description: item.description })),
   }));

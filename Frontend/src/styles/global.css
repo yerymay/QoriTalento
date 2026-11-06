@@ -38,3 +38,7 @@ input::placeholder { color: var(--color-slate-600); }
 @keyframes qori-shimmer { to { transform: translateX(100%); } }
 :root.dark .q-control-icon { filter: brightness(0) invert(1); opacity: .85; }
 @media (prefers-reduced-motion: reduce) { .animate-pulse, .q-button-loading::after { animation: none; } }
+
+/* Asegura el contraste de los controles secundarios en tema oscuro. */
+:root.dark .q-secondary { background-color: var(--color-slate-900); color: white; border-color: var(--color-slate-600); }
+@media (hover: hover) { :root.dark .q-secondary:hover { background-color: var(--color-slate-800); } }

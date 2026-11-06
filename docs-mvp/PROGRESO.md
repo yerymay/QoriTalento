@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03-M08 y validación IHC integral siguen pendientes.
+**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03 cuenta con registro, consulta y reemplazo de CV; sigue pendiente la política de eliminación automática. M04-M08 y la validación IHC integral siguen pendientes.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -152,7 +152,7 @@ Resultados:
 Estado de requisitos:
 
 - [x] RSF05, RSF06 y RSF08 implementados y comprobados.
-- [ ] RSF07/M02 completo: edición y publicación/cierre para cualquier reclutador implementados. La recepción de postulaciones y su rechazo en ofertas cerradas corresponde a M03, aún no implementado.
+- [ ] RSF07/M02 completo: edición y publicación/cierre para cualquier reclutador implementados. La recepción de postulaciones y su rechazo en ofertas cerradas se implementaron posteriormente en M03; ver evidencia M03.
 - [ ] UI-RF-02, UI-RF-03 y UI-RF-14 no se declaran completos: las transiciones usan acciones explícitas, no un selector arbitrario; el acceso a gestión se hace desde cada fila y Postular depende de M03.
 - [x] B-03 resuelta: las cuentas nuevas quedan activas y pueden iniciar sesión de inmediato, sin OTP ni aprobación externa.
 - [ ] Validación IHC integral con usuarios reales, todos los navegadores, dispositivos físicos y auditoría formal de accesibilidad continúa pendiente.
@@ -170,3 +170,14 @@ Guía de ejecución y contrato: [M02-OFERTAS.md](M02-OFERTAS.md).
 - Resultado: `npm.cmd run check`, `npm.cmd test` (44 pruebas aprobadas, 2 MySQL omitidas) y `npm.cmd run build` del backend correctos; `npm.cmd run check` y `npm.cmd run build` del frontend correctos. Postulante y reclutador pueden registrarse e iniciar sesión de inmediato en desarrollo y producción.
 - Problemas abiertos: no se añadió OTP ni verificación porque la decisión vigente no las requiere.
 Estado: [x] B-03 resuelta y validada
+
+### Avance M03 — 2026-11-06
+
+- Implementados registro y listado de postulaciones, sustitución de CV en estado inicial, verificación de propiedad y rol, validación estructural y de texto PDF, límite de 5 MB y rechazo transaccional de duplicados activos.
+- Interfaz de postulación y listado con confirmación, progreso, cancelación y recuperación. Contrato registrado en `Backend/openapi-implemented.yaml`.
+- Validado: `npm run check` y `npm run build` en ambos proyectos; suite del backend 49 pruebas aprobadas, 3 pruebas MySQL omitidas en la ejecución general; la prueba MySQL de M03 pasó por separado. Las pruebas M03 actuales usan repositorio falso.
+- La base existente requiere aplicar `database/04_m03.sql`; aún no hay evidencia de integración de M03 con MySQL real.
+- La migración 04 fue aplicada por el usuario con una cuenta administradora. La prueba de M03 con MySQL real pasó: aislamiento, envío concurrente, reemplazo y cierre de la oferta; los datos sintéticos se eliminaron al terminar.
+- La acción de finalización de proceso fue verificada con MySQL real: comprueba propietario y mantiene la fecha en llamadas repetidas.
+- Revisión visual con Playwright y datos simulados: formulario, archivo inválido, confirmación y resultado, listado vacío, tema oscuro y ausencia de desbordamiento horizontal a 390 px.
+- Pendiente: eliminación segura o anonimización automática de todos los datos asociados a los dos años y validación IHC integral. M03 permanece sin marcar como completo; la política de conservación no está automatizada.

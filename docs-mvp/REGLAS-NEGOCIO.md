@@ -19,13 +19,28 @@
 | B-01 | Resuelta 2026-11-06: no hay máximo de ofertas activas para reclutadores. | no bloquea M02 |
 | B-02 | Resuelta 2026-11-06: no hay moderación previa de ofertas. | no bloquea M02 |
 | B-03 | Resuelta 2026-11-06: no hay activación externa; el registro activa la cuenta de inmediato. | no bloquea M01 |
-| B-04 | Tamaño, antivirus/validación, retención, duplicados | envío/almacenamiento M03–04 |
+| B-04 | Decisión parcial aprobada 2026-11-06: máximo 5 MB, validación estricta de PDF real, bloqueo de duplicados activos, reemplazo de CV en estado inicial y conservación de 2 años tras finalizar el concurso. Sin antivirus obligatorio por ahora; estados activos y finalización definidos parcialmente en B-08. | implementar y verificar las obligaciones aprobadas |
 | B-05 | Cantidad de intentos, versión de examen, edición y borde de expiración | operación completa M05 |
 | B-06 | Rúbrica, pesos, evidencias y umbrales de evaluación IA | puntuación IA real M06 |
 | B-07 | Reevaluación tras actualizar perfil confirmado | M04/M06 |
-| B-08 | Máquina de estados, actor y reversión de decisiones | M03/M07/M08 |
+| B-08 | Parcialmente aprobada 2026-11-06: estados para duplicados y reemplazo, y finalización explícita. Pendientes: transiciones completas, actores y reversión. | M07/M08 y finalización del proceso |
 | B-09 | Permisos de jefe RRHH frente a propiedad individual | M01/M07 |
 | B-10 | Ratificación de constitución y métricas RNF | formalidad documental |
+
+
+### B-04 — decisión parcial aprobada el 2026-11-06
+
+- Cada PDF de CV tiene un tamaño máximo de 5 MB y debe someterse a validación estricta de su estructura y texto. Por ahora no se exige antivirus; esta validación no garantiza que el archivo esté libre de malware.
+- Si existe una postulación activa a la misma oferta, no crear otra; informar su estado y permitir actualizar o reemplazar el CV únicamente mientras la postulación esté en estado inicial, pendiente de evaluación.
+- Conservar los CV y registros asociados durante el proceso de selección y por dos años desde la finalización del concurso; después corresponde eliminación segura o anonimización.
+- Los estados activos son pendiente de evaluación, en revisión y preseleccionado; avanza y no avanza son finales. Si una oferta sigue publicada, se permite volver a postular después de un resultado final. El reclutador propietario finaliza explícitamente el proceso; cerrar la oferta por sí solo no inicia el plazo de conservación.
+- Aprobado por el usuario del proyecto en conversación el 2026-11-06. Efecto previsto: M03–M04, persistencia privada, API y pruebas de validación, propiedad y duplicados. No implica implementación verificada.
+### B-08 — decisión parcial aprobada el 2026-11-06
+
+- La postulación se crea pendiente de evaluación. Solo en ese estado el postulante puede reemplazar su CV.
+- Pendiente de evaluación, en revisión y preseleccionado bloquean una nueva postulación a la misma oferta. Avanza y no avanza son resultados finales, y permiten volver a postular mientras la oferta siga publicada.
+- El reclutador propietario finaliza el proceso de forma explícita; ese evento impide nuevas postulaciones y fija el inicio de la conservación por dos años. Cerrar la recepción de la oferta no equivale a finalizar el proceso.
+- Las transiciones completas y su reversión siguen sin definir. Esta decisión no autoriza cambios de estado arbitrarios.
 
 ## Registro rápido de una decisión
 

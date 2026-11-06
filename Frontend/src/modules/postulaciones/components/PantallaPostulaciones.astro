@@ -1,0 +1,31 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+interface Props { view: 'form' | 'list' }
+const { view } = Astro.props;
+---
+<Espacio view={view === 'list' ? 'applications' : 'home'} role="CANDIDATE" title={view === 'form' ? 'Envía tu postulación' : 'Mis postulaciones'} description={view === 'form' ? 'Tu experiencia es el inicio de una nueva historia.' : 'Sigue cada paso de tu proceso.'}>
+  <div data-applications data-view={view} class="space-y-5">
+    <div data-app-loading role="status" class="q-card space-y-4 p-6"><p>Cargando información.</p><div class="h-20 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
+    <div data-app-notice class="q-notice" role="status" tabindex="-1" hidden></div>
+    <div data-app-recovery class="flex flex-wrap gap-3" hidden><button data-app-retry type="button" class="q-secondary">Reintentar</button><a href="/postulante/ofertas" class="q-link">Explorar oportunidades</a></div>
+    {view === 'form' ? <section data-form-content class="q-card space-y-5 p-5 sm:p-6" hidden>
+      <header><h2 data-title class="break-words text-xl font-semibold"></h2><p data-meta class="mt-1 text-slate-600 dark:text-slate-300"></p></header>
+      <div data-drop class="focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-sky-600 rounded-xl border border-dashed border-slate-400 bg-slate-50 p-6 text-center dark:border-slate-500 dark:bg-slate-800 sm:p-10">
+        <img src="/images/auth/m03-upload.svg" alt="" width="32" height="32" class="mx-auto mb-2" /><p class="font-semibold">Arrastra tu currículum en PDF</p><p class="mt-2 text-slate-600 dark:text-slate-300">o selecciona un archivo desde tu dispositivo</p>
+        <label for="cv-file" class="q-secondary mt-4 inline-flex cursor-pointer items-center">Seleccionar PDF</label>
+        <input id="cv-file" data-file type="file" accept=".pdf,application/pdf" class="sr-only" aria-describedby="cv-help cv-error" />
+      </div>
+      <p id="cv-help">PDF con texto seleccionable, máximo 5 MB.</p>
+      <p id="cv-error" data-file-error role="alert" class="text-red-800 dark:text-red-200" hidden></p>
+      <p data-filename class="break-all font-medium" hidden></p>
+      <div data-progress-wrap role="status" hidden><p data-progress-label>Enviando archivo…</p><progress data-progress max="100" class="mt-2 w-full"></progress></div>
+      <div class="flex flex-wrap gap-3"><button data-submit type="button" class="q-primary" disabled>Enviar postulación</button><button data-cancel-upload type="button" class="q-secondary" hidden>Cancelar carga</button><a href="/postulante/postulaciones" class="q-link">Mis postulaciones</a></div>
+    </section> : <section aria-label="Listado de postulaciones">
+      <div data-app-empty class="q-card space-y-3 p-6" hidden><h2 class="text-xl font-semibold">Tu primera postulación te espera</h2><p>Encuentra una vacante que encaje contigo y consulta aquí su avance.</p><a href="/postulante/ofertas" class="q-link">Explorar oportunidades</a></div>
+      <div data-app-list class="space-y-4"></div>
+      <template data-card><article class="q-card space-y-4 p-6"><div class="flex flex-wrap items-start justify-between gap-3"><div><h2 data-card-title class="break-words text-xl font-semibold"></h2><p data-card-meta class="mt-1 text-slate-600 dark:text-slate-300"></p></div><span data-card-status class="rounded-md bg-sky-100 px-3 py-1 text-sky-900 dark:bg-sky-950 dark:text-sky-100"></span></div><p data-card-file class="break-all"></p><a data-card-replace class="q-secondary inline-flex items-center" hidden>Reemplazar CV</a></article></template>
+    </section>}
+    <dialog data-app-confirm aria-labelledby="application-confirm-title" class="m-auto w-[min(90vw,35rem)] rounded-xl bg-white p-6 text-slate-900 backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white"><h2 id="application-confirm-title" class="text-xl font-bold">Confirmar postulación</h2><p data-confirm-copy class="my-4"></p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary">Volver</button><button value="confirm" class="q-primary">Confirmar</button></form></dialog>
+  </div>
+</Espacio>
+<script>import { initPostulaciones } from '../postulaciones'; initPostulaciones();</script>

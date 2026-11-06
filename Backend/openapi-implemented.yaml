@@ -1,10 +1,10 @@
-﻿openapi: 3.0.3
+openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
   version: 0.3.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. Los módulos M03-M08 todavía no están implementados.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye consulta y registro de postulaciones con PDF, y reemplazo del CV pendiente; M04-M08 siguen pendientes.
 servers:
   - url: /api/v1
 components:
@@ -16,8 +16,19 @@ components:
       in: header
       required: true
       schema: {type: string, enum: [web]}
-      description: Cabecera obligatoria en mutaciones JSON; no se habilita CORS.
+      description: Cabecera obligatoria en mutaciones JSON y multipart; no se habilita CORS.
   schemas:
+    ApplicationM03:
+      type: object
+      required: [id, job_id, title, status, created_at, submitted_at, filename]
+      properties:
+        id: {type: string}
+        job_id: {type: string}
+        title: {type: string}
+        status: {type: string, nullable: true}
+        created_at: {type: string, format: date-time}
+        submitted_at: {type: string, format: date-time, nullable: true}
+        filename: {type: string, nullable: true}
     Error:
       type: object
       required: [error]
@@ -269,6 +280,113 @@ components:
         application/json:
           schema: {$ref: '#/components/schemas/Session'}
 paths:
+  /recruiter/jobs/{jobId}/finish:
+    post:
+      tags: [Postulaciones]
+      summary: Finalizar el proceso de selección de una oferta propia
+      description: Cierra la recepción, registra la fecha de finalización e inicia el plazo de conservación. Es idempotente.
+      security: [{CookieSession: []}]
+      parameters:
+        - {name: jobId, in: path, required: true, schema: {type: string}}
+        - {$ref: '#/components/parameters/ClientHeader'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, maxProperties: 0}
+      responses:
+        '200':
+          description: Proceso finalizado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [finished_at]
+                properties:
+                  finished_at: {type: string, format: date-time}
+        '400': {description: Entrada inválida}
+        '401': {description: Sesión no válida}
+        '403': {description: Rol u origen no autorizado}
+        '404': {description: Oferta ajena o inexistente}
+        '409': {description: Oferta en borrador}
+  /applications:
+    get:
+      tags: [Postulaciones]
+      summary: Consultar las postulaciones del candidato autenticado
+      security: [{CookieSession: []}]
+      responses:
+        '200':
+          description: Postulaciones propias
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/ApplicationM03'}
+        '401': {description: Sesión no válida}
+        '403': {description: Rol no autorizado}
+  /jobs/{jobId}/applications:
+    post:
+      tags: [Postulaciones]
+      summary: Registrar una postulación con CV PDF
+      description: La oferta debe estar publicada. Se rechazan postulaciones activas duplicadas.
+      security: [{CookieSession: []}]
+      parameters:
+        - {name: jobId, in: path, required: true, schema: {type: string}}
+        - {$ref: '#/components/parameters/ClientHeader'}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [cv]
+              properties:
+                cv: {type: string, format: binary, description: PDF con texto seleccionable de hasta 5 MB (5.000.000 bytes)}
+      responses:
+        '201':
+          description: Postulación registrada
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ApplicationM03'}
+        '400': {description: PDF inválido}
+        '401': {description: Sesión no válida}
+        '403': {description: Rol u origen no autorizado}
+        '404': {description: Oferta no disponible}
+        '409': {description: Postulación activa existente}
+        '413': {description: Archivo demasiado grande}
+  /applications/{applicationId}/cv:
+    put:
+      tags: [Postulaciones]
+      summary: Reemplazar el CV de una postulación propia pendiente de evaluación
+      security: [{CookieSession: []}]
+      parameters:
+        - {name: applicationId, in: path, required: true, schema: {type: string}}
+        - {$ref: '#/components/parameters/ClientHeader'}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [cv]
+              properties:
+                cv: {type: string, format: binary}
+      responses:
+        '200':
+          description: CV actualizado
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ApplicationM03'}
+        '400': {description: PDF inválido}
+        '401': {description: Sesión no válida}
+        '403': {description: Rol u origen no autorizado}
+        '404': {description: Postulación no encontrada}
+        '409': {description: El estado no permite reemplazar el CV}
+        '413': {description: Archivo demasiado grande}
   /system/health:
     get:
       tags: [Sistema]

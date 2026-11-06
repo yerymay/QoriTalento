@@ -47,6 +47,7 @@ export function initOfertas() {
     el<HTMLButtonElement>('[data-discard-job]').disabled = busy || !dirty;
     el<HTMLButtonElement>('[data-publish-job]').disabled = busy || dirty || !job?.description || !job.requirements.length;
     el<HTMLButtonElement>('[data-close-job]').disabled = busy || dirty;
+    el<HTMLButtonElement>('[data-finish-job]').disabled = busy || dirty;
   };
   const publication = () => {
     if (!form) return;
@@ -59,7 +60,8 @@ export function initOfertas() {
     el('[data-job-id]').textContent = 'QT-' + job.id;
     el('[data-publish-job]').hidden = job.status !== 'DRAFT';
     el('[data-close-job]').hidden = job.status !== 'PUBLISHED';
-    el('[data-publication-help]').textContent = job.status === 'DRAFT'
+    el('[data-finish-job]').hidden = !['PUBLISHED','CLOSED'].includes(job.status) || !!job.process_finished_at;
+    el('[data-publication-help]').textContent = job.process_finished_at ? 'El proceso ha finalizado. Se registró su fecha de finalización.' : job.status === 'DRAFT'
       ? !job.description || !job.requirements.length ? 'Completa y guarda la descripción y al menos un requisito para habilitar la publicación.' : 'Al publicar, los postulantes podrán consultar esta oferta. Guarda los cambios antes de publicarla.'
       : job.status === 'PUBLISHED' ? 'Visible para los postulantes. Cerrar la oferta la retira del listado disponible; no se podrá reabrir.'
         : 'Esta oferta está cerrada y ya no aparece entre las oportunidades disponibles. Puedes corregir su información, pero no reabrirla.';
@@ -86,6 +88,7 @@ export function initOfertas() {
       const item = document.createElement('li'); item.className = 'whitespace-pre-wrap break-words'; item.textContent = requirement.description; list.append(item);
     }
     if (!value.requirements.length) { const item = document.createElement('li'); item.textContent = 'Requisitos no especificados.'; list.append(item); }
+    link(root, '[data-apply]', '/postulante/postular?id=' + encodeURIComponent(value.id));
     el('[data-job-detail]').hidden = false;
   };
   const loadList = async () => {
@@ -213,6 +216,19 @@ export function initOfertas() {
       finally { window.clearTimeout(shimmerTimeout); actionButton.classList.remove('q-button-loading'); actionButton.removeAttribute('aria-busy'); if (session) setBusy(false); }
     });
   }
+  root.querySelector('[data-finish-job]')?.addEventListener('click', async () => {
+    if (!job || busy || dirty || !session || job.process_finished_at) return;
+    const accepted = await confirm('¿Finalizar el proceso?', 'Se cerrará la recepción de postulaciones y comenzará el plazo de conservación. Esta acción no puede deshacerse.', 'Finalizar proceso');
+    if (!accepted || !job || busy || !session) return;
+    const run = epoch; setBusy(true);
+    try {
+      const result = await ofertas.finish(job.id);
+      if (run !== epoch || !session) return;
+      job = { ...job, status: 'CLOSED', process_finished_at: result.finished_at };
+      fillEditor(); notice('Proceso finalizado. Se registró la fecha de finalización.', 'success'); feedback.focus();
+    } catch (error) { if (run === epoch) { failure(error); feedback.focus(); } }
+    finally { if (session) setBusy(false); }
+  });
   search?.addEventListener('submit', event => {
     event.preventDefault(); query = new URLSearchParams();
     const data = new FormData(search);

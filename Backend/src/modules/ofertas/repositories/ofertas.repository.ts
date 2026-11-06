@@ -15,6 +15,7 @@ export interface Job extends JobInput {
   status: string;
   published_at: string | null;
   closed_at: string | null;
+  process_finished_at?: string | null;
   created_at: string;
   updated_at: string;
 }
