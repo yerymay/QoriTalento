@@ -35,6 +35,7 @@ const {view='profile',role,title,description}=Astro.props;
           <p data-verification-warning class="q-notice" hidden>Cambiar el correo o teléfono cierra tus sesiones como medida de seguridad. Podrás iniciar sesión otra vez con tus datos actualizados.</p>
           <div data-actions class="flex flex-wrap gap-3" hidden><button data-save type="submit" class="q-primary">Guardar cambios</button><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
         </form> : <slot />}
+        {view==='profile' && <slot name="profile-details" />}
       </section>
       <noscript>Activa JavaScript para consultar tu cuenta. Tus datos personales solo se cargan después de validar la sesión.</noscript>
     </main>

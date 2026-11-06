@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import View from '../modules/auth/components/Espacio.astro';
+import PerfilCurricular from '../modules/cv/components/PerfilCurricular.astro';
 ---
-<BaseLayout title="Qori Talento - Mi perfil"><View view="profile" /></BaseLayout>
+<BaseLayout title="Qori Talento - Mi perfil"><View view="profile"><PerfilCurricular slot="profile-details" /></View></BaseLayout>

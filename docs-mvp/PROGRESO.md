@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03 cuenta con registro, consulta y reemplazo de CV; sigue pendiente la política de eliminación automática. M04-M08 y la validación IHC integral siguen pendientes.
+**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03 cuenta con registro, consulta y reemplazo de CV; sigue pendiente automatizar la eliminación según la política aprobada. M04 cuenta con extracción clásica, corrección y confirmación del perfil y revisión privada del reclutador con notas, verificado con pruebas y MariaDB. La precisión en un conjunto representativo de CV reales, M05-M08 y la validación IHC integral siguen pendientes.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -20,7 +20,7 @@
 - [ ] M01: usuarios, registro, inicio/cierre, perfiles y permisos. Registro activo e inicio inmediato; pendiente la validación IHC integral. Ver evidencia a continuación.
 - [ ] M02: base de ofertas, requisitos, edición y publicación/cierre para cualquier reclutador implementada y comprobada; pendiente la validación IHC integral y M03 para recepción de postulaciones. Ver evidencia M02.
 - [ ] M03: postular a ofertas y adjuntar CV PDF.
-- [ ] M04: extraer PDF con texto, revisar y confirmar perfil.
+- [x] M04: base funcional de extracción, corrección y confirmación del perfil, revisión de PDF y notas; verificada con pruebas automatizadas, MariaDB y navegador. Pendiente medir precisión sobre CV representativos; B-07 sigue abierta.
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
 - [ ] M06: calificación objetiva y evaluación asistida con Ollama (rúbrica pendiente).
 - [ ] M07: resultados y decisión humana.
@@ -181,3 +181,18 @@ Estado: [x] B-03 resuelta y validada
 - La acción de finalización de proceso fue verificada con MySQL real: comprueba propietario y mantiene la fecha en llamadas repetidas.
 - Revisión visual con Playwright y datos simulados: formulario, archivo inválido, confirmación y resultado, listado vacío, tema oscuro y ausencia de desbordamiento horizontal a 390 px.
 - Pendiente: eliminación segura o anonimización automática de todos los datos asociados a los dos años y validación IHC integral. M03 permanece sin marcar como completo; la política de conservación no está automatizada.
+
+### Avance M04 — 2026-11-06
+
+- Implementadas las cuatro capas de `Backend/src/modules/cv/`, inyectadas desde `server.ts` y montadas exclusivamente en `app.ts`. Contrato de nueve operaciones M04 en `Backend/openapi-implemented.yaml` (versión 0.4.0).
+- La carga y el reemplazo de M03 extraen texto de todas las páginas, reconocen secciones y contactos, y guardan propuesta y PDF en la misma transacción. Los CV anteriores se procesan al abrir la revisión. Se conserva evidencia por página y texto original; no se utiliza OCR ni IA generativa.
+- Confirmación del postulante con validación estricta, actualización atómica de perfil curricular/nombre/teléfono, versiones por postulación, idempotencia, control de CV reemplazado y detección de otra confirmación concurrente. El correo curricular no sustituye al correo de acceso.
+- Revisión privada del reclutador propietario: lista de postulantes de su oferta, PDF original asociado al perfil confirmado y notas. No puede editar datos fuente ni recibir propuestas sin confirmar.
+- UI conectada desde carga y listado de postulaciones, listado de ofertas y Mi perfil. Dos paneles en escritorio, pestañas con teclado en móvil, edición explícita, datos no detectados, confirmación, error recuperable y limpieza al cerrar sesión.
+- `npm.cmd run check` y `npm.cmd run build`: aprobados en Backend y Frontend; Astro reporta 0 errores, 0 advertencias y 0 sugerencias. Las tres fuentes de pruebas M04 también pasaron un chequeo TypeScript estricto separado, ya que el tsconfig habitual excluye tests.
+- `npx.cmd vitest run`: 59 pruebas aprobadas y 4 pruebas de integración omitidas por requerir `TEST_MYSQL=1`. Dentro de esas 59, M04 aporta 10 pruebas de extracción/API. Se mantuvieron las pruebas M01–M03.
+- `TEST_MYSQL=1` con `tests/cv.mysql.test.ts`: 1 prueba de integración aprobada en MariaDB local. Verificó extracción persistida al cargar, confirmación simultánea sin duplicados, aislamiento de propietarios, notas, actualización de cuenta, reemplazo, conflicto de versión y conservación de expedientes de otras ofertas. Los registros sintéticos creados por la prueba se eliminaron al terminar. No fue necesaria una migración M04.
+- `node tests/cv.browser.mjs http://127.0.0.1:4323`: aprobado con API sintética. Verificó carga, corrección, error de guardado sin perder entrada, confirmación, Mi perfil, parcial/vacío/error, pestañas con teclado, notas, expiración de sesión y ausencia de desbordamiento horizontal. Capturas inspeccionadas a 1440 px y 390 px, incluido tema oscuro, en `.impeccable/review/m04-*.png`. El puerto es el servidor de revisión de esta sesión; el script acepta cualquier URL local de Astro.
+- Detector de diseño: sin hallazgos. Se conservaron Sky/Inter y componentes existentes. La revisión independiente solicitada a un subagente falló por límite de uso; fue sustituida por revisión en este hilo, sin presentarla como aprobación independiente. Las capturas finales muestran campos y controles legibles, pestaña activa diferenciada y PDF renderizado; no constituyen una auditoría de accesibilidad integral.
+- Requisitos funcionales RSF13–RSF16.1 y UI-RF-05/16/17 marcados con esta evidencia. Límites y procedimiento reproducible en [M04-IMPLEMENTACION.md](M04-IMPLEMENTACION.md).
+- Pendiente: medir precisión y cobertura con un conjunto representativo de CV reales consentidos o anonimizados. Las pruebas sintéticas no demuestran un porcentaje de exactitud en documentos arbitrarios. B-07 (reevaluación) y validación IHC integral continúan pendientes.

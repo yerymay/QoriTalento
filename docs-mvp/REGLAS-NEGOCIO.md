@@ -7,7 +7,7 @@
 - **RN-03 (DEC-03).** Un reclutador solo ve y administra ofertas creadas por él, y los expedientes de candidatos de esas ofertas. Compartir empresa **no** concede acceso. En backend se verifica propietario en cada operación.
 - **RN-04 (DEC-04).** CV únicamente PDF digital con texto; extracción clásica (sin OCR ni IA generativa para extraer). Documentos almacenados fuera de la carpeta pública.
 - **RN-05 (DEC-05/06).** Servidor determina inicio/límite de examen; respuestas recibidas y aceptadas antes del límite; guardado por pregunta. Reconectar no suspende el reloj; la UI no controla el resultado oficial.
-- **RN-06 (DEC-07).** El candidato revisa/corrige/confirma sus datos extraídos; el reclutador solo consulta y deja notas, sin modificar el perfil fuente.
+- **RN-06 (DEC-07, precisada 2026-11-06).** El postulante revisa, corrige y confirma los datos propuestos a partir de su CV. La extracción debe asistir el llenado del perfil y minimizar errores mediante reglas y patrones sobre el texto del PDF, pero no inventa datos ni reemplaza la revisión humana. Al confirmar, los valores editados actualizan el perfil del postulante. El reclutador solo consulta el PDF y los datos confirmados, y deja notas; no modifica el perfil fuente.
 - **RN-07.** El cálculo de compatibilidad/score con IA (Ollama `qwen2.5:7b-instruct`) es indicativo, documenta evidencia y nunca decide contrataciones. El reclutador autorizado registra la decisión humana. Sin B-06 aprobada, resultados IA solo con datos sintéticos/estado pendiente de revisión.
 - **RN-08.** Estados operativos UI Ideal, Vacío, Parcial, Carga y Error son independientes de estados de negocio. No crear opción "Estados de UI" en la navegación.
 - **RN-09.** Dos roles de acceso definidos: reclutador y postulante. La mención al jefe de RRHH en documentación original **no otorga por sí sola** acceso transversal mientras B-09 esté abierto.
@@ -26,6 +26,13 @@
 | B-08 | Parcialmente aprobada 2026-11-06: estados para duplicados y reemplazo, y finalización explícita. Pendientes: transiciones completas, actores y reversión. | M07/M08 y finalización del proceso |
 | B-09 | Permisos de jefe RRHH frente a propiedad individual | M01/M07 |
 | B-10 | Ratificación de constitución y métricas RNF | formalidad documental |
+
+### Alcance precisado de M04 — 2026-11-06
+
+- El perfil inicial puede contener solo los datos indispensables del registro. La información curricular se completa de forma asistida después de cargar un CV PDF con texto.
+- M04 debe intentar extraer nombre, correo, teléfono, ubicación, resumen profesional, formación, experiencia, habilidades e idiomas. Los valores ambiguos o ausentes se presentan para revisión como “No detectado” o pendientes; no se generan datos ficticios.
+- Los datos extraídos son propuestas editables. Solo los valores confirmados por el postulante actualizan el perfil y se consideran la fuente de consulta para el reclutador.
+- Si se reemplaza el CV en el estado permitido, se genera una nueva propuesta que debe confirmarse. Hasta esa confirmación se conserva el perfil vigente. B-07 sigue bloqueando cualquier reevaluación automática por ese cambio.
 
 
 ### B-04 — decisión parcial aprobada el 2026-11-06

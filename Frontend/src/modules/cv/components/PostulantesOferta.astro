@@ -1,0 +1,12 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+---
+<Espacio view="home" role="RECRUITER" title="Currículums de la oferta" description="Consulta los perfiles confirmados y revisa cada documento original.">
+  <div data-cv-applicants class="space-y-5">
+    <a href="/reclutador/ofertas" class="q-link">Volver a mis ofertas</a>
+    <p data-applicants-state role="status">Cargando postulantes…</p>
+    <button data-applicants-retry type="button" class="q-secondary" hidden>Reintentar</button>
+    <ul data-applicants-list class="divide-y divide-slate-200 dark:divide-slate-700"></ul>
+  </div>
+</Espacio>
+<script>import { initApplicants } from '../applicants'; initApplicants();</script>

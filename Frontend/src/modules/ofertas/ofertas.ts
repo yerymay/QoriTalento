@@ -112,6 +112,7 @@ export function initOfertas() {
           text(fragment, '[data-job-status]', labels[item.status] ?? item.status);
           fragment.querySelector<HTMLElement>('[data-job-status]')!.dataset.status = item.status;
           link(fragment, '[data-job-edit]', href);
+          link(fragment, '[data-job-applicants]', `/reclutador/postulantes?job=${encodeURIComponent(item.id)}`);
           fragment.querySelector('[data-job-edit]')!.setAttribute('aria-label', `Gestionar ${item.title}`);
         } else {
           text(fragment, '[data-job-area]', item.area || 'Área no especificada');

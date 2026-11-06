@@ -34,6 +34,7 @@ export class MySqlPostulacionesRepository implements PostulacionesRepository {
     await c.execute('INSERT INTO cv_documents (application_id,storage_key,original_filename,sha256,mime_type,byte_size,scan_status) VALUES (?,?,?,?,?,?,NULL)',
       [applicationId, randomUUID(), file.filename, file.sha256, 'application/pdf', file.bytes.length]);
     await c.execute('INSERT INTO cv_private_data (cv_document_id,contents) VALUES (LAST_INSERT_ID(),?)', [file.bytes]);
+    if (file.extraction) await c.execute("INSERT INTO cv_extraction_runs (cv_document_id,status,extractor_version,detected_json,finished_at) VALUES (LAST_INSERT_ID(),'COMPLETED',?,?,UTC_TIMESTAMP(3))", [file.extraction.version, JSON.stringify(file.extraction)]);
   }
   private async find(c: PoolConnection, id: string, candidateId: string): Promise<Application> {
     const [rows] = await c.execute<RowDataPacket[]>(select + ' WHERE a.id=? AND a.candidate_user_id=?', [id, candidateId]);

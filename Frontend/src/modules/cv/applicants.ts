@@ -1,0 +1,11 @@
+import { cv } from './cv.service';
+import { ApiError } from '../compartido/services/api';
+export function initApplicants(){
+  const root=document.querySelector<HTMLElement>('[data-cv-applicants]');if(!root)return;
+  const list=root.querySelector('[data-applicants-list]')!,status=root.querySelector<HTMLElement>('[data-applicants-state]')!,retry=root.querySelector<HTMLButtonElement>('[data-applicants-retry]')!;
+  const id=new URLSearchParams(location.search).get('job')??'';let epoch=0,active=false;
+  const load=async()=>{const run=++epoch;list.replaceChildren();retry.hidden=true;status.textContent='Cargando postulantes…';try{if(!/^[1-9][0-9]*$/.test(id))throw new Error('Selecciona una oferta desde Mis ofertas.');const result=await cv.applications(id);if(run!==epoch||!active)return;status.textContent=result.items.length?`${result.items.length} postulaciones recibidas para ${result.items[0]!.title}`:'Esta oferta todavía no tiene postulaciones.';
+    for(const item of result.items){const li=document.createElement('li');li.className='flex flex-wrap items-center justify-between gap-4 py-5';const text=document.createElement('div');const name=document.createElement('h2');name.className='break-words text-lg font-semibold';name.textContent=item.name;const state=document.createElement('p');state.textContent=item.confirmed?'Perfil confirmado':'Pendiente de confirmación del postulante';text.append(name,state);const link=document.createElement('a');link.href=`/reclutador/cv?application=${encodeURIComponent(item.id)}`;link.className='q-secondary inline-flex items-center';link.textContent='Revisar CV';link.setAttribute('aria-label',`Revisar CV de ${item.name}`);li.append(text,link);list.append(li);}}
+    catch(error){if(run!==epoch)return;if(error instanceof ApiError&&[401,403].includes(error.status))document.dispatchEvent(new CustomEvent('qori:auth-error',{detail:error}));status.textContent=error instanceof Error?error.message:'No se pudo cargar la lista.';retry.hidden=false;}};
+  document.addEventListener('qori:session',()=>{active=true;void load();});document.addEventListener('qori:session-cleared',()=>{epoch++;active=false;list.replaceChildren();status.textContent='';});retry.addEventListener('click',()=>void load());
+}

@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
-  version: 0.3.0
+  version: 0.4.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye consulta y registro de postulaciones con PDF, y reemplazo del CV pendiente; M04-M08 siguen pendientes.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05-M08 siguen pendientes.
 servers:
   - url: /api/v1
 components:
@@ -18,6 +18,91 @@ components:
       schema: {type: string, enum: [web]}
       description: Cabecera obligatoria en mutaciones JSON y multipart; no se habilita CORS.
   schemas:
+    CvProfile:
+      type: object
+      additionalProperties: false
+      required: [name, email, phone, location, summary, education, experience, skills, languages]
+      properties:
+        name: {type: string, maxLength: 160, minLength: 2}
+        email: {type: string, maxLength: 254}
+        phone: {type: string, maxLength: 32}
+        location: {type: string, maxLength: 200}
+        summary: {type: string, maxLength: 4000}
+        education:
+          type: array
+          maxItems: 30
+          items: {type: string, maxLength: 4000}
+        experience:
+          type: array
+          maxItems: 30
+          items: {type: string, maxLength: 4000}
+        skills:
+          type: array
+          maxItems: 80
+          items: {type: string, maxLength: 200}
+        languages:
+          type: array
+          maxItems: 80
+          items: {type: string, maxLength: 200}
+    CvConfirmed:
+      type: object
+      nullable: true
+      required: [id, source_cv_id, confirmed_at, profile]
+      properties:
+        id: {type: string}
+        source_cv_id: {type: string}
+        confirmed_at: {type: string, format: date-time}
+        profile: {$ref: '#/components/schemas/CvProfile'}
+    CvReview:
+      type: object
+      required: [application_id, title, status, document, extraction, confirmed, current_profile_id, can_confirm]
+      properties:
+        application_id: {type: string}
+        title: {type: string}
+        status: {type: string, nullable: true}
+        document:
+          type: object
+          nullable: true
+          properties:
+            id: {type: string}
+            filename: {type: string}
+        extraction:
+          type: object
+          nullable: true
+          description: Solo para el postulante. Los campos vacíos son datos no detectados; no son datos confirmados.
+          properties:
+            version: {type: string}
+            profile:
+              type: object
+              description: Mismos nueve campos de CvProfile; name puede estar vacío antes de confirmar.
+              additionalProperties: true
+            text: {type: string}
+            warnings: {type: array, items: {type: string}}
+            evidence:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    page: {type: integer, minimum: 1}
+                    text: {type: string}
+        confirmed: {$ref: '#/components/schemas/CvConfirmed'}
+        current_profile_id: {type: string, nullable: true}
+        can_confirm: {type: boolean}
+    CvNotes:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, body, created_at]
+            properties:
+              id: {type: string}
+              body: {type: string, maxLength: 4000}
+              created_at: {type: string, format: date-time}
     ApplicationM03:
       type: object
       required: [id, job_id, title, status, created_at, submitted_at, filename]
@@ -280,6 +365,245 @@ components:
         application/json:
           schema: {$ref: '#/components/schemas/Session'}
 paths:
+  /candidate/applications/{applicationId}/cv-extraction:
+    get:
+      tags: [CV]
+      summary: Consultar propuesta y perfil confirmado propios; extrae CV anteriores a M04 al abrir
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CvReview'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /candidate/applications/{applicationId}/cv/{documentId}:
+    get:
+      tags: [CV]
+      summary: Consultar PDF privado por versión; comprueba propiedad de la postulación u oferta
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+        - name: documentId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /recruiter/applications/{applicationId}/cv-extraction:
+    get:
+      tags: [CV]
+      summary: Consultar perfil confirmado de una postulación de una oferta propia
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CvReview'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /recruiter/applications/{applicationId}/cv/{documentId}:
+    get:
+      tags: [CV]
+      summary: Consultar PDF privado por versión; comprueba propiedad de la postulación u oferta
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+        - name: documentId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/pdf:
+              schema: {type: string, format: binary}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /candidate/applications/{applicationId}/profile-confirmation:
+    put:
+      tags: [CV]
+      summary: Confirmar correcciones y actualizar perfil curricular, nombre y teléfono; conserva el correo de acceso
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+        - {$ref: '#/components/parameters/ClientHeader'}
+      description: Requiere postulación PENDING y CV vigente. Repetir el mismo contenido es idempotente. Un CV ya confirmado no admite cambios (B-07). Conflictos de documento o perfil concurrente devuelven 409. El contenido completo del perfil no puede superar 60000 bytes JSON.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [document_id, base_profile_id, profile]
+              properties:
+                document_id: {type: string}
+                base_profile_id: {type: string, nullable: true}
+                profile: {$ref: '#/components/schemas/CvProfile'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CvReview'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /candidate/profile:
+    get:
+      tags: [CV]
+      summary: Consultar la última versión curricular confirmada del usuario
+      security: [{CookieSession: []}]
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile: {$ref: '#/components/schemas/CvConfirmed'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /recruiter/jobs/{jobId}/applications:
+    get:
+      tags: [CV]
+      summary: Listar postulaciones para revisar CV de una oferta propia
+      security: [{CookieSession: []}]
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: {type: string}
+                        name: {type: string}
+                        title: {type: string}
+                        confirmed: {type: boolean}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+  /recruiter/applications/{applicationId}/notes:
+    get:
+      tags: [CV]
+      summary: Consultar notas propias de revisión del CV
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+      responses:
+        '200':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CvNotes'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [CV]
+      summary: Agregar una nota sin modificar el perfil fuente
+      security: [{CookieSession: []}]
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+        - {$ref: '#/components/parameters/ClientHeader'}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [body]
+              properties:
+                body: {type: string, minLength: 1, maxLength: 4000}
+      responses:
+        '201':
+          description: Operación completada; datos privados con Cache-Control no-store.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/CvNotes'}
+        '400': {$ref: '#/components/responses/Error'}
+        '401': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '503': {$ref: '#/components/responses/Error'}
   /recruiter/jobs/{jobId}/finish:
     post:
       tags: [Postulaciones]
@@ -345,7 +669,7 @@ paths:
               type: object
               required: [cv]
               properties:
-                cv: {type: string, format: binary, description: PDF con texto seleccionable de hasta 5 MB (5.000.000 bytes)}
+                cv: {type: string, format: binary, description: 'PDF con texto seleccionable de hasta 5 MB (5.000.000 bytes), 40 páginas y 160.000 caracteres extraídos. La extracción M04 se guarda junto al archivo.'}
       responses:
         '201':
           description: Postulación registrada

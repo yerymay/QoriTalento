@@ -1,0 +1,49 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+import { fields } from '../cv.service';
+interface Props { recruiter?: boolean }
+const {recruiter=false}=Astro.props;
+---
+<Espacio view={recruiter?'home':'applications'} role={recruiter?'RECRUITER':'CANDIDATE'} title={recruiter?'Revisión del currículum':'Revisa los datos de tu CV'} description={recruiter?'Contrasta el documento con el perfil confirmado y registra tus observaciones.':'Revisa lo que encontramos, corrige lo necesario y confirma para actualizar tu perfil.'}>
+  <div data-cv data-recruiter={String(recruiter)} class="space-y-5">
+    <a href={recruiter?'/reclutador/ofertas':'/postulante/postulaciones'} class="q-link">{recruiter?'Volver a mis ofertas':'Volver a mis postulaciones'}</a>
+    <div data-cv-loading class="q-card space-y-4 p-6" role="status"><p>Leyendo currículum…</p><div class="h-12 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700"></div><div class="h-32 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-700"></div></div>
+    <div data-cv-message class="q-notice" role="status" tabindex="-1" hidden></div>
+    <button data-cv-retry type="button" class="q-secondary" hidden>Volver a cargar la revisión</button>
+    <div data-cv-empty class="q-card space-y-3 p-6" hidden><h2 class="text-xl font-semibold">No hay un CV para revisar</h2><p>Adjunta un PDF con texto a una postulación para completar tu perfil.</p><a href="/postulante/postulaciones" class="q-link">Mis postulaciones</a></div>
+    <div data-cv-content class="space-y-5" hidden>
+      <header class="flex flex-wrap items-start justify-between gap-3"><div><h2 data-cv-title class="break-words text-xl font-semibold"></h2><p data-cv-state class="mt-2 text-slate-600 dark:text-slate-300"></p></div><a data-cv-profile href="/perfil" class="q-link" hidden>Ver mi perfil actualizado</a></header>
+      <div data-cv-warnings class="q-notice" hidden></div>
+      <div class="flex gap-3 xl:hidden" role="tablist" aria-label="Revisión del CV"><button id="cv-data-tab" data-cv-tab="data" type="button" role="tab" aria-selected="true" aria-controls="cv-data-panel" class="q-secondary">Datos del CV</button><button id="cv-pdf-tab" data-cv-tab="pdf" type="button" role="tab" aria-selected="false" aria-controls="cv-pdf-panel" tabindex="-1" class="q-secondary">PDF original</button></div>
+      <div class="grid items-start gap-6 xl:grid-cols-2">
+        <section id="cv-pdf-panel" data-cv-panel="pdf" class="q-card hidden min-w-0 space-y-4 p-5 xl:sticky xl:top-4 xl:block" aria-label="PDF original">
+          <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="text-lg font-semibold">Documento original</h3><a data-cv-download class="q-link" target="_blank" rel="noopener">Abrir PDF</a></div>
+          <p data-cv-filename class="break-all text-slate-600 dark:text-slate-300"></p>
+          <iframe data-cv-pdf title="Currículum original" class="h-[65vh] min-h-80 w-full rounded-lg border border-slate-300 dark:border-slate-600"></iframe>
+          <p class="text-slate-600 dark:text-slate-300">Si tu navegador no muestra el documento, usa «Abrir PDF».</p>
+        </section>
+        <section id="cv-data-panel" data-cv-panel="data" class="q-card min-w-0 space-y-5 p-5 sm:p-6" aria-label="Datos del currículum">
+          <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="text-lg font-semibold">{recruiter?'Perfil confirmado':'Datos de tu currículum'}</h3>{!recruiter && <button data-cv-edit type="button" class="q-secondary" hidden>Editar datos</button>}</div>
+          {recruiter && <p data-cv-unconfirmed class="q-notice" hidden>El postulante todavía no confirmó sus datos. Puedes consultar el PDF original.</p>}
+          <form data-cv-form class="space-y-6">
+            <fieldset data-cv-fields class="grid min-w-0 gap-5 sm:grid-cols-2">
+              {fields.map(field=><div class:list={['min-w-0 space-y-2',{'sm:col-span-2':field.multiline}]}>
+                <label for={`cv-${field.key}`} class="block font-medium">{field.label}{field.key==='name'&&!recruiter?' *':''}</label>
+                <p data-cv-origin={field.key} id={`cv-origin-${field.key}`} class="text-slate-600 dark:text-slate-300">No detectado</p>
+                {field.multiline ? <textarea id={`cv-${field.key}`} name={field.key} rows={field.key==='experience'||field.key==='education'?5:3} maxlength={field.max} class="q-input" aria-describedby={`cv-origin-${field.key}`}></textarea> : <input id={`cv-${field.key}`} name={field.key} type={field.type??'text'} maxlength={field.max} minlength={field.key==='name'?2:undefined} required={field.key==='name'&&!recruiter} class="q-input" aria-describedby={`cv-origin-${field.key}`} />}
+                {field.array&&!recruiter && <p class="text-slate-600 dark:text-slate-300">{field.key==='education'||field.key==='experience'?'Separa cada estudio o experiencia con una línea en blanco. Conserva institución o empresa, cargo y fechas.':'Escribe un elemento por línea.'}</p>}
+              </div>)}
+            </fieldset>
+            {!recruiter && <div data-cv-actions class="space-y-4" hidden><p>El correo del CV es de contacto. Tu correo para iniciar sesión se administra en Mi perfil.</p><label class="flex min-h-11 items-start gap-3"><input data-cv-reviewed type="checkbox" required class="mt-1 h-5 w-5 rounded border-slate-400 text-sky-700 focus:ring-sky-600" /><span>Revisé los datos y quiero actualizar mi perfil con esta información.</span></label><button data-cv-save type="submit" class="q-primary">Confirmar y actualizar perfil</button></div>}
+          </form>
+          {!recruiter && <details data-cv-source class="border-t border-slate-200 pt-4 dark:border-slate-700"><summary class="min-h-11 cursor-pointer font-semibold text-sky-700 dark:text-sky-300">Consultar el texto leído del CV</summary><pre data-cv-text class="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words font-sans leading-relaxed"></pre></details>}
+        </section>
+      </div>
+      {recruiter && <section class="q-card space-y-4 p-6"><h3 class="text-xl font-semibold">Notas de revisión</h3><form data-cv-note-form class="space-y-3"><label for="cv-note" class="block font-medium">Nueva observación</label><textarea id="cv-note" name="body" class="q-input" rows="3" maxlength="4000" required></textarea><button type="submit" class="q-secondary">Guardar nota</button></form><p data-cv-no-notes>Aún no has agregado notas.</p><ul data-cv-notes class="space-y-4"></ul></section>}
+    </div>
+  </div>
+</Espacio>
+<script>import { initCv } from '../cv'; initCv();</script>
+<style>
+  button[role="tab"][aria-selected="true"] { background-color: var(--color-sky-700); border-color: var(--color-sky-700); color: white; }
+</style>

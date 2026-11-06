@@ -35,6 +35,7 @@ export function initPostulaciones() {
           fragment.querySelector('[data-card-status]')!.textContent = item.status ? labels[item.status] ?? item.status : 'Estado pendiente';
           fragment.querySelector('[data-card-file]')!.textContent = item.filename ? `CV: ${item.filename}` : 'CV no disponible';
           const replace = fragment.querySelector<HTMLAnchorElement>('[data-card-replace]')!;
+          const review = document.createElement('a'); review.className = 'q-link ml-3'; review.href = `/postulante/cv?application=${encodeURIComponent(item.id)}`; review.textContent = 'Revisar datos del CV'; replace.after(review);
           if (item.status === 'PENDING') { replace.hidden = false; replace.href = `/postulante/postular?application=${encodeURIComponent(item.id)}`; }
           list.append(fragment);
         }
@@ -61,9 +62,10 @@ export function initPostulaciones() {
     active = new AbortController(); const run = epoch, controller = active;
     el<HTMLButtonElement>('[data-submit]').disabled = true; el('[data-cancel-upload]').hidden = false; el('[data-progress-wrap]').hidden = false;
     try {
-      const progress = (value:number|null) => { const bar = el<HTMLProgressElement>('[data-progress]'); if (value === null) bar.removeAttribute('value'); else bar.value = value; };
-      await (current ? postulaciones.replace(current.id, selected, controller.signal, progress) : postulaciones.send(jobId, selected, controller.signal, progress));
+      const progress = (value:number|null) => { const bar = el<HTMLProgressElement>('[data-progress]'); if (value === null) bar.removeAttribute('value'); else bar.value = value; el('[data-progress-label]').textContent = value === 100 ? 'Leyendo currículum…' : 'Enviando archivo…'; };
+      const result = await (current ? postulaciones.replace(current.id, selected, controller.signal, progress) : postulaciones.send(jobId, selected, controller.signal, progress));
       if (run !== epoch || !session) return;
+      location.assign(`/postulante/cv?application=${encodeURIComponent(result.id)}`);
       file = undefined; if (input) input.value = ''; el('[data-form-content]').hidden = true; say(current ? 'CV actualizado correctamente.' : 'Postulación registrada. Puedes consultar su estado en Mis postulaciones.');
       recovery.hidden = false; el('[data-app-retry]').hidden = true;
     } catch (error) { if (run === epoch) { failure(error); if (error instanceof ApiError && error.status === 0) say('No pudimos confirmar el resultado. Consulta Mis postulaciones antes de volver a enviar.', true); } }

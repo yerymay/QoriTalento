@@ -1,4 +1,6 @@
 import { createPostulacionesRoutes } from './modules/postulaciones/routes/postulaciones.routes.js';
+import { createCvRoutes } from './modules/cv/routes/cv.routes.js';
+import type { CvRepository } from './modules/cv/repositories/cv.repository.js';
 import type { PostulacionesRepository } from './modules/postulaciones/repositories/postulaciones.repository.js';
 import { createOfertasRoutes } from './modules/ofertas/routes/ofertas.routes.js';
 import type { OfertasRepository } from './modules/ofertas/repositories/ofertas.repository.js';
@@ -16,7 +18,7 @@ import { env } from './config/env.js';
 import { createSystemRoutes } from './modules/system/routes/system.routes.js';
 import type { SystemRepository } from './modules/system/repositories/system.repository.js';
 
-export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository) {
+export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository, cvRepository?: CvRepository) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -27,6 +29,7 @@ export function createApp(repository: SystemRepository, authRepository?: AuthRep
 
   app.use(express.json({ limit: '100kb' }));
   if (authRepository && postulacionesRepository) app.use('/api/v1', createPostulacionesRoutes(postulacionesRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
+  if (authRepository && cvRepository) app.use('/api/v1', createCvRoutes(cvRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
   if (authRepository) app.use('/api/v1', createAuthRoutes(authRepository, { idleMinutes: env.sessionIdleMinutes, secure: env.nodeEnv === 'production' }));
 
   if (authRepository && ofertasRepository) app.use('/api/v1', createOfertasRoutes(ofertasRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
