@@ -5,7 +5,13 @@ import Tema from './Tema.astro';
 <main class="relative isolate min-h-screen overflow-hidden bg-slate-50 px-5 py-6 text-slate-900 dark:bg-slate-950 dark:text-white sm:px-8 sm:py-8">
   <div aria-hidden="true" class="pointer-events-none absolute -left-36 -top-44 h-[430px] w-[430px] rounded-full bg-sky-100 dark:bg-sky-950/70"></div>
   <div aria-hidden="true" class="pointer-events-none absolute -bottom-40 -right-28 h-[360px] w-[360px] rounded-full bg-emerald-100 dark:bg-emerald-950/45"></div>
-  <header class="relative mx-auto flex max-w-6xl items-center justify-between gap-4"><Marca /><div class="flex items-center gap-3"><span class="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm sm:inline-flex dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300"><span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>Prototipo navegable</span><Tema /></div></header>
+  <header class="relative mx-auto flex max-w-6xl items-center justify-between gap-4">
+  <Marca />
+  <div class="flex items-center gap-3">
+    <Tema />
+  </div>
+</header>
+
   <section class="relative mx-auto flex max-w-5xl flex-col items-center pb-10 pt-16 text-center sm:pb-16 sm:pt-24">
     <h1 class="max-w-3xl text-balance text-4xl font-bold tracking-tight sm:text-5xl lg:text-[3.5rem] lg:leading-[1.08]">Personas, oportunidades y un proceso <span class="text-sky-700 dark:text-sky-300">conectado.</span></h1>
     <p class="mt-4 max-w-xl text-lg text-slate-600 dark:text-slate-300">Elige un rol y recorre las acciones principales.</p>

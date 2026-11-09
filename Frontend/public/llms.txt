@@ -1,0 +1,15 @@
+# Qori Talento
+
+> Plataforma de reclutamiento que conecta a postulantes y reclutadores durante el proceso de selección.
+
+## Acceso
+
+- [Inicio](/): entrada a la plataforma y selección de rol.
+- [Iniciar sesión](/login): acceso para reclutadores y postulantes.
+- [Crear cuenta](/registro): registro de usuarios.
+
+## Funcionalidades
+
+El MVP incluye gestión de cuentas y ofertas, postulaciones con CV en PDF y revisión de datos curriculares. Algunas secciones requieren iniciar sesión y los datos privados están sujetos a permisos.
+
+Las funcionalidades de exámenes, evaluación asistida, selección y seguimiento siguen pendientes de implementación.
