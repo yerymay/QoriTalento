@@ -1,0 +1,29 @@
+---
+interface Props {
+  id: string;
+  texto: string;
+  tipo?: 'button' | 'submit' | 'reset';
+  tono?: 'exito' | 'advertencia' | 'peligro';
+  sonido?: boolean;
+  vibracion?: boolean;
+  alActivar?: boolean;
+}
+const { id, texto, tipo = 'button', tono = 'exito', sonido = false, vibracion = false, alActivar = false } = Astro.props;
+---
+<button id={id} type={tipo} class="q-primary motion-reduce:transform-none motion-reduce:transition-none" data-boton-multimodal data-tono={tono} data-sonido={String(sonido)} data-vibracion={String(vibracion)} data-al-activar={String(alActivar)}>{texto}</button>
+
+<script>
+  import { prepararAudio, emitirRetroalimentacion, esTono } from '../confirmacion-multimodal';
+  document.querySelectorAll<HTMLButtonElement>('[data-boton-multimodal]').forEach(boton => {
+    boton.addEventListener('click', () => {
+      if (boton.dataset.sonido === 'true') prepararAudio();
+      if (boton.dataset.alActivar === 'true' && esTono(boton.dataset.tono)) {
+        emitirRetroalimentacion(boton.dataset.tono, boton.dataset.sonido === 'true', boton.dataset.vibracion === 'true');
+      }
+    });
+    boton.addEventListener('qori:retroalimentacion', event => {
+      const tono = (event as CustomEvent<{ tono?: unknown }>).detail?.tono ?? boton.dataset.tono;
+      if (esTono(tono)) emitirRetroalimentacion(tono, boton.dataset.sonido === 'true', boton.dataset.vibracion === 'true');
+    });
+  });
+</script>

@@ -134,3 +134,8 @@ Anotar en `docs-mvp/PROGRESO.md`: ID, archivos, comando de prueba, resultado, fe
 ## F. Condiciones no cerradas
 
 B-01 a B-10 siguen pendientes según el SDD v1.0, salvo que el propietario registre una aprobación posterior en `REGLAS-NEGOCIO.md`. Una funcionalidad puede prepararse sin activar comportamientos sujetos a esas decisiones.
+
+
+## Propuesta complementaria: retroalimentación multimodal
+
+- [ ] Evaluar la aplicación de respuesta visual, sonido y vibración en acciones importantes, según cada caso y con controles accesibles; ver [guía multimodal](RETROALIMENTACION-VIBRACION.md). Existe un componente reutilizable integrado para prueba en el perfil; no modifica los requisitos originales.

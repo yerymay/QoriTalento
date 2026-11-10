@@ -50,17 +50,23 @@ export function initWorkspace(){
   window.addEventListener('pagehide',()=>{clearInterval(interval);clear();});
   window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
   if(form){
-    el('[data-edit]').addEventListener('click',()=>{editable(true);(form.elements.namedItem('name') as HTMLInputElement).focus();});
+    const botonPerfil=el<HTMLButtonElement>('#guardar-perfil');
+    const sonidoPerfil=el<HTMLInputElement>('[data-profile-sound]');
+    const vibracionPerfil=el<HTMLInputElement>('[data-profile-vibration]');
+    const sincronizarPreferencias=()=>{botonPerfil.dataset.sonido=String(sonidoPerfil.checked);botonPerfil.dataset.vibracion=String(vibracionPerfil.checked);};
+    sonidoPerfil.addEventListener('change',sincronizarPreferencias);vibracionPerfil.addEventListener('change',sincronizarPreferencias);
+    const senal=(tono:'exito'|'advertencia'|'peligro')=>botonPerfil.dispatchEvent(new CustomEvent('qori:retroalimentacion',{detail:{tono}}));
+    el('[data-edit]').addEventListener('click',()=>{sincronizarPreferencias();editable(true);(form.elements.namedItem('name') as HTMLInputElement).focus();});
     el('[data-cancel]').addEventListener('click',fill);
     form.addEventListener('submit',async event=>{
       event.preventDefault();if(saving || !session || !form.reportValidity())return;
       const data=Object.fromEntries(new FormData(form));
       if(String(data.email).trim().toLowerCase()!==session.user.email || (session.user.kind==='INDIVIDUAL' && String(data.phone).trim()!==session.user.phone)){
-        confirm.returnValue='cancel';confirm.showModal();await new Promise<void>(resolve=>confirm.addEventListener('close',()=>resolve(),{once:true}));if(confirm.returnValue!=='save')return;
+        senal('advertencia');confirm.returnValue='cancel';confirm.showModal();await new Promise<void>(resolve=>confirm.addEventListener('close',()=>resolve(),{once:true}));if(confirm.returnValue!=='save')return;
       }
-      saving=true;const button=el<HTMLButtonElement>('[data-save]');button.disabled=true;button.textContent='Guardando…';form.setAttribute('aria-busy','true');
-      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Por seguridad, inicia sesión nuevamente con tus datos actualizados.','success');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados','success');}}
-      catch(error){failure(error);}finally{saving=false;button.disabled=false;button.textContent='Guardar cambios';form.removeAttribute('aria-busy');}
+      saving=true;const button=botonPerfil;button.disabled=true;button.textContent='Guardando…';form.setAttribute('aria-busy','true');
+      try{const result=await auth.update(data);if(result.verification_required){clear();notice('Cambios guardados. Por seguridad, inicia sesión nuevamente con tus datos actualizados.','success');el('[data-signin]').hidden=false;}else{session.user=result.user;fill();notice('Cambios guardados','success');}senal('exito');}
+      catch(error){failure(error);senal('peligro');}finally{saving=false;button.disabled=false;button.textContent='Guardar cambios';form.removeAttribute('aria-busy');}
     });
   }
   void load();

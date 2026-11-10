@@ -27,6 +27,19 @@
 - [ ] M08: consulta, actualización y seguimiento de estados.
 - [ ] Validación IHC: tareas con usuarios, heurísticas, responsive, accesibilidad, recuperación y cinco estados UI.
 
+## Propuestas pendientes
+
+- [ ] Retroalimentación multimodal: botón reutilizable integrado para prueba en el perfil; completar pruebas con dispositivos físicos y lectores de pantalla. Ver [guía](RETROALIMENTACION-VIBRACION.md).
+
+## Evidencia histórica — componente multimodal retirado (2026-11-09)
+
+Guardado de perfil con confirmación visual, sonido opcional y vibración opcional cuando el navegador la admite. Pruebas con respuestas simuladas: éxito, error, opciones, teclado y ausencia de API de vibración. axe-core 4.14.0: 0 infracciones en el componente visible; `npm run check` y `npm run build` completados. La prueba con hardware físico, lectores de pantalla y backend real sigue pendiente. Ver [reporte](AUDITORIA-COMPONENTE-MULTIMODAL.md).
+## Botón multimodal reutilizable (2026-11-09)
+
+Se retiró la integración anterior del perfil. El nuevo botón permite solicitar señales por activación o por evento explícito, con canales desactivados por defecto. En una página temporal con respuestas simuladas se verificaron múltiples instancias, teclado, confirmación explícita y ausencia de vibración. Pendiente integrar en un caso concreto y auditarlo con controles de preferencia, lectores de pantalla y dispositivos físicos.
+## Audios en edición de perfil (2026-11-09)
+
+La edición del perfil usa el botón reutilizable con los archivos de éxito, advertencia y error de `Frontend/public/audio/`. Una prueba de navegador con API simulada verificó los tres resultados, cancelación, controles y teclado; `npm run check` y `npm run build` pasaron. Pendiente comprobar percepción de sonido y vibración en dispositivos reales, lectores de pantalla y backend real.
 ## Registro de evidencia (copiar por tarea)
 
 ```text

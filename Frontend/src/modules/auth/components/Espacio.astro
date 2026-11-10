@@ -2,6 +2,7 @@
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 import Campo from './Campo.astro';
+import BotonMultimodal from '../../compartido/components/BotonMultimodal.astro';
 interface Props { view?:'profile'|'home'|'applications'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
@@ -33,7 +34,17 @@ const {view='profile',role,title,description}=Astro.props;
           <Campo id="phone" label="Teléfono de contacto" type="tel" min={7} max={32} autocomplete="tel" />
           <p data-partial class="q-notice" hidden>No has añadido un teléfono. Puedes completarlo con «Editar».</p>
           <p data-verification-warning class="q-notice" hidden>Cambiar el correo o teléfono cierra tus sesiones como medida de seguridad. Podrás iniciar sesión otra vez con tus datos actualizados.</p>
-          <div data-actions class="flex flex-wrap gap-3" hidden><button data-save type="submit" class="q-primary">Guardar cambios</button><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
+          <div data-actions class="space-y-3" hidden>
+            <div class="flex flex-wrap gap-3"><BotonMultimodal id="guardar-perfil" texto="Guardar cambios" tipo="submit" sonido={true} vibracion={true} /><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
+            <details class="rounded-lg border border-slate-200 px-3 dark:border-slate-700">
+              <summary class="flex min-h-11 cursor-pointer items-center font-medium text-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-300">Opciones de confirmación</summary>
+              <fieldset class="space-y-1 pb-3">
+                <legend class="sr-only">Confirmación al guardar</legend>
+                <label class="flex min-h-11 cursor-pointer items-center gap-3"><input data-profile-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonido</label>
+                <label class="flex min-h-11 cursor-pointer items-center gap-3"><input data-profile-vibration type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Vibración, si está disponible</label>
+              </fieldset>
+            </details>
+          </div>
         </form> : <slot />}
         {view==='profile' && <slot name="profile-details" />}
       </section>
