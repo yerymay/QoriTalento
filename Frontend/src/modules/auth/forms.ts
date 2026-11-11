@@ -1,3 +1,4 @@
+import { showToast, queueToast } from '../compartido/services/toast';
 ﻿import { auth, homeFor, type Role } from './auth.service';
 export function initAuthForm() {
   const form=document.querySelector<HTMLFormElement>('[data-auth-form]');if(!form)return;
@@ -10,7 +11,7 @@ export function initAuthForm() {
   const kind=form.elements.namedItem('kind') as HTMLSelectElement|null;
   const phone=form.elements.namedItem('phone') as HTMLInputElement|null;
   let busy=false, complete=false;
-  const show=(text:string,tone:'error'|'success')=>{message.textContent=text;message.dataset.tone=tone;message.hidden=false;message.focus();};
+  const show=(text:string,tone:'error'|'success')=>{showToast(text,tone);};
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
     const roleSummary=form.parentElement?.querySelector<HTMLElement>('[data-role-summary]');if(roleSummary)roleSummary.textContent=recruiter?'Reclutador':'Postulante';
@@ -22,10 +23,23 @@ export function initAuthForm() {
     if(strength)strength.textContent=password.value.length<8?'Fortaleza: escribe al menos 8 caracteres.':password.value.length<12?'Fortaleza: básica. Una frase más larga protege mejor tu cuenta.':'Fortaleza: buena longitud. Evita frases conocidas o datos personales.';
   };
   form.addEventListener('input',validate);form.addEventListener('change',validate);
+  const showFieldError=(input:HTMLInputElement)=>{
+    const error=document.getElementById(`${input.id}-error`);
+    if(!error)return;
+    const invalid=!input.validity.valid;
+    const field=input.closest<HTMLElement>('[data-validation-field]');
+    const success=!!field && input.type==='email' && !invalid && !!input.value;
+    if(field)field.dataset.validation=invalid?'error':success?'success':'';
+    error.hidden=!invalid && !success;
+    error.textContent=!invalid?'':input.validity.valueMissing?'Completa este campo.':input.type==='email'?'Ingresa un correo válido, por ejemplo nombre@gmail.com.':`Revisa este campo${input.minLength>0?`; mínimo ${input.minLength} caracteres`:''}.`;
+    if(success)error.textContent='Formato de correo válido.';
+    input.setAttribute('aria-invalid',String(invalid));
+  };
   form.addEventListener('focusout',event=>{
-    if(!(event.target instanceof HTMLInputElement))return;
-    const input=event.target, error=document.getElementById(`${input.id}-error`);
-    if(error){error.hidden=input.validity.valid;error.textContent=input.validity.valid?'':input.validity.valueMissing?'Completa este campo.':input.type==='email'?'Ingresa un correo válido.':`Revisa este campo${input.minLength>0?`; mínimo ${input.minLength} caracteres`:''}.`;input.setAttribute('aria-invalid',String(!input.validity.valid));}
+    if(event.target instanceof HTMLInputElement)showFieldError(event.target);
+  });
+  form.addEventListener('input',event=>{
+    if(event.target instanceof HTMLInputElement && event.target.hasAttribute('aria-invalid'))showFieldError(event.target);
   });
   form.querySelector<HTMLButtonElement>('[data-password-legacy]')?.addEventListener('click',event=>{
     const button=event.currentTarget as HTMLButtonElement;password.type=password.type==='password'?'text':'password';button.setAttribute('aria-pressed',String(password.type==='text'));
@@ -60,14 +74,21 @@ export function initAuthForm() {
   const initialChoice=choices.find(choice=>choice.dataset.role===initialRole);
   initialChoice?.click();
   form.addEventListener('submit',async event=>{
-    event.preventDefault();if(busy || complete || !form.reportValidity())return;
+    event.preventDefault();if(busy || complete)return;
+    if(registration && !form.reportValidity())return;
+    if(!registration && !form.checkValidity()){
+      showToast('Revisa los campos marcados antes de continuar.','warning');
+      form.querySelectorAll<HTMLInputElement>('input').forEach(showFieldError);
+      form.querySelector<HTMLElement>(':invalid')?.focus();
+      return;
+    }
     busy=true;submit.disabled=true;submit.textContent=registration?'Registrando…':'Iniciando sesión…';form.setAttribute('aria-busy','true');message.hidden=true;
     const data=Object.fromEntries(new FormData(form));
     try {
       if(registration){const selected=String(data.role) as Role;delete data.role;if(selected==='CANDIDATE')delete data.kind;
         const result=await auth.register(selected,data);complete=true;password.value='';show(result.message,'success');
         form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select').forEach(input=>input.disabled=true);
-      }else{const session=await auth.login(data);password.value='';location.assign(homeFor(session.user.role));}
+      }else{const session=await auth.login(data);password.value='';queueToast('Sesión iniciada correctamente.','success');location.assign(homeFor(session.user.role));}
     }catch(error){show(error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.','error');}
     finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?'Cuenta registrada':registration?'Registrar':'Iniciar sesión';submit.disabled=complete;validate();}
   });
