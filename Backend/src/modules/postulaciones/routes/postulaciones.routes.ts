@@ -15,6 +15,7 @@ export function createPostulacionesRoutes(repo: PostulacionesRepository, auth: A
     next();
   });
   routes.post('/recruiter/jobs/:jobId/finish', requireRole(auth, 'RECRUITER'), controller.finish);
+  routes.post('/candidate/cv-preview', requireRole(auth, 'CANDIDATE'), upload, controller.preview);
   routes.get('/applications', requireRole(auth, 'CANDIDATE'), controller.list);
   routes.post('/jobs/:jobId/applications', requireRole(auth, 'CANDIDATE'), upload, controller.create);
   routes.put('/applications/:applicationId/cv', requireRole(auth, 'CANDIDATE'), upload, controller.replace);

@@ -1,3 +1,4 @@
+import { initApplicationWizard } from './wizard';
 import { postulaciones, type Application } from './postulaciones.service';
 import { ofertas } from '../ofertas/ofertas.service';
 import { ApiError } from '../compartido/services/api';
@@ -5,6 +6,7 @@ import type { Session } from '../auth/auth.service';
 const labels: Record<string,string> = { PENDING:'Pendiente de evaluación', IN_REVIEW:'En revisión', SHORTLISTED:'Preseleccionado', ADVANCES:'Avanza', NOT_ADVANCES:'No avanza' };
 export function initPostulaciones() {
   const root = document.querySelector<HTMLElement>('[data-applications]'); if (!root) return;
+  if (root.dataset.view === 'form') { initApplicationWizard(root); return; }
   const el = <T extends HTMLElement = HTMLElement>(s:string) => root.querySelector<T>(s)!;
   const input = root.querySelector<HTMLInputElement>('[data-file]'), dialog = el<HTMLDialogElement>('[data-app-confirm]');
   const notice = el('[data-app-notice]'), loading = el('[data-app-loading]'), recovery = el('[data-app-recovery]');

@@ -1,0 +1,97 @@
+---
+import { fields } from '../../cv/cv.service';
+---
+<section data-form-content class="q-card overflow-hidden shadow-sm" hidden aria-labelledby="application-job-title">
+  <header class="border-b border-slate-200 p-5 dark:border-slate-700 sm:p-8">
+    <p data-meta class="mb-2 text-sm text-slate-600 dark:text-slate-300"></p>
+    <h2 id="application-job-title" data-title class="break-words text-xl font-bold sm:text-2xl"></h2>
+    <nav aria-label="Progreso de la postulación" class="mt-7">
+      <ol class="grid grid-cols-3 gap-2 sm:gap-6">
+        {['Cargar currículum', 'Revisar información', 'Confirmar y enviar'].map((label, index) => (
+          <li data-step-indicator={index + 1} class="q-application-step flex min-w-0 flex-col gap-2 border-t-2 border-slate-200 pt-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400 sm:flex-row sm:items-center sm:gap-3">
+            <span data-step-number class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 font-semibold dark:bg-slate-800">{index + 1}</span>
+            <span class="font-medium">{label}</span>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  </header>
+  <form data-wizard-form novalidate>
+    <fieldset data-wizard-fields class="min-w-0">
+      <div class="p-5 sm:p-8">
+        <section data-wizard-step="1" aria-labelledby="upload-heading" class="space-y-5">
+          <div><h3 id="upload-heading" tabindex="-1" class="text-xl font-semibold">Cargar currículum</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Usaremos tu CV para completar tus datos. Podrás revisarlos antes de enviar.</p></div>
+          <label data-drop for="cv-file" class="relative flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 p-6 text-center hover:border-sky-600 hover:bg-sky-50 focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-sky-600 dark:border-slate-600 dark:bg-slate-800 dark:hover:border-sky-400 dark:hover:bg-slate-800 sm:p-10">
+            <svg aria-hidden="true" class="mb-2 h-12 w-12 text-sky-700 dark:text-sky-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7 17H5a4 4 0 0 1-1-7.87A7 7 0 0 1 17.8 7a5 5 0 0 1 1.2 9.85M12 21V11m-4 4 4-4 4 4"/></svg>
+            <span class="font-semibold text-slate-900 dark:text-white">Arrastra tu CV aquí o haz clic para buscar</span>
+            <span id="cv-help" class="text-sm text-slate-600 dark:text-slate-300">PDF con texto seleccionable · Hasta 5 MB</span>
+            <input id="cv-file" data-file type="file" accept=".pdf,application/pdf" class="sr-only" aria-describedby="cv-help cv-error" />
+          </label>
+          <p id="cv-error" data-file-error role="alert" class="text-red-700 dark:text-red-300" hidden></p>
+          <div data-file-selected class="flex items-center gap-3 rounded-lg bg-sky-50 p-4 text-sky-900 dark:bg-sky-950 dark:text-sky-100" hidden>
+            <svg aria-hidden="true" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8M8 16h6"/></svg>
+            <div class="min-w-0"><p data-filename class="break-all font-medium"></p><p data-filesize class="text-sm"></p></div>
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Tu postulación se registra únicamente cuando confirmas el envío en el último paso.</p>
+        </section>
+        <section data-wizard-step="2" aria-labelledby="review-heading" class="space-y-6" hidden>
+          <div><h3 id="review-heading" tabindex="-1" class="text-xl font-semibold">Revisar información extraída</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Puedes corregir cualquier campo. Los datos no detectados se muestran vacíos.</p></div>
+          <div class="q-notice flex items-start gap-3" role="note">
+            <svg aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg>
+            <p>Hemos prellenado estos datos desde tu CV. Por favor, verifica que la información sea correcta antes de continuar.</p>
+          </div>
+          <p data-extraction-warning class="text-sm text-amber-800 dark:text-amber-200" hidden></p>
+          <div class="grid gap-5 md:grid-cols-2">
+            {fields.filter(field => ['name','email','phone','summary'].includes(field.key)).map(field => <div class="min-w-0 space-y-2">
+              <label for={'application-' + field.key} class="block font-medium">{field.key === 'email' ? 'Correo electrónico' : field.label}{field.key === 'name' && ' *'}</label>
+              {field.multiline ? <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="3" class="q-input" placeholder="Resumen profesional o último cargo"></textarea> : <input id={'application-' + field.key} data-profile-field={field.key} type={field.type ?? 'text'} required={field.key === 'name'} minlength={field.key === 'name' ? 2 : undefined} maxlength={field.max} autocomplete={field.key === 'name' ? 'name' : field.key === 'email' ? 'email' : 'tel'} class="q-input" placeholder={field.key === 'name' ? 'Nombre y apellidos' : field.key === 'email' ? 'nombre@correo.com' : '+51 987 654 321'} />}
+              <p data-field-origin={field.key} class="text-sm text-slate-600 dark:text-slate-300"></p>
+            </div>)}
+          </div>
+          <details class="group rounded-lg border border-slate-200 dark:border-slate-700">
+            <summary class="min-h-12 cursor-pointer p-4 font-medium">Revisar formación, experiencia y otros datos del CV</summary>
+            <div class="grid gap-5 border-t border-slate-200 p-4 dark:border-slate-700 md:grid-cols-2">
+              {fields.filter(field => !['name','email','phone','summary'].includes(field.key)).map(field => <div class="min-w-0 space-y-2">
+                <label for={'application-' + field.key} class="block font-medium">{field.label}</label>
+                <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="4" class="q-input"></textarea>
+              </div>)}
+            </div>
+          </details>
+        </section>
+        <section data-wizard-step="3" aria-labelledby="confirm-heading" class="space-y-6" hidden>
+          <div><h3 id="confirm-heading" tabindex="-1" class="text-xl font-semibold">Confirmar y enviar</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Revisa los datos que compartirás con el equipo de selección.</p></div>
+          <div class="rounded-xl bg-slate-50 p-5 dark:bg-slate-800">
+            <dl class="grid gap-5 md:grid-cols-2">
+              {['Nombre completo','Correo electrónico','Teléfono','Resumen profesional'].map((label, index) => <div class="min-w-0"><dt class="text-sm text-slate-600 dark:text-slate-300">{label}</dt><dd data-summary-field={['name','email','phone','summary'][index]} class="mt-1 whitespace-pre-wrap break-words font-medium"></dd></div>)}
+            </dl>
+            <div class="mt-6 flex items-center gap-3 border-t border-slate-200 pt-5 dark:border-slate-600">
+              <span class="rounded-md bg-white p-2 text-sky-700 dark:bg-slate-900 dark:text-sky-300"><svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8M8 16h6"/></svg></span>
+              <div class="min-w-0"><p data-review-filename class="break-all font-medium"></p><p class="text-sm text-slate-600 dark:text-slate-300">Currículum adjunto · PDF</p></div>
+            </div>
+          </div>
+          <details class="text-sm leading-6 text-slate-600 dark:text-slate-300"><summary class="min-h-11 cursor-pointer py-2 font-medium text-sky-700 dark:text-sky-300">Uso de tus datos en esta postulación</summary><p>El reclutador responsable de esta oferta podrá consultar tu CV y los datos confirmados para gestionar tu candidatura. Al confirmar, también se actualizará tu perfil curricular en QORITALENTO.</p></details>
+          <label class="flex min-h-11 cursor-pointer items-start gap-3"><input data-consent type="checkbox" class="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 text-sky-700 focus:ring-sky-600 dark:border-slate-500 dark:bg-slate-800" /><span>He revisado mis datos y acepto compartir mi CV y la información confirmada para gestionar esta postulación.</span></label>
+        </section>
+        <div data-progress-wrap class="mt-6" role="status" hidden><p data-progress-label class="text-sm font-medium"></p><progress data-progress max="100" class="mt-2 h-2 w-full accent-sky-700"></progress></div>
+      </div>
+      <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-5 dark:border-slate-700 dark:bg-slate-800/30 sm:px-8">
+        <button data-back type="button" class="q-secondary disabled:cursor-not-allowed disabled:opacity-50" disabled>Atrás</button>
+        <span data-step-status role="status" class="sr-only sm:not-sr-only text-sm text-slate-600 dark:text-slate-300">Paso 1 de 3</span>
+        <button data-next type="submit" class="q-primary min-w-0 max-sm:flex-1" disabled>Siguiente</button>
+      </footer>
+    </fieldset>
+  </form>
+</section>
+<section data-wizard-success class="q-card space-y-4 p-6 sm:p-8" hidden tabindex="-1" aria-labelledby="application-success-title">
+  <svg aria-hidden="true" class="h-12 w-12 text-emerald-700 dark:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/></svg>
+  <h2 id="application-success-title" class="text-2xl font-semibold">Postulación registrada</h2>
+  <p data-success-copy class="text-slate-600 dark:text-slate-300"></p>
+  <a href="/postulante/postulaciones" class="q-primary inline-flex items-center">Ver mis postulaciones</a>
+</section>
+<style>
+  .q-application-step[aria-current="step"] { border-color:var(--color-sky-600); color:var(--color-sky-700); }
+  .q-application-step[aria-current="step"] [data-step-number] { background:var(--color-sky-700); color:white; }
+  .q-application-step[data-complete="true"] { border-color:var(--color-sky-600); color:var(--color-sky-700); }
+  :global(.dark) .q-application-step[aria-current="step"], :global(.dark) .q-application-step[data-complete="true"] { color:var(--color-sky-300); }
+  [data-drop][data-dragging="true"] { border-color:var(--color-sky-600); }
+</style>

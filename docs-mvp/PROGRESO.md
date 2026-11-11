@@ -223,3 +223,19 @@ Estado: [x] B-03 resuelta y validada
 - Se añadió `DELETE /api/v1/recruiter/jobs/{jobId}` con sesión, rol, propiedad y protección de origen. La eliminación transaccional bloquea ofertas con postulaciones, exámenes o revisiones asociadas; si procede elimina únicamente los requisitos y la oferta. No se eliminan CV ni expedientes.
 - La tabla permite cerrar y eliminar mediante dos confirmaciones; el cierre del editor también requiere dos pasos y no finaliza el proceso. La creación de exámenes no se habilitó.
 - Evidencia: pruebas de API con casos de propiedad, rol, origen y datos extra; prueba MySQL `TEST_MYSQL=1 npx vitest run tests/ofertas-delete.mysql.test.ts` con registros sintéticos eliminados al finalizar; comprobación de tipos, compilación y prueba de navegador con API simulada para cancelar, confirmar, proteger postulaciones y refrescar la lista.
+
+## Evidencia — Tarjetas del postulante y wizard (2026-11-10)
+
+- Se rediseñaron las tarjetas de ofertas para el postulante con departamento, modalidad/ubicación, descripción de dos líneas y acceso directo «Postularme ahora». Se conserva Inter, Sky y los temas claro/oscuro. La API aún no proporciona logo o nombre de empresa; se utiliza un icono neutral.
+- El flujo de postulación tiene tres pasos: cargar PDF, revisar/corregir los nueve grupos de datos extraídos y confirmar el envío con consentimiento para compartir el CV. Por decisión explícita del usuario se mantiene PDF digital con texto, hasta 5 MB; no se añadió DOCX.
+- Nuevo endpoint autenticado `POST /api/v1/candidate/cv-preview`, documentado en `Backend/openapi-implemented.yaml`. El controlador llama al servicio de validación/extracción existente; la vista previa trabaja en memoria y no necesita una operación de repositorio/persistencia porque no registra datos ni archivos. El registro definitivo conserva las cuatro capas de M03 y la confirmación de perfil de M04.
+- La postulación solo se registra desde el tercer paso. La confirmación del perfil se realiza después mediante la API existente. Si falla esta segunda operación, la UI distingue el éxito parcial y permite reintentar sin registrar otra postulación. Ante un envío de resultado incierto por red se pide consultar Mis postulaciones.
+- La casilla describe el uso de datos de esta postulación; no se inventaron documentos legales, condiciones de retención ni enlaces a políticas inexistentes.
+
+Verificación:
+- Backend: `npm run check`, `npm test`, `npm run build`: correctos. 65 pruebas aprobadas; 6 pruebas optativas de MySQL omitidas. Las pruebas nuevas verifican extracción sin registro, sesión/rol/origen, PDF inválido, tamaño y rechazo de campos adicionales.
+- Frontend: `npm run check`: 0 errores, 0 advertencias, 0 sugerencias (59 archivos). `npm run build`: correcto, 14 rutas.
+- OpenAPI parseado con YAML; endpoint de vista previa presente.
+- `node tests/application-wizard.browser.mjs http://127.0.0.1:3010`: correcto con API y datos sintéticos. Comprueba enlaces de tarjetas, PDF, error/reintento de extracción, ausencia de envío anticipado, correcciones conservadas al retroceder, consentimiento, resumen, reintento de confirmación sin duplicados, reemplazo de CV, nombre obligatorio y limpieza de sesión. Sin errores JavaScript ni desbordamiento horizontal.
+- Capturas inspeccionadas a 1440 y 390 px, incluido tema oscuro: `.impeccable/review/candidate-cards-*.png` y `candidate-wizard-*.png`. Detector de diseño sin hallazgos en los componentes modificados.
+- Límites de la evidencia: no se ejecutó el recorrido completo contra MySQL ni se midió la precisión del extractor con CV reales; las pruebas de interfaz utilizan API simulada.

@@ -57,3 +57,39 @@ export function initJobActions(trigger: HTMLButtonElement, menu: HTMLElement) {
     destroy: () => { if (dropdown.isVisible()) dropdown.hide(); dropdown.destroyAndRemoveInstance(); },
   };
 }
+
+export function initEditorDropdown(root: HTMLElement) {
+  const select = root.querySelector<HTMLSelectElement>('select')!;
+  const trigger = root.querySelector<HTMLButtonElement>('[data-editor-dropdown-trigger]')!;
+  const label = root.querySelector<HTMLElement>('[data-editor-dropdown-label]')!;
+  const menu = root.querySelector<HTMLElement>('[data-editor-dropdown-menu]')!;
+  const list = menu.querySelector('ul')!;
+  trigger.setAttribute('aria-labelledby', select.id + '-label');
+  for (const option of Array.from(select.options)) {
+    const item = document.createElement('li');
+    item.setAttribute('role', 'none');
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.setAttribute('role', 'menuitemradio');
+    button.tabIndex = -1;
+    button.dataset.value = option.value;
+    button.textContent = option.text;
+    button.className = 'flex min-h-11 w-full items-center rounded-md px-3 text-left text-base text-slate-800 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-100 dark:hover:bg-slate-800';
+    item.append(button);
+    list.append(item);
+  }
+  const { dropdown, items } = createDropdown(trigger, menu, 'bottom-start');
+  const sync = () => {
+    label.textContent = select.selectedOptions[0]?.text ?? '';
+    items.forEach(item => item.setAttribute('aria-checked', String(item.dataset.value === select.value)));
+  };
+  items.forEach(item => item.addEventListener('click', () => {
+    select.value = item.dataset.value ?? '';
+    sync();
+    select.dispatchEvent(new Event('change', { bubbles: true }));
+    dropdown.hide();
+    trigger.focus();
+  }));
+  sync();
+  return () => { if (dropdown.isVisible()) dropdown.hide(); dropdown.destroyAndRemoveInstance(); list.replaceChildren(); };
+}

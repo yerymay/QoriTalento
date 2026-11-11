@@ -88,3 +88,28 @@ describe('M03: postulaciones',()=>{
     expect((await request(app).get('/api/v1/applications').set('Cookie',cookie('1')).set('Sec-Fetch-Site','cross-site')).status).toBe(403);
   });
 });
+
+describe('Vista previa de CV antes de postular', () => {
+  const preview = (candidate = '1') => request(app).post('/api/v1/candidate/cv-preview').set('Cookie', cookie(candidate)).set('X-Qori-Client', 'web');
+  it('extrae datos sin registrar una postulación ni exponer el texto completo', async () => {
+    const result = await preview().attach('cv', pdf('ana@example.test'), { filename: 'cv.pdf', contentType: 'application/pdf' });
+    expect(result.status).toBe(200);
+    expect(result.body.profile.email).toBe('ana@example.test');
+    expect(result.body.warnings).toBeInstanceOf(Array);
+    expect(result.body).not.toHaveProperty('text');
+    expect(repo.rows).toHaveLength(0);
+    expect(result.headers['cache-control']).toBe('no-store');
+  });
+  it('rechaza solicitudes sin sesión, reclutadores y origen cruzado', async () => {
+    expect((await request(app).post('/api/v1/candidate/cv-preview').set('X-Qori-Client', 'web')).status).toBe(401);
+    expect((await preview('3')).status).toBe(403);
+    expect((await preview().set('Sec-Fetch-Site', 'cross-site')).status).toBe(403);
+  });
+  it('rechaza PDF inválido, vacío, demasiado grande y campos de identidad', async () => {
+    expect((await preview().attach('cv', Buffer.from('invalid'), { filename: 'cv.pdf', contentType: 'application/pdf' })).status).toBe(400);
+    expect((await preview().attach('cv', pdf(''), { filename: 'cv.pdf', contentType: 'application/pdf' })).status).toBe(400);
+    expect((await preview().attach('cv', Buffer.alloc(5_000_001), { filename: 'cv.pdf', contentType: 'application/pdf' })).status).toBe(413);
+    expect((await preview().field('user_id', '2').attach('cv', pdf('CV'), { filename: 'cv.pdf', contentType: 'application/pdf' })).status).toBe(400);
+    expect(repo.rows).toHaveLength(0);
+  });
+});

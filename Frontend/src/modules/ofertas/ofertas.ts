@@ -1,4 +1,4 @@
-import { initJobStatusFilter, initJobActions } from './dropdowns';
+import { initJobStatusFilter, initJobActions, initEditorDropdown } from './dropdowns';
 import { ofertas, type Job, type JobInput } from './ofertas.service';
 import type { Session } from '../auth/auth.service';
 import { ApiError } from '../compartido/services/api';
@@ -36,10 +36,10 @@ export function initOfertas() {
   };
   const text = (target: ParentNode, selector: string, value: string) => { target.querySelector<HTMLElement>(selector)!.textContent = value; };
   const link = (target: ParentNode, selector: string, href: string) => { target.querySelector<HTMLAnchorElement>(selector)!.href = href; };
-  const field = (name: string) => form!.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement;
+  const field = (name: string) => form!.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   const read = (): JobInput => ({
     title: field('title').value.trim(), description: field('description').value.trim(),
-    area: field('area').value.trim() || null, location: field('location').value.trim() || null,
+    area: field('area').value.trim() || null, location: [field('location').value.trim(), field('modality').value].filter(Boolean).join(' · ') || null,
     experience_required: field('experience_required').value.trim() || null,
     education_required: field('education_required').value.trim() || null,
     requirements: field('requirements').value.split(/\r?\n/).map(value => value.trim()).filter(Boolean).map(description => ({ description })),
@@ -70,13 +70,23 @@ export function initOfertas() {
       : job.status === 'PUBLISHED' ? 'Visible para los postulantes. Cerrar la oferta la retira del listado disponible; no se podrá reabrir.'
         : 'Esta oferta está cerrada y ya no aparece entre las oportunidades disponibles. Puedes corregir su información, pero no reabrirla.';
   };
+  let clearEditorDropdowns: Array<() => void> = [];
   const fillEditor = () => {
     if (!form) return;
     form.reset();
     if (job) {
-      for (const name of ['title', 'description', 'area', 'location', 'experience_required', 'education_required'] as const) field(name).value = job[name] ?? '';
+            for (const name of ['title', 'description', 'experience_required', 'education_required'] as const) field(name).value = job[name] ?? '';
+      const area = field('area') as HTMLSelectElement;
+      if (job.area && !Array.from(area.options).some(option => option.value === job!.area)) area.add(new Option(job.area, job.area));
+      area.value = job.area ?? '';
+      const parts = (job.location ?? '').split(' · ');
+      const modality = parts[parts.length - 1];
+      if (['Remoto', 'Presencial', 'Híbrido'].includes(modality)) { field('modality').value = modality; field('location').value = parts.slice(0, -1).join(' · '); }
+      else field('location').value = job.location ?? '';
       field('requirements').value = job.requirements.map(item => item.description).join('\n');
     }
+    clearEditorDropdowns.forEach(dispose => dispose());
+    clearEditorDropdowns = [...form.querySelectorAll<HTMLElement>('[data-editor-dropdown]')].map(initEditorDropdown);
     baseline = JSON.stringify(read()); publication(); updateDirty();
     el('[data-job-editor]').hidden = false;
   };
@@ -173,9 +183,14 @@ export function initOfertas() {
           continue;
         } else {
           text(fragment, '[data-job-area]', item.area || 'Área no especificada');
-          text(fragment, '[data-job-code]', 'QT-' + item.id);
-          text(fragment, '[data-job-location]', item.location || 'Ubicación no especificada');
-          text(fragment, '[data-job-description]', item.requirements.length ? item.requirements.map(requirement => requirement.description).join(' · ') : item.description || 'Requisitos no especificados.');
+
+          const parts = (item.location ?? '').split(' · ');
+          const modality = parts[parts.length - 1];
+          const isModality = ['Remoto', 'Presencial', 'Híbrido'].includes(modality);
+          const badge = fragment.querySelector<HTMLElement>('[data-job-modality]')!;
+          badge.hidden = !isModality; badge.textContent = isModality ? modality : '';
+          text(fragment, '[data-job-location]', (isModality ? parts.slice(0, -1).join(' · ') : item.location) || 'Ubicación no especificada');
+          text(fragment, '[data-job-description]', item.description || 'Consulta el detalle para conocer los requisitos de esta oportunidad.');
           link(fragment, '[data-job-view]', href);
           fragment.querySelector('[data-job-view]')!.setAttribute('aria-label', `Ver oferta: ${item.title}`);
         }
@@ -229,6 +244,16 @@ export function initOfertas() {
     form?.setAttribute('aria-busy', String(value)); updateDirty();
   };
   form?.addEventListener('input', updateDirty);
+  form?.addEventListener('change', updateDirty);
+  form?.querySelectorAll<HTMLButtonElement>('[data-description-format]').forEach(button => button.addEventListener('click', () => {
+    const description = field('description') as HTMLTextAreaElement;
+    const start = description.selectionStart, end = description.selectionEnd;
+    const selected = description.value.slice(start, end);
+    const mark = button.dataset.descriptionFormat === 'bold' ? '**' : button.dataset.descriptionFormat === 'italic' ? '_' : '- ';
+    const insertion = button.dataset.descriptionFormat === 'list' ? mark + selected : mark + selected + mark;
+    if (description.value.length - (end - start) + insertion.length > description.maxLength) return;
+    description.setRangeText(insertion, start, end, 'select'); description.focus(); updateDirty();
+  }));
   form?.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy || !session || !form.reportValidity()) return;
