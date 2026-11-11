@@ -64,7 +64,7 @@ function filter(input: unknown, owned: boolean): JobFilter {
   if (status !== undefined && typeof status !== 'string') return invalid('Selecciona un único estado.');
   return { q: text(body.q ?? '', 'Búsqueda', 180), page: number(body.page, 1, 10000), page_size: number(body.page_size, 20, 50), ...(status ? { status: status as JobStatus } : {}) };
 }
-const publicJob = ({ owner_user_id: _, ...job }: Job) => job;
+const publicJob = ({ owner_user_id: _, applicant_count: __, ...job }: Job) => job;
 
 export class OfertasService {
   constructor(private repo: OfertasRepository, private now = () => new Date()) {}
@@ -78,6 +78,11 @@ export class OfertasService {
     const job = await this.repo.find(jobId(id), owned ? { ownerId: actor.id } : { publishedOnly: true });
     if (!job) return notFound();
     return owned ? job : publicJob(job);
+  }
+  async remove(actor: Actor, id: unknown, input: unknown) {
+    recruiter(actor);
+    if (Object.keys(object(input)).length) return invalid('Esta acción no admite campos adicionales.');
+    if (!await this.repo.deleteOwned(jobId(id), actor.id)) return notFound();
   }
   async create(actor: Actor, input: unknown) {
     recruiter(actor);

@@ -216,3 +216,10 @@ Estado: [x] B-03 resuelta y validada
 - DNI: exactamente ocho dígitos cuando se proporciona, sin verificación de identidad externa. Migración separada `database/05_profile_dni.sql`; en la base local la columna `users.dni CHAR(8) NULL` ya existía, por lo que no se ejecutó ALTER.
 - Teléfono de perfil: formato de 7 a 15 dígitos con código de país opcional. Se valida en UI y backend; no se comprueba que el número exista. Sigue siendo obligatorio para reclutadores particulares.
 - Evidencia: pruebas del backend, comprobaciones de tipos y compilación; prueba `TEST_MYSQL=1 npx vitest run tests/profile.mysql.test.ts` aprobada con cuenta sintética eliminada al finalizar. Navegador: consulta, edición, cancelación y rechazo de DNI/teléfono inválidos con API simulada en móvil.
+
+## Mis ofertas: postulantes, cierre y eliminación — 2026-11-10
+
+- La lista propia incluye `applicant_count`: número de personas distintas con postulaciones de cualquier estado para cada oferta. No se expone en el listado público de postulantes.
+- Se añadió `DELETE /api/v1/recruiter/jobs/{jobId}` con sesión, rol, propiedad y protección de origen. La eliminación transaccional bloquea ofertas con postulaciones, exámenes o revisiones asociadas; si procede elimina únicamente los requisitos y la oferta. No se eliminan CV ni expedientes.
+- La tabla permite cerrar y eliminar mediante dos confirmaciones; el cierre del editor también requiere dos pasos y no finaliza el proceso. La creación de exámenes no se habilitó.
+- Evidencia: pruebas de API con casos de propiedad, rol, origen y datos extra; prueba MySQL `TEST_MYSQL=1 npx vitest run tests/ofertas-delete.mysql.test.ts` con registros sintéticos eliminados al finalizar; comprobación de tipos, compilación y prueba de navegador con API simulada para cancelar, confirmar, proteger postulaciones y refrescar la lista.

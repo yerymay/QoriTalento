@@ -7,6 +7,7 @@ export class OfertasController {
   publicDetail = asyncHandler(async (req, res) => { res.json(await this.service.detail(res.locals.session.user, req.params.jobId, false)); });
   owned = asyncHandler(async (req, res) => { res.json(await this.service.list(res.locals.session.user, req.query, true)); });
   ownedDetail = asyncHandler(async (req, res) => { res.json(await this.service.detail(res.locals.session.user, req.params.jobId, true)); });
+  remove = asyncHandler(async (req, res) => { await this.service.remove(res.locals.session.user, req.params.jobId, req.body); res.status(204).end(); });
   create = asyncHandler(async (req, res) => {
     const job = await this.service.create(res.locals.session.user, req.body);
     res.status(201).location(`/api/v1/recruiter/jobs/${job.id}`).json(job);

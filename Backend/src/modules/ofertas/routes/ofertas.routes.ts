@@ -11,7 +11,7 @@ export function createOfertasRoutes(repo: OfertasRepository, auth: AuthService) 
   const controller = new OfertasController(new OfertasService(repo));
   routes.use((req, res, next) => {
     res.setHeader('Cache-Control', 'no-store');
-    if (req.get('Sec-Fetch-Site') === 'cross-site' || (['POST', 'PATCH'].includes(req.method) && (req.get('X-Qori-Client') !== 'web' || !req.is('application/json')))) {
+    if (req.get('Sec-Fetch-Site') === 'cross-site' || (['POST', 'PATCH', 'DELETE'].includes(req.method) && (req.get('X-Qori-Client') !== 'web' || !req.is('application/json')))) {
       return next(new AppError(403, 'INVALID_ORIGIN', 'Solicitud no permitida. Vuelve a abrir el formulario.'));
     }
     next();
@@ -22,6 +22,7 @@ export function createOfertasRoutes(repo: OfertasRepository, auth: AuthService) 
   routes.post('/recruiter/jobs', requireRole(auth, 'RECRUITER'), controller.create);
   routes.get('/recruiter/jobs/:jobId', requireRole(auth, 'RECRUITER'), controller.ownedDetail);
   routes.patch('/recruiter/jobs/:jobId', requireRole(auth, 'RECRUITER'), controller.update);
+  routes.delete('/recruiter/jobs/:jobId', requireRole(auth, 'RECRUITER'), controller.remove);
   routes.post('/recruiter/jobs/:jobId/publish', requireRole(auth, 'RECRUITER'), controller.publish);
   routes.post('/recruiter/jobs/:jobId/close', requireRole(auth, 'RECRUITER'), controller.close);
   return routes;

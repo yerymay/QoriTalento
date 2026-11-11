@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app.js';
+import { AppError } from '../src/shared/errors.js';
 import { tokenHash } from '../src/modules/auth/services/password.js';
 import type { AuthRepository, User } from '../src/modules/auth/repositories/auth.repository.js';
 import type { Job, JobChange, JobFilter, JobInput, JobScope, OfertasRepository } from '../src/modules/ofertas/repositories/ofertas.repository.js';
@@ -11,7 +12,14 @@ class MemoryOfertas implements OfertasRepository {
     const found = this.jobs.filter(job => (!scope.ownerId || job.owner_user_id === scope.ownerId)
       && (!scope.publishedOnly || job.status === 'PUBLISHED') && (!filter.status || job.status === filter.status)
       && (!filter.q || [job.title, job.description, job.location ?? '', job.id].some(value => value.toLowerCase().includes(filter.q.toLowerCase())))).reverse();
-    return { items: structuredClone(found.slice((filter.page - 1) * filter.page_size, filter.page * filter.page_size)), total: found.length, page: filter.page, page_size: filter.page_size };
+    return { items: structuredClone(found.slice((filter.page - 1) * filter.page_size, filter.page * filter.page_size).map(job => scope.ownerId ? {...job, applicant_count: job.applicant_count ?? 0} : job)), total: found.length, page: filter.page, page_size: filter.page_size };
+  }
+  async deleteOwned(id: string, ownerId: string) {
+    const index = this.jobs.findIndex(job => job.id === id && job.owner_user_id === ownerId);
+    if (index < 0) return false;
+    if ((this.jobs[index].applicant_count ?? 0) > 0) throw new AppError(409, 'JOB_HAS_RECORDS', 'La oferta tiene registros asociados.');
+    this.jobs.splice(index, 1);
+    return true;
   }
   async find(id: string, scope: JobScope) {
     return structuredClone(this.jobs.find(job => job.id === id && (!scope.ownerId || job.owner_user_id === scope.ownerId) && (!scope.publishedOnly || job.status === 'PUBLISHED')) ?? null);
@@ -34,7 +42,7 @@ const base = '/api/v1/recruiter/jobs';
 const users: User[] = [];
 let repo: MemoryOfertas, app: ReturnType<typeof createApp>;
 const cookie = (index = 0) => `qt_session=${String(index + 1).repeat(64)}`;
-const call = (method: 'get' | 'post' | 'patch', path: string, body?: unknown, actor = 0) => {
+const call = (method: 'get' | 'post' | 'patch' | 'delete', path: string, body?: unknown, actor = 0) => {
   const req = request(app)[method](path).set('Cookie', cookie(actor)).set('X-Qori-Client', 'web');
   return method === 'get' ? req : req.send(body);
 };
@@ -145,6 +153,26 @@ describe('M02: ofertas con sesión, propiedad y transiciones explícitas', () =>
     expect((await call('patch', base + '/1', {})).status).toBe(400);
     expect((await call('post', base + '/1/publish', { status: 'CLOSED' })).status).toBe(400);
     expect((await call('get', '/api/v1/jobs?status=DRAFT', undefined, 2)).status).toBe(400);
+  });
+  it('devuelve el conteo solo en las ofertas propias', async () => {
+    await call('post', base, input);
+    repo.jobs[0].applicant_count = 3;
+    expect((await call('get', base)).body.items[0].applicant_count).toBe(3);
+    await call('post', base + '/1/publish', {});
+    expect((await call('get', '/api/v1/jobs', undefined, 2)).body.items[0].applicant_count).toBeUndefined();
+  });
+  it('elimina únicamente la oferta propia sin registros asociados y protege el origen', async () => {
+    await call('post', base, input);
+    expect((await call('delete', base + '/1', {}, 1)).status).toBe(404);
+    expect((await call('delete', base + '/1', {}, 2)).status).toBe(403);
+    expect((await request(app).delete(base + '/1').set('Cookie', cookie()).send({})).status).toBe(403);
+    expect((await call('delete', base + '/1', {owner_user_id:'2'})).status).toBe(400);
+    repo.jobs[0].applicant_count = 1;
+    expect((await call('delete', base + '/1', {})).status).toBe(409);
+    expect(repo.jobs).toHaveLength(1);
+    repo.jobs[0].applicant_count = 0;
+    expect((await call('delete', base + '/1', {})).status).toBe(204);
+    expect((await call('get', base + '/1')).status).toBe(404);
   });
   it('pagina, busca y filtra solo las ofertas propias', async () => {
     await call('post', base, input);

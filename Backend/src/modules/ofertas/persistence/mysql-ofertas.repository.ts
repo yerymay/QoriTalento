@@ -1,3 +1,4 @@
+import { AppError } from '../../../shared/errors.js';
 import type { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql2/promise';
 import type { Job, JobChange, JobFilter, JobInput, JobScope, OfertasRepository } from '../repositories/ofertas.repository.js';
 
@@ -57,8 +58,38 @@ export class MySqlOfertasRepository implements OfertasRepository {
         `${columns} WHERE ${where.sql} ORDER BY ${scope.publishedOnly ? 'published_at' : 'created_at'} DESC, id DESC LIMIT ? OFFSET ?`,
         [...where.values, filter.page_size, (filter.page - 1) * filter.page_size],
       );
-      return { items: await hydrate(connection, rows), total: Number(counts[0]!.total), page: filter.page, page_size: filter.page_size };
+      const items = await hydrate(connection, rows);
+      if (scope.ownerId && rows.length) {
+        const [applicants] = await connection.execute<RowDataPacket[]>(
+          `SELECT CAST(job_id AS CHAR) AS job_id, COUNT(DISTINCT candidate_user_id) AS total FROM applications WHERE job_id IN (${rows.map(() => '?').join(',')}) GROUP BY job_id`,
+          rows.map(row => row.id),
+        );
+        const totals = new Map(applicants.map(row => [row.job_id, Number(row.total)]));
+        items.forEach(item => { item.applicant_count = totals.get(item.id) ?? 0; });
+      }
+      return { items, total: Number(counts[0]!.total), page: filter.page, page_size: filter.page_size };
     });
+  }
+  async deleteOwned(id: string, ownerId: string) {
+    try {
+      return await this.transaction(async connection => {
+        const [rows] = await connection.execute<RowDataPacket[]>('SELECT id FROM jobs WHERE id=? AND owner_user_id=? FOR UPDATE', [id, ownerId]);
+        if (!rows[0]) return false;
+        const [dependencies] = await connection.execute<RowDataPacket[]>(
+          'SELECT EXISTS(SELECT 1 FROM applications WHERE job_id=?) AS applications, EXISTS(SELECT 1 FROM exams WHERE job_id=?) AS exams, EXISTS(SELECT 1 FROM job_moderation_reviews WHERE job_id=?) AS reviews',
+          [id, id, id],
+        );
+        if (dependencies[0]!.applications || dependencies[0]!.exams || dependencies[0]!.reviews) {
+          throw new AppError(409, 'JOB_HAS_RECORDS', 'No se puede eliminar una oferta con postulaciones, exámenes o revisiones asociadas.');
+        }
+        await connection.execute('DELETE FROM job_requirements WHERE job_id=?', [id]);
+        await connection.execute('DELETE FROM jobs WHERE id=? AND owner_user_id=?', [id, ownerId]);
+        return true;
+      });
+    } catch (error) {
+      if ((error as {code?: string}).code === 'ER_ROW_IS_REFERENCED_2') throw new AppError(409, 'JOB_HAS_RECORDS', 'No se puede eliminar una oferta con registros asociados.');
+      throw error;
+    }
   }
   async find(id: string, scope: JobScope) {
     return this.transaction(async connection => {

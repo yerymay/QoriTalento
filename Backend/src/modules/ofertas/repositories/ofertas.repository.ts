@@ -12,6 +12,7 @@ export interface JobInput {
 export interface Job extends JobInput {
   id: string;
   owner_user_id: string;
+  applicant_count?: number;
   status: string;
   published_at: string | null;
   closed_at: string | null;
@@ -29,6 +30,7 @@ export interface JobChange {
 export interface OfertasRepository {
   list(scope: JobScope, filter: JobFilter): Promise<JobPage>;
   find(id: string, scope: JobScope): Promise<Job | null>;
+  deleteOwned(id: string, ownerId: string): Promise<boolean>;
   create(ownerId: string, fields: JobInput): Promise<Job>;
   // Ejecuta decide sobre una lectura bloqueada y persiste todo de forma atómica.
   // No invoca decide si la oferta no pertenece al propietario.

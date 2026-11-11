@@ -343,6 +343,16 @@ components:
           properties:
             owner_user_id:
               type: string
+    OwnedJobListItem:
+      allOf:
+        - $ref: "#/components/schemas/OwnedJob"
+        - type: object
+          required: [applicant_count]
+          properties:
+            applicant_count:
+              type: integer
+              minimum: 0
+              description: Número de personas postulantes distintas, incluidos estados históricos.
   responses:
     Error:
       description: Error controlado; el código y mensaje indican el motivo. No incluye información interna.
@@ -1039,7 +1049,7 @@ paths:
                   items:
                     type: array
                     items:
-                      $ref: "#/components/schemas/OwnedJob"
+                      $ref: "#/components/schemas/OwnedJobListItem"
                   total:
                     type: integer
                   page:
@@ -1179,6 +1189,31 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/JobPatch"
+    delete:
+      tags: [Ofertas]
+      summary: Eliminar una oferta propia sin registros asociados
+      description: Elimina la oferta y sus requisitos únicamente si no existen postulaciones, exámenes ni revisiones asociadas. Una oferta ajena devuelve 404; si existen registros devuelve 409.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: {type: string, pattern: '^[1-9][0-9]{0,19}$'}
+        - $ref: "#/components/parameters/ClientHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, additionalProperties: false}
+      responses:
+        "204": {description: Oferta eliminada.}
+        "400": {$ref: "#/components/responses/Error"}
+        "401": {$ref: "#/components/responses/Error"}
+        "403": {$ref: "#/components/responses/Error"}
+        "404": {$ref: "#/components/responses/Error"}
+        "409": {$ref: "#/components/responses/Error"}
+        "503": {$ref: "#/components/responses/Error"}
   /recruiter/jobs/{jobId}/publish:
     post:
       tags:

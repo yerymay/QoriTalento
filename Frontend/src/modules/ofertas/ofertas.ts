@@ -1,3 +1,4 @@
+import { initJobStatusFilter, initJobActions } from './dropdowns';
 import { ofertas, type Job, type JobInput } from './ofertas.service';
 import type { Session } from '../auth/auth.service';
 import { ApiError } from '../compartido/services/api';
@@ -15,6 +16,9 @@ export function initOfertas() {
   const dialog = root.querySelector<HTMLDialogElement>('[data-job-confirm]');
   const search = root.querySelector<HTMLFormElement>('[data-job-search]');
   const listControls=[...root.querySelectorAll<HTMLElement>('[data-job-list-control]')];
+  const statusFilter=owned && search ? initJobStatusFilter(search) : undefined;
+  const actionMenus: Array<() => void> = [];
+  const clearActionMenus = () => { actionMenus.splice(0).forEach(dispose => dispose()); root.querySelector('[data-action-menus]')?.replaceChildren(); };
   const listError=root.querySelector<HTMLElement>('[data-job-list-error]');
   let session: Session | undefined, job: Job | undefined, page = 1, epoch = 0;
   let busy = false, dirty = false, baseline = '', query = new URLSearchParams();
@@ -91,9 +95,44 @@ export function initOfertas() {
     link(root, '[data-apply]', '/postulante/postular?id=' + encodeURIComponent(value.id));
     el('[data-job-detail]').hidden = false;
   };
+  async function runListAction(item: Job, action: 'close'|'delete', trigger: HTMLButtonElement) {
+    if (busy || !session) return;
+    if (action === 'delete' && typeof item.applicant_count === 'number' && item.applicant_count > 0) {
+      notice('No puedes eliminar esta oferta porque tiene postulaciones. Puedes cerrar la recepción sin perder sus registros.');
+      feedback.focus(); return;
+    }
+    busy = true;
+    trigger.focus();
+    try {
+      const accepted = await confirm(action === 'close' ? '¿Cerrar esta oferta?' : '¿Eliminar esta oferta?',
+        action === 'close' ? `«${item.title}» dejará de recibir postulaciones y no podrá reabrirse.` : `Se eliminará «${item.title}» y sus requisitos. No se pueden eliminar ofertas con registros asociados.`,
+        action === 'close' ? 'Continuar' : 'Continuar');
+      if (!accepted || !session) return;
+      const confirmed = await confirm(action === 'close' ? 'Confirma el cierre' : 'Confirma la eliminación',
+        action === 'close' ? 'El cierre no puede deshacerse. Las postulaciones existentes se conservarán.' : 'La eliminación es permanente y no podrá deshacerse.',
+        action === 'close' ? 'Sí, cerrar oferta' : 'Sí, eliminar oferta');
+      if (!confirmed || !session) return;
+      root?.setAttribute('aria-busy','true');
+      trigger.disabled = true;
+      const run = epoch;
+      if (action === 'close') await ofertas.transition(item.id, 'close');
+      else await ofertas.remove(item.id);
+      if (!session || run !== epoch) return;
+      await loadList();
+      if (!session) return;
+      notice(action === 'close' ? 'Oferta cerrada. Las postulaciones existentes se conservan.' : 'Oferta eliminada.', 'success');
+      feedback.focus();
+    } catch (error) {
+      if (session) { failure(error); feedback.focus(); }
+    } finally {
+      busy = false;
+      root?.removeAttribute('aria-busy');
+      if (trigger.isConnected) trigger.disabled = false;
+    }
+  }
   const loadList = async () => {
     const run = ++epoch, loading = el('[data-job-list-loading]'), list = el('[data-job-list]');
-    loading.hidden = false; list.replaceChildren(); el('[data-job-empty]').hidden = true; listError && (listError.hidden = true);
+    loading.hidden = false; clearActionMenus(); list.replaceChildren(); el('[data-job-empty]').hidden = true; listError && (listError.hidden = true);
     listControls.forEach(control => control.hidden = true);
     el('[data-job-pagination]').hidden = true; el('[data-job-count]').textContent = '';
     feedback.hidden = true; recovery.hidden = true;
@@ -102,6 +141,7 @@ export function initOfertas() {
     try {
       const result = await ofertas.list(owned, params);
       if (run !== epoch || !session) return;
+      if (!result.items.length && page > 1) { page = Math.max(1, Math.ceil(result.total / result.page_size)); await loadList(); return; }
       for (const item of result.items) {
         const fragment = el<HTMLTemplateElement>(owned ? '[data-job-row-template]' : '[data-job-card-template]').content.cloneNode(true) as DocumentFragment;
         const href = owned ? `/reclutador/editar-oferta?id=${encodeURIComponent(item.id)}` : `/postulante/oferta?id=${encodeURIComponent(item.id)}`;
@@ -110,10 +150,27 @@ export function initOfertas() {
         if (owned) {
           text(fragment, '[data-job-meta]', `QT-${item.id} · ${item.area || 'Área no especificada'}`);
           text(fragment, '[data-job-status]', labels[item.status] ?? item.status);
+          text(fragment, '[data-job-applicant-count]', typeof item.applicant_count === 'number' ? String(item.applicant_count) : 'No disponible');
           fragment.querySelector<HTMLElement>('[data-job-status]')!.dataset.status = item.status;
-          link(fragment, '[data-job-edit]', href);
-          link(fragment, '[data-job-applicants]', `/reclutador/postulantes?job=${encodeURIComponent(item.id)}`);
-          fragment.querySelector('[data-job-edit]')!.setAttribute('aria-label', `Gestionar ${item.title}`);
+          const trigger = fragment.querySelector<HTMLButtonElement>('[data-actions-trigger]')!;
+          const menuFragment = el<HTMLTemplateElement>('[data-action-menu-template]').content.cloneNode(true) as DocumentFragment;
+          const menu = menuFragment.querySelector<HTMLElement>('[data-action-menu]')!;
+          menu.id = 'job-actions-' + item.id;
+          trigger.setAttribute('aria-controls', menu.id);
+          trigger.setAttribute('aria-label', `Acciones para ${item.title}`);
+          link(menuFragment, '[data-job-edit]', href);
+          link(menuFragment, '[data-job-applicants]', `/reclutador/postulantes?job=${encodeURIComponent(item.id)}`);
+          menuFragment.querySelector('[data-job-edit]')!.setAttribute('aria-label', `Gestionar ${item.title}`);
+          menuFragment.querySelector('[data-job-applicants]')!.setAttribute('aria-label', `Ver currículums de ${item.title}`);
+          el('[data-action-menus]').append(menuFragment);
+          list.append(fragment);
+          const actions = initJobActions(trigger, menu);
+          actionMenus.push(actions.destroy);
+          const closeButton = menu.querySelector<HTMLButtonElement>('[data-job-close-action]')!;
+          closeButton.hidden = item.status !== 'PUBLISHED';
+          closeButton.addEventListener('click', () => { actions.close(); void runListAction(item, 'close', trigger); });
+          menu.querySelector<HTMLButtonElement>('[data-job-delete-action]')!.addEventListener('click', () => { actions.close(); void runListAction(item, 'delete', trigger); });
+          continue;
         } else {
           text(fragment, '[data-job-area]', item.area || 'Área no especificada');
           text(fragment, '[data-job-code]', 'QT-' + item.id);
@@ -204,6 +261,7 @@ export function initOfertas() {
         action === 'publish' ? `«${job.title}» será visible para los postulantes.` : `«${job.title}» dejará de estar disponible. No podrás reabrirla.`,
         action === 'publish' ? 'Publicar oferta' : 'Cerrar oferta');
       if (!accepted || busy || !job || dirty) return;
+      if (action === 'close' && !await confirm('Confirma el cierre', 'El cierre no puede deshacerse. Las postulaciones existentes se conservarán.', 'Sí, cerrar oferta')) return;
       const actionButton=event.currentTarget as HTMLButtonElement;
       const shimmerTimeout=window.setTimeout(()=>{ actionButton.classList.add('q-button-loading'); actionButton.setAttribute('aria-busy','true'); },220);
       const run = epoch; setBusy(true);
@@ -231,20 +289,20 @@ export function initOfertas() {
     finally { if (session) setBusy(false); }
   });
   search?.addEventListener('submit', event => {
-    event.preventDefault(); query = new URLSearchParams();
+    event.preventDefault(); if (busy) return; query = new URLSearchParams();
     const data = new FormData(search);
     for (const name of ['q', 'status']) { const value = String(data.get(name) ?? '').trim(); if (value) query.set(name, value); }
     page = 1; void load();
   });
-  root.querySelector('[data-reset-search]')?.addEventListener('click', () => { search?.reset(); query = new URLSearchParams(); page = 1; void load(); });
-  root.querySelector('[data-page-prev]')?.addEventListener('click', () => { if (page > 1) { page--; void load(); } });
-  root.querySelector('[data-page-next]')?.addEventListener('click', () => { page++; void load(); });
+  root.querySelector('[data-reset-search]')?.addEventListener('click', () => { if (busy) return; search?.reset(); statusFilter?.reset(); query = new URLSearchParams(); page = 1; void load(); });
+  root.querySelector('[data-page-prev]')?.addEventListener('click', () => { if (!busy && page > 1) { page--; void load(); } });
+  root.querySelector('[data-page-next]')?.addEventListener('click', () => { if (busy) return; page++; void load(); });
   root.querySelector('[data-job-list-retry]')?.addEventListener('click', () => void loadList());
   el('[data-job-retry]').addEventListener('click', () => void load());
   document.addEventListener('qori:session', event => { session = (event as CustomEvent<Session>).detail; void load(); });
   document.addEventListener('qori:session-cleared', () => {
     epoch++; session = undefined; job = undefined; dirty = false; busy = false; form?.reset(); dialog?.close();
-    root.querySelector('[data-job-list]')?.replaceChildren();
+    clearActionMenus(); root.querySelector('[data-job-list]')?.replaceChildren();
     root.querySelector('[data-job-detail]')?.setAttribute('hidden', '');
     root.querySelector('[data-job-editor]')?.setAttribute('hidden', '');
     feedback.hidden = true; recovery.hidden = true;
