@@ -1,5 +1,6 @@
 ﻿---
-import Campo from './Campo.astro';
+import CampoLogin from './CampoLogin.astro';
+import DropdownSelector from './DropdownSelector.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
@@ -13,17 +14,35 @@ const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulan
     <section class="q-card mx-auto w-full max-w-xl p-6 sm:p-8">
       <div class="mb-7"><h1 class="text-3xl font-bold">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300">Completa tus datos para registrarte.</p><p class="mt-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-200"><span class="h-2 w-2 rounded-full bg-sky-600"></span>Crearás una cuenta como: <span data-role-summary>{selectedRoleLabel}</span></p></div>
       <form method="post" data-auth-form="register" class="space-y-5" novalidate>
-        <Campo id="name" label="Nombre completo" required autocomplete="name" min={2} max={160} />
-        <Campo id="email" label="Correo electrónico" type="email" required autocomplete="email" max={254} />
-        <Campo id="password" label="Contraseña" type="password" required autocomplete="new-password" min={8} max={128} />
-        <button data-password type="button" aria-pressed="false" class="q-secondary">Mostrar contraseña</button>
-        <p data-strength class="text-slate-600 dark:text-slate-300" aria-live="polite">Fortaleza: escribe al menos 8 caracteres.</p>
-        <div class="space-y-2"><label for="role" class="block font-medium">Quiero registrarme como</label><select id="role" data-role-control class="q-input cursor-not-allowed opacity-75" aria-describedby="role-help" disabled><option value="CANDIDATE" selected={initialRole==='CANDIDATE'}>Postulante</option><option value="RECRUITER" selected={initialRole==='RECRUITER'}>Reclutador</option></select><input data-role-value type="hidden" name="role" value={initialRole} /><p id="role-help" class="text-sm text-slate-600 dark:text-slate-300">El rol fue elegido al iniciar el registro.</p></div>
-        <div data-recruiter hidden class="space-y-2"><label for="kind" class="block font-medium">Tipo de reclutador</label><select id="kind" name="kind" class="q-input"><option value="COMPANY">Empresa (correo corporativo)</option><option value="INDIVIDUAL">Particular (requiere verificar teléfono)</option></select></div>
-        <Campo id="phone" label="Teléfono de contacto" type="tel" autocomplete="tel" min={7} max={32} />
+        <DropdownSelector id="role" label="Quiero registrarme como" name="role" value={initialRole} options={[{value:'CANDIDATE',label:'Postulante'},{value:'RECRUITER',label:'Reclutador'}]} />
+        <div data-recruiter hidden class="space-y-2">
+          <DropdownSelector id="kind" label="Tipo de reclutador" name="kind" value="COMPANY" options={[{value:'COMPANY',label:'Empresa'},{value:'INDIVIDUAL',label:'Particular'}]} />
+          <p class="text-sm text-slate-600 dark:text-slate-300">Si representas a una empresa, usa tu correo corporativo.</p>
+        </div>
+        <CampoLogin surface="card" id="name" label="Nombre completo" type="text" autocomplete="name" min={2} max={160} />
+        <CampoLogin surface="card" id="email" label="Correo electrónico" type="email" autocomplete="email" max={254} />
+        <div data-phone-group hidden>
+          <CampoLogin surface="card" id="phone" label="Teléfono de contacto" type="tel" autocomplete="tel" min={7} max={32} />
+          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Necesario para reclutadores particulares.</p>
+        </div>
+        <div>
+          <CampoLogin surface="card" id="password" label="Contraseña" type="password" autocomplete="new-password" min={8} max={128} describedby="password-rules" />
+          <div id="password-rules" class="mt-3 text-sm text-slate-700 dark:text-slate-300">
+            <p class="font-medium">Revisa tu contraseña</p>
+            <ul class="mt-2 space-y-1">
+              {[['length','Al menos 8 caracteres (obligatorio)'],['lowercase','Una letra minúscula (recomendado)'],['special','Un carácter especial, como ! o @ (recomendado)']].map(([rule,label]) =>
+                <li data-password-rule={rule} class="flex items-start gap-2">
+                  <svg class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+                  <span>{label} — <span data-rule-status>Pendiente</span></span>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+        <CampoLogin surface="card" id="confirm_password" label="Confirmar contraseña" type="password" autocomplete="new-password" max={128} />
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
-        <button data-submit type="submit" class="q-primary w-full" disabled>Registrar</button>
-        <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a href={`/login?role=${initialRole}`} class="q-link">Inicia sesión</a></p>
+        <button data-submit type="submit" class="q-primary w-full" disabled>Crear cuenta</button>
+        <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a data-signin-link href={`/login?role=${initialRole}`} class="q-link">Inicia sesión</a></p>
         <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">Al registrarte podrás iniciar sesión de inmediato.</p>
       </form>
       <noscript>Activa JavaScript para registrar tu cuenta.</noscript>
