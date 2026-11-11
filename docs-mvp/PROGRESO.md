@@ -209,3 +209,10 @@ Estado: [x] B-03 resuelta y validada
 - Detector de diseño: sin hallazgos. Se conservaron Sky/Inter y componentes existentes. La revisión independiente solicitada a un subagente falló por límite de uso; fue sustituida por revisión en este hilo, sin presentarla como aprobación independiente. Las capturas finales muestran campos y controles legibles, pestaña activa diferenciada y PDF renderizado; no constituyen una auditoría de accesibilidad integral.
 - Requisitos funcionales RSF13–RSF16.1 y UI-RF-05/16/17 marcados con esta evidencia. Límites y procedimiento reproducible en [M04-IMPLEMENTACION.md](M04-IMPLEMENTACION.md).
 - Pendiente: medir precisión y cobertura con un conjunto representativo de CV reales consentidos o anonimizados. Las pruebas sintéticas no demuestran un porcentaje de exactitud en documentos arbitrarios. B-07 (reevaluación) y validación IHC integral continúan pendientes.
+
+## Perfil de cuenta y DNI — 2026-11-10
+
+- Perfil: consulta en lista descriptiva y edición separada de nombre, correo, teléfono y DNI opcional; el rol se muestra sin edición. Se conservó el perfil curricular existente.
+- DNI: exactamente ocho dígitos cuando se proporciona, sin verificación de identidad externa. Migración separada `database/05_profile_dni.sql`; en la base local la columna `users.dni CHAR(8) NULL` ya existía, por lo que no se ejecutó ALTER.
+- Teléfono de perfil: formato de 7 a 15 dígitos con código de país opcional. Se valida en UI y backend; no se comprueba que el número exista. Sigue siendo obligatorio para reclutadores particulares.
+- Evidencia: pruebas del backend, comprobaciones de tipos y compilación; prueba `TEST_MYSQL=1 npx vitest run tests/profile.mysql.test.ts` aprobada con cuenta sintética eliminada al finalizar. Navegador: consulta, edición, cancelación y rechazo de DNI/teléfono inválidos con API simulada en móvil.

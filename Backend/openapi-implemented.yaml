@@ -132,7 +132,8 @@ components:
       properties:
         name: {type: string, minLength: 2, maxLength: 160}
         email: {type: string, format: email, maxLength: 254}
-        phone: {type: string, nullable: true, minLength: 7, maxLength: 32}
+        phone: {type: string, nullable: true, maxLength: 32, description: 'Opcional; entre 7 y 15 dígitos, con separadores habituales.'}
+        dni: {type: string, nullable: true, pattern: '^([0-9]{8})?$', description: 'DNI peruano opcional; conserva ceros iniciales. Una cadena vac?a elimina el DNI.'}
     RegisterCandidate:
       type: object
       additionalProperties: false
@@ -154,12 +155,13 @@ components:
         phone: {type: string, nullable: true, maxLength: 32, description: Obligatorio para INDIVIDUAL.}
     User:
       type: object
-      required: [id, name, email, phone, role, kind, account_state, email_verified, phone_verified]
+      required: [id, name, email, phone, dni, role, kind, account_state, email_verified, phone_verified]
       properties:
         id: {type: string}
         name: {type: string}
         email: {type: string, format: email}
         phone: {type: string, nullable: true}
+        dni: {type: string, nullable: true, pattern: '^[0-9]{8}$'}
         role: {type: string, enum: [CANDIDATE, RECRUITER]}
         kind: {type: string, nullable: true, enum: [COMPANY, INDIVIDUAL, null]}
         account_state: {type: string}

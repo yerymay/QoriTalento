@@ -1,12 +1,12 @@
 ﻿export type Role = 'CANDIDATE' | 'RECRUITER';
 export type Kind = 'COMPANY' | 'INDIVIDUAL';
 export interface User {
-  id: string; name: string; email: string; phone: string | null; role: Role;
+  id: string; name: string; email: string; phone: string | null; dni: string | null; role: Role;
   account_state: string; email_verified: boolean; kind: Kind | null; phone_verified: boolean;
   password_hash: string;
 }
 export type NewUser = Pick<User, 'name' | 'email' | 'phone' | 'role' | 'kind' | 'password_hash'>;
-export type Profile = Pick<User, 'name' | 'email' | 'phone'>;
+export type Profile = Pick<User, 'name' | 'email' | 'phone' | 'dni'>;
 export interface Session { user: User; expires_at: Date }
 export interface AuthRepository {
   findByEmail(email: string): Promise<User | null>;

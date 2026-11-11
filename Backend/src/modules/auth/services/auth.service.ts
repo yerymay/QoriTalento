@@ -25,6 +25,21 @@ function phone(value: unknown) {
   if (!/^\+?[\d ()-]{7,32}$/.test(result)) throw new AppError(400, 'INVALID_INPUT', 'Ingresa un teléfono válido.');
   return result;
 }
+function profilePhone(value: unknown) {
+  const result = phone(value);
+  if (result === null) return null;
+  const digits = result.replace(/\D/g, '');
+  if (!/^\+?\d[\d ()-]*$/.test(result) || digits.length < 7 || digits.length > 15 ||
+      (/[()]/.test(result) && !/^[^()]*\(\d{1,4}\)[^()]*$/.test(result))) {
+    throw new AppError(400, 'INVALID_INPUT', 'Ingresa un teléfono con entre 7 y 15 dígitos.');
+  }
+  return result;
+}
+function dni(value: unknown) {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string' || !/^\d{8}$/.test(value)) throw new AppError(400, 'INVALID_INPUT', 'El DNI debe tener 8 dígitos.');
+  return value;
+}
 function corporate(address: string) {
   if (publicDomains.has(address.split('@')[1]!)) throw new AppError(400, 'CORPORATE_EMAIL_REQUIRED', 'Usa el correo corporativo de tu empresa.');
 }
@@ -76,8 +91,8 @@ export class AuthService {
   async logout(token?: string) { if (token) await this.repo.deleteSession(tokenHash(token)); }
   async update(token: string | undefined, input: unknown) {
     const {user} = await this.authenticate(token);
-    const body = object(input); allowed(body, ['name','email','phone']);
-    const profile = {name: text(body.name, 'Nombre', 2, 160), email: email(body.email), phone: phone(body.phone)};
+    const body = object(input); allowed(body, ['name','email','phone','dni']);
+    const profile = {name: text(body.name, 'Nombre', 2, 160), email: email(body.email), phone: profilePhone(body.phone), dni: Object.hasOwn(body, 'dni') ? dni(body.dni) : user.dni ?? null};
     if (user.kind === 'COMPANY') corporate(profile.email);
     if (user.kind === 'INDIVIDUAL' && !profile.phone) throw new AppError(400, 'PHONE_REQUIRED', 'El teléfono es obligatorio para reclutadores particulares.');
     const updated = await this.repo.updateProfile(user.id, profile);

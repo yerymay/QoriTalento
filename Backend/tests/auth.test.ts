@@ -13,7 +13,7 @@ export class MemoryAuth implements AuthRepository {
   async findByEmail(email: string) { return this.users.find(u=>u.email===email) ?? null; }
   async createUser(input: NewUser) {
     if (await this.findByEmail(input.email)) throw new AppError(409,'EMAIL_IN_USE','Ese correo ya está registrado.');
-    const user: User = {...input,id:String(this.users.length+1),account_state:'ACTIVE',email_verified:false,phone_verified:false};
+    const user: User = {...input,dni:null,id:String(this.users.length+1),account_state:'ACTIVE',email_verified:false,phone_verified:false};
     this.users.push(user); return user;
   }
   async createSession(hash: string,id: string,expires: Date) { this.sessions.set(hash,{id,expires}); }
@@ -37,7 +37,7 @@ let passwordHash: string;
 beforeAll(async()=>{passwordHash=await hashPassword('Clave de prueba 123');});
 function setup() {
   const repo=new MemoryAuth();
-  repo.users.push({id:'1',name:'Ana Prueba',email:'ana@example.test',phone:null,role:'CANDIDATE',kind:null,password_hash:passwordHash,account_state:'ACTIVE',email_verified:true,phone_verified:false});
+  repo.users.push({id:'1',name:'Ana Prueba',email:'ana@example.test',phone:null,dni:null,role:'CANDIDATE',kind:null,password_hash:passwordHash,account_state:'ACTIVE',email_verified:true,phone_verified:false});
   return {repo,app:createApp({checkConnection:async()=>undefined},repo)};
 }
 const credentials={email:'ana@example.test',password:'Clave de prueba 123'};
@@ -124,6 +124,18 @@ describe('M01: API, autenticación y permisos',()=>{
   it('no filtra errores SQL ni credenciales',async()=>{
     const {app,repo}=setup();repo.findByEmail=async()=>{throw new Error('mysql password SUPER_SECRET');};
     const res=await client(app).post('/api/v1/auth/login',credentials);expect(res.status).toBe(503);expect(JSON.stringify(res.body)).not.toContain('SUPER_SECRET');
+  });
+  it('valida y guarda DNI y teléfono del perfil sin permitir acceder a otra cuenta',async()=>{
+    const {app,repo}=setup();const login=await client(app).post('/api/v1/auth/login',credentials);const value=cookie(login);
+    const patch=(body:unknown,session=value)=>request(app).patch('/api/v1/me').set('Cookie',session).set('X-Qori-Client','web').send(body);
+    const profile={name:'Ana Prueba',email:credentials.email,phone:'+51 987 654 321',dni:'01234567'};
+    expect((await patch(profile,'qt_session=incorrecta')).status).toBe(401);
+    const saved=await patch(profile);expect(saved.status).toBe(200);expect(saved.body.user.dni).toBe('01234567');expect(repo.users[0].dni).toBe('01234567');
+    expect((await request(app).get('/api/v1/me').set('Cookie',value)).body.user.dni).toBe('01234567');
+    for(const invalid of ['1234567','123456789','1234567a'])expect((await patch({...profile,dni:invalid})).status).toBe(400);
+    for(const invalid of ['-------','123456','1234567890123456','+51 999 abc 777'])expect((await patch({...profile,phone:invalid})).status).toBe(400);
+    expect((await patch({name:profile.name,email:profile.email,phone:profile.phone})).body.user.dni).toBe('01234567');
+    expect((await patch({...profile,dni:''})).body.user.dni).toBeNull();
   });
   it('limita intentos repetidos de acceso',async()=>{
     const {app}=setup();for(let i=0;i<20;i++)await client(app).post('/api/v1/auth/login',{});

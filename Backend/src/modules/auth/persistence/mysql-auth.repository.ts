@@ -2,10 +2,10 @@
 import type { AuthRepository, NewUser, Profile, User } from '../repositories/auth.repository.js';
 import { AppError } from '../../../shared/errors.js';
 const select = `SELECT CAST(u.id AS CHAR) AS id, u.full_name AS name, u.email_normalized AS email,
- u.phone, u.role, u.account_state, u.password_hash, u.email_verified_at,
+ u.phone, u.dni, u.role, u.account_state, u.password_hash, u.email_verified_at,
  r.recruiter_kind AS kind, r.phone_verified_at FROM users u LEFT JOIN recruiter_profiles r ON r.user_id=u.id`;
 function map(row: RowDataPacket): User {
-  return {id: row.id, name: row.name, email: row.email, phone: row.phone, role: row.role,
+  return {id: row.id, name: row.name, email: row.email, phone: row.phone, dni: row.dni ?? null, role: row.role,
     account_state: row.account_state, password_hash: row.password_hash, kind: row.kind ?? null,
     email_verified: !!row.email_verified_at, phone_verified: !!row.phone_verified_at};
 }
@@ -60,8 +60,8 @@ export class MySqlAuthRepository implements AuthRepository {
       const previous = await this.userById(connection,id);
       const emailChanged = previous.email !== profile.email;
       const phoneChanged = previous.kind === 'INDIVIDUAL' && previous.phone !== profile.phone;
-      await connection.execute(`UPDATE users SET full_name=?,email_normalized=?,phone=?, account_state='ACTIVE' WHERE id=?`,
-        [profile.name,profile.email,profile.phone,id]);
+      await connection.execute(`UPDATE users SET full_name=?,email_normalized=?,phone=?,dni=?, account_state='ACTIVE' WHERE id=?`,
+        [profile.name,profile.email,profile.phone,profile.dni,id]);
       if (phoneChanged) await connection.execute('UPDATE recruiter_profiles SET phone_verified_at=NULL WHERE user_id=?',[id]);
       if (emailChanged || phoneChanged) await connection.execute('DELETE FROM auth_sessions WHERE user_id=?',[id]);
       const user = await this.userById(connection,id);

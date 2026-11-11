@@ -1,0 +1,33 @@
+---
+import BotonMultimodal from '../../compartido/components/BotonMultimodal.astro';
+---
+<section class="q-card max-w-4xl p-5 sm:p-7" aria-labelledby="datos-personales-titulo">
+  <div class="flex flex-wrap items-start justify-between gap-4">
+    <div><h2 id="datos-personales-titulo" class="text-xl font-semibold">Datos personales</h2><p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Consulta o actualiza la información de tu cuenta.</p></div>
+    <button data-edit type="button" class="q-secondary">Editar datos</button>
+  </div>
+  <div data-profile-view class="mt-6">
+    <dl class="divide-y divide-slate-200 dark:divide-slate-700">
+      {[['name','Nombre completo'],['email','Correo electrónico'],['phone','Teléfono de contacto'],['dni','DNI'],['role','Rol']].map(([field,label]) =>
+        <div class="grid gap-1 py-3 sm:grid-cols-[minmax(10rem,0.8fr)_2fr] sm:gap-4">
+          <dt class="text-sm text-slate-600 dark:text-slate-300">{label}</dt>
+          <dd data-profile-display={field} class="min-w-0 break-words font-medium">—</dd>
+        </div>
+      )}
+    </dl>
+  </div>
+  <form data-profile method="post" class="mt-6 space-y-5" novalidate hidden>
+    <div><label for="name" class="mb-2 block font-medium">Nombre completo</label><input id="name" name="name" type="text" required minlength="2" maxlength="160" autocomplete="name" aria-describedby="name-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="name-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
+    <div><label for="email" class="mb-2 block font-medium">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="email-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="email-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
+    <div><label for="phone" class="mb-2 block font-medium">Teléfono de contacto <span data-phone-optional class="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></label><input id="phone" name="phone" type="tel" maxlength="32" autocomplete="tel" aria-describedby="phone-help phone-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="phone-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300">Entre 7 y 15 dígitos; puedes incluir el código de país.</p><p id="phone-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
+    <div><label for="dni" class="mb-2 block font-medium">DNI <span class="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></label><input id="dni" name="dni" type="text" inputmode="numeric" maxlength="8" autocomplete="off" aria-describedby="dni-help dni-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="dni-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300">Ingresa los 8 dígitos de tu DNI peruano.</p><p id="dni-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
+    <p data-verification-warning class="q-notice" hidden>Si cambias el correo o el teléfono obligatorio de reclutador particular, se cerrarán tus sesiones y tendrás que volver a iniciar sesión.</p>
+    <div class="space-y-3">
+      <div class="flex flex-wrap gap-3"><BotonMultimodal id="guardar-perfil" texto="Guardar cambios" tipo="submit" sonido={true} vibracion={true} /><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
+      <details class="rounded-lg border border-slate-200 px-3 dark:border-slate-700">
+        <summary class="flex min-h-11 cursor-pointer items-center font-medium text-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-300">Opciones de confirmación</summary>
+        <fieldset class="space-y-1 pb-3"><legend class="sr-only">Confirmación al guardar</legend><label class="flex min-h-11 items-center gap-3"><input data-profile-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonido</label><label class="flex min-h-11 items-center gap-3"><input data-profile-vibration type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Vibración, si está disponible</label></fieldset>
+      </details>
+    </div>
+  </form>
+</section>

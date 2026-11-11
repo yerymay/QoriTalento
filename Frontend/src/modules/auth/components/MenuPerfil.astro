@@ -1,0 +1,19 @@
+<div class="min-w-0">
+  <button data-profile-trigger type="button" disabled aria-haspopup="menu" aria-expanded="false" aria-controls="profile-menu" class="flex min-h-11 max-w-full items-center gap-2 rounded-lg text-left hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 disabled:cursor-wait dark:hover:bg-slate-800">
+    <span data-user-avatar aria-hidden="true" class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-bold text-sky-800 dark:bg-sky-900 dark:text-sky-100">··</span>
+    <span class="min-w-0"><span data-user-name class="block max-w-20 truncate text-sm font-semibold sm:max-w-44">Cargando cuenta…</span><span data-user-role class="block truncate text-sm text-slate-600 dark:text-slate-300"></span></span>
+    <svg aria-hidden="true" class="hidden h-4 w-4 shrink-0 text-slate-600 dark:text-slate-300 sm:block" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 9-7 7-7-7"/></svg>
+  </button>
+  <div id="profile-menu" data-profile-menu class="z-50 hidden w-72 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white p-2 text-slate-900 shadow-lg dark:border-slate-700 dark:bg-slate-900 dark:text-white">
+    <div class="rounded-lg bg-slate-50 px-3 py-3 dark:bg-slate-800">
+      <p data-profile-name class="break-words text-sm font-semibold"></p>
+      <p data-profile-email class="mt-1 break-all text-sm text-slate-600 dark:text-slate-300"></p>
+      <p data-profile-role class="mt-2 inline-flex rounded-md bg-sky-100 px-2 py-1 text-xs font-semibold text-sky-800 dark:bg-sky-900 dark:text-sky-100"></p>
+    </div>
+    <ul role="menu" aria-label="Opciones de cuenta" class="mt-2 space-y-1">
+      <li role="none"><a role="menuitem" tabindex="-1" href="/perfil" class="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:hover:bg-slate-800"><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M7 17v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1a3 3 0 0 0-3-3h-4a3 3 0 0 0-3 3Zm8-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>Mi perfil</a></li>
+      <li role="none"><button data-profile-theme role="menuitem" tabindex="-1" type="button" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:hover:bg-slate-800"><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 21a9 9 0 0 1-.5-17.986V3c-.354.966-.5 1.911-.5 3a9 9 0 0 0 9 9c.239 0 .254.018.488 0A9.004 9.004 0 0 1 12 21Z"/></svg><span data-profile-theme-label>Cambiar tema</span></button></li>
+      <li role="none" class="border-t border-slate-200 pt-1 dark:border-slate-700"><button data-profile-logout role="menuitem" tabindex="-1" type="button" class="flex min-h-11 w-full items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-red-700 hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-red-300 dark:hover:bg-slate-800"><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H8m12 0-4 4m4-4-4-4M9 4H7a3 3 0 0 0-3 3v10a3 3 0 0 0 3 3h2"/></svg>Cerrar sesión</button></li>
+    </ul>
+  </div>
+</div>

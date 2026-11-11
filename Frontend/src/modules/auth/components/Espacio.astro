@@ -1,25 +1,40 @@
 ---
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
-import Campo from './Campo.astro';
-import BotonMultimodal from '../../compartido/components/BotonMultimodal.astro';
+import MenuPerfil from './MenuPerfil.astro';
+import Perfil from './Perfil.astro';
 interface Props { view?:'profile'|'home'|'applications'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
-<div data-workspace data-view={view} data-role={role} class="min-h-screen lg:grid lg:grid-cols-[270px_1fr]">
-  <aside class="flex flex-col gap-6 border-b border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 lg:min-h-screen lg:border-r">
-    <div class="flex flex-wrap items-center justify-between gap-3"><Marca /><button data-menu class="q-secondary lg:hidden" type="button" aria-expanded="false" aria-controls="account-nav">Menú</button></div>
-    <div class="hidden rounded-xl border border-slate-200 p-3 dark:border-slate-700 lg:block"><p class="text-slate-600 dark:text-slate-300">Mi espacio</p><p data-space class="font-semibold">Tu cuenta</p></div>
-    <nav id="account-nav" aria-label="Navegación principal" class="hidden space-y-3 lg:block">
-      <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a4 4 0 0 1 8 0v2M3 12h18"/></svg><span data-home-label>Ofertas</span></a>
-      <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden>Mis postulaciones</a>
-      <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><img src="/images/auth/2922a.svg" alt="" class="q-control-icon" />Mi perfil</a>
+<div data-workspace data-view={view} data-role={role} class="min-h-screen lg:pl-64">
+  <aside id="account-sidebar" aria-label="Navegación principal" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white p-5 transition-transform duration-200 motion-reduce:transition-none dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0">
+    <div class="flex items-center justify-between gap-2">
+      <Marca />
+      <button data-menu-close type="button" aria-label="Cerrar menú" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 18 18 6M18 18 6 6"/></svg></button>
+    </div>
+    <div class="mt-8 rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700"><p class="text-sm text-slate-600 dark:text-slate-300">Mi espacio</p><p data-space class="mt-1 font-semibold">Tu cuenta</p></div>
+    <nav id="account-nav" aria-label="Navegación de la cuenta" class="mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto">
+      <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a3 3 0 0 1 6 0v2M4 8h16v11H4V8Zm0 5h16"/></svg><span data-home-label>Ofertas</span></a>
+      <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg><span>Mis postulaciones</span></a>
+      <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg><span>Mi perfil</span></a>
     </nav>
-    <button data-logout type="button" class="q-secondary flex items-center gap-3 lg:mt-auto"><img src="/images/auth/9ba58.svg" alt="" class="q-control-icon" />Cerrar sesión</button>
-    <p class="hidden border-t border-slate-200 pt-5 text-slate-600 dark:border-slate-700 dark:text-slate-300 lg:block">Hecho para conectar<br />personas y posibilidades.</p>
+    <div class="mt-5 border-t border-slate-200 pt-4 dark:border-slate-700">
+      <button data-logout type="button" class="q-nav w-full text-left"><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/></svg>Cerrar sesión</button>
+      <p class="mt-4 text-sm leading-5 text-slate-600 dark:text-slate-300">Hecho para conectar<br /><span class="font-semibold text-slate-900 dark:text-white">personas y posibilidades.</span></p>
+    </div>
   </aside>
   <div class="min-w-0">
-    <header class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-4 border-b border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900 sm:px-9"><p data-identity class="line-clamp-2 min-h-12 min-w-0 break-words">Cargando tu cuenta…</p><div><Tema /></div></header>
+    <header class="sticky top-0 z-20 flex min-h-18 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:px-8">
+      <div class="flex min-w-0 items-center gap-2">
+        <button data-menu type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="account-sidebar" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/></svg></button>
+        <div class="hidden sm:block lg:hidden"><Marca /></div><span class="hidden text-sm font-bold text-sky-800 dark:text-sky-200 min-[360px]:inline sm:hidden">Qori Talento</span>
+        <p class="hidden text-sm text-slate-600 dark:text-slate-300 lg:block">Mi espacio <span aria-hidden="true" class="mx-2">/</span><span class="font-medium text-slate-900 dark:text-white">{title ?? (view==='profile'?'Mi perfil':'Ofertas')}</span></p>
+      </div>
+      <div class="flex min-w-0 shrink items-center gap-3">
+        <Tema />
+        <MenuPerfil />
+      </div>
+    </header>
     <main class="space-y-6 p-4 sm:p-9">
       <header><h1 class="text-3xl font-bold">{title ?? (view==='profile'?'Mi perfil':role==='RECRUITER'?'Mis ofertas':'Encuentra tu próxima oportunidad')}</h1><p class="mt-2 text-slate-600 dark:text-slate-300">{description ?? (view==='profile'?'Mantén tus datos de contacto actualizados.':'Tu espacio según el rol de tu cuenta.')}</p></header>
       <div data-loading role="status" class="q-card space-y-5 p-6"><p>Cargando tu cuenta…</p><div class="h-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div></div>
@@ -27,25 +42,7 @@ const {view='profile',role,title,description}=Astro.props;
       <button data-retry type="button" class="q-secondary" hidden>Reintentar</button>
       <a data-signin href="/login" class="q-primary inline-flex items-center" hidden>Iniciar sesión</a>
       <section data-private hidden>
-        {view==='profile' ? <form data-profile method="post" class="q-card space-y-5 p-6" novalidate>
-          <div class="flex flex-wrap items-center justify-between gap-4"><h2 class="text-xl font-semibold">Datos personales</h2><button data-edit type="button" class="q-secondary">Editar</button></div>
-          <Campo id="name" label="Nombre completo" required min={2} max={160} autocomplete="name" />
-          <Campo id="email" label="Correo electrónico" type="email" required max={254} autocomplete="email" />
-          <Campo id="phone" label="Teléfono de contacto" type="tel" min={7} max={32} autocomplete="tel" />
-          <p data-partial class="q-notice" hidden>No has añadido un teléfono. Puedes completarlo con «Editar».</p>
-          <p data-verification-warning class="q-notice" hidden>Cambiar el correo o teléfono cierra tus sesiones como medida de seguridad. Podrás iniciar sesión otra vez con tus datos actualizados.</p>
-          <div data-actions class="space-y-3" hidden>
-            <div class="flex flex-wrap gap-3"><BotonMultimodal id="guardar-perfil" texto="Guardar cambios" tipo="submit" sonido={true} vibracion={true} /><button data-cancel type="button" class="q-secondary">Cancelar</button></div>
-            <details class="rounded-lg border border-slate-200 px-3 dark:border-slate-700">
-              <summary class="flex min-h-11 cursor-pointer items-center font-medium text-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 dark:text-sky-300">Opciones de confirmación</summary>
-              <fieldset class="space-y-1 pb-3">
-                <legend class="sr-only">Confirmación al guardar</legend>
-                <label class="flex min-h-11 cursor-pointer items-center gap-3"><input data-profile-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonido</label>
-                <label class="flex min-h-11 cursor-pointer items-center gap-3"><input data-profile-vibration type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Vibración, si está disponible</label>
-              </fieldset>
-            </details>
-          </div>
-        </form> : <slot />}
+        {view==='profile' ? <Perfil /> : <slot />}
         {view==='profile' && <slot name="profile-details" />}
       </section>
       <noscript>Activa JavaScript para consultar tu cuenta. Tus datos personales solo se cargan después de validar la sesión.</noscript>
@@ -56,6 +53,6 @@ const {view='profile',role,title,description}=Astro.props;
   <h2 id="expiry-title" class="text-xl font-bold">Tu sesión está por terminar</h2><p class="my-4">Llevas un tiempo sin actividad. Continúa para mantener tu sesión.</p><div class="flex flex-wrap gap-3"><button data-continue class="q-primary" type="button">Continuar sesión</button><button data-end class="q-secondary" type="button">Cerrar sesión</button></div>
 </dialog>
 <dialog data-confirm aria-labelledby="confirm-title" class="m-auto max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
-  <h2 id="confirm-title" class="text-xl font-bold">Se necesitará verificar tu cuenta</h2><p class="my-4">Este cambio cerrará tus sesiones. No podrás volver a ingresar hasta verificar tus nuevos datos; esa función todavía no está disponible.</p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary">Cancelar</button><button value="save" class="q-primary">Guardar y cerrar sesión</button></form>
+<h2 id="confirm-title" class="text-xl font-bold">Vuelve a iniciar sesión</h2><p class="my-4">Este cambio cerrará tus sesiones. Podrás volver a ingresar con tus datos actualizados.</p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary">Cancelar</button><button value="save" class="q-primary">Guardar y cerrar sesión</button></form>
 </dialog>
 <script>import { initWorkspace } from '../workspace'; initWorkspace();</script>

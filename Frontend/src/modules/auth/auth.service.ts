@@ -1,6 +1,6 @@
 ﻿import { requestJson } from '../compartido/services/api';
 export type Role = 'CANDIDATE' | 'RECRUITER';
-export interface User { id:string; name:string; email:string; phone:string|null; role:Role; kind:'COMPANY'|'INDIVIDUAL'|null; account_state:string }
+export interface User { id:string; name:string; email:string; phone:string|null; dni:string|null; role:Role; kind:'COMPANY'|'INDIVIDUAL'|null; account_state:string }
 export interface Session {user:User; expires_at:string}
 export const homeFor = (role:Role) => role === 'RECRUITER' ? '/reclutador/ofertas' : '/postulante/ofertas';
 export const auth = {

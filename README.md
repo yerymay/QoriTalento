@@ -80,6 +80,17 @@ mysql -u root -p -e "SELECT COUNT(*) AS tablas FROM information_schema.tables WH
 
 Debe devolver **24**. El script no migra ni altera tablas existentes: cualquier cambio de esquema requiere un script aparte.
 
+
+### 1.4 DNI en el perfil
+
+El perfil requiere la columna opcional `users.dni`. Antes de iniciar el backend, selecciona la base configurada en `Backend/.env` y comprueba si ya existe:
+
+```sql
+SHOW COLUMNS FROM users LIKE 'dni';
+```
+
+Si no aparece, aplica una sola vez `database/05_profile_dni.sql` con una cuenta que tenga permiso `ALTER`. La migración agrega una columna `CHAR(8)` nullable y no modifica cuentas existentes. Si ya existe, no vuelvas a ejecutarla; verifica que sea compatible. No se requiere conceder `ALTER` al usuario de la aplicación. El DNI se guarda como texto para conservar ceros iniciales y su formato no verifica la identidad de la persona.
+
 ## 2. Configurar y ejecutar el backend
 
 ```powershell
