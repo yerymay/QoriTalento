@@ -9,3 +9,10 @@ Los tres archivos proceden del paquete «soft» de UI SFX, de Yuki Capital. Son 
 Licencia de los audios: https://github.com/romainsimon/uisfx/blob/main/LICENSE-AUDIO
 
 Duraciones medidas al decodificar los archivos en Chrome. El botón multimodal utiliza estos archivos; está integrado en la edición de perfil.
+
+
+## Sonidos de Material Design
+
+Los archivos `material/material-exito.ogg`, `material/material-error.ogg`, `material/material-cancelacion.ogg` y `material/material-progreso.ogg` provienen respectivamente de `state-change_confirm-up.ogg`, `alert_error-01.ogg`, `navigation-cancel.ogg` y `ui_loading.ogg` de Google Material Design. Fuente utilizada: https://github.com/nana-4/materia-sound-theme/tree/master/material_product_sounds
+
+El repositorio de terceros atribuye los audios a Google e indica CC BY 4.0 (https://github.com/nana-4/materia-sound-theme#attribution), mientras otra fuente indica CC BY-SA 4.0 (https://community.relationflow.io/impressum). La descarga histórica de Google no permitió acceso anónimo; confirmar la licencia original antes de distribuir los audios. Los archivos no se modificaron.
