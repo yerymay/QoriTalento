@@ -1,3 +1,4 @@
+import { senalDeAccion } from '../compartido/preferencias-senal';
 import { initJobStatusFilter, initJobActions, initEditorDropdown } from './dropdowns';
 import { ofertas, type Job, type JobInput } from './ofertas.service';
 import type { Session } from '../auth/auth.service';
@@ -24,7 +25,7 @@ export function initOfertas() {
   let busy = false, dirty = false, baseline = '', query = new URLSearchParams();
   let id = new URLSearchParams(location.search).get('id') ?? '';
   const notice = (message: string, tone: 'error' | 'success' = 'error') => {
-    feedback.textContent = message; feedback.dataset.tone = tone; feedback.hidden = false;
+    feedback.textContent = message; feedback.dataset.tone = tone; feedback.hidden = false; senalDeAccion(tone === 'success' ? 'exito' : 'error');
   };
   const failure = (error: unknown, retry = false) => {
     if (error instanceof ApiError && (error.status === 401 || ['ACCOUNT_INACTIVE', 'FORBIDDEN'].includes(error.code ?? ''))) {
@@ -117,13 +118,14 @@ export function initOfertas() {
       const accepted = await confirm(action === 'close' ? '¿Cerrar esta oferta?' : '¿Eliminar esta oferta?',
         action === 'close' ? `«${item.title}» dejará de recibir postulaciones y no podrá reabrirse.` : `Se eliminará «${item.title}» y sus requisitos. No se pueden eliminar ofertas con registros asociados.`,
         action === 'close' ? 'Continuar' : 'Continuar');
-      if (!accepted || !session) return;
+      if (!accepted || !session) { if (session) senalDeAccion('cancelacion'); return; }
       const confirmed = await confirm(action === 'close' ? 'Confirma el cierre' : 'Confirma la eliminación',
         action === 'close' ? 'El cierre no puede deshacerse. Las postulaciones existentes se conservarán.' : 'La eliminación es permanente y no podrá deshacerse.',
         action === 'close' ? 'Sí, cerrar oferta' : 'Sí, eliminar oferta');
       if (!confirmed || !session) return;
       root?.setAttribute('aria-busy','true');
       trigger.disabled = true;
+      senalDeAccion('progreso');
       const run = epoch;
       if (action === 'close') await ofertas.transition(item.id, 'close');
       else await ofertas.remove(item.id);
@@ -262,7 +264,7 @@ export function initOfertas() {
       notice('Revisa los requisitos: máximo 50 líneas, con hasta 1000 caracteres cada una.'); field('requirements').focus(); return;
     }
     const run = epoch, creating = !job;
-    setBusy(true); feedback.hidden = true; el('[data-save-job]').textContent = 'Guardando…';
+    setBusy(true); senalDeAccion('progreso'); feedback.hidden = true; el('[data-save-job]').textContent = 'Guardando…';
     try {
       const saved = job ? await ofertas.update(job.id, body) : await ofertas.create(body);
       if (run !== epoch || !session) return;
@@ -289,7 +291,7 @@ export function initOfertas() {
       if (action === 'close' && !await confirm('Confirma el cierre', 'El cierre no puede deshacerse. Las postulaciones existentes se conservarán.', 'Sí, cerrar oferta')) return;
       const actionButton=event.currentTarget as HTMLButtonElement;
       const shimmerTimeout=window.setTimeout(()=>{ actionButton.classList.add('q-button-loading'); actionButton.setAttribute('aria-busy','true'); },220);
-      const run = epoch; setBusy(true);
+      const run = epoch; setBusy(true); senalDeAccion('progreso');
       try {
         const value = await ofertas.transition(job.id, action);
         if (run !== epoch || !session) return;

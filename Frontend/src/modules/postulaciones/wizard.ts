@@ -1,3 +1,4 @@
+import { senalDeAccion } from '../compartido/preferencias-senal';
 import { postulaciones, type Application, type CvPreview } from './postulaciones.service';
 import { ofertas } from '../ofertas/ofertas.service';
 import { cv, fields, type CvProfile, type Review } from '../cv/cv.service';
@@ -20,7 +21,7 @@ export function initApplicationWizard(root: HTMLElement) {
   let controller: AbortController | undefined;
   const field = (key: keyof CvProfile) => el<HTMLInputElement | HTMLTextAreaElement>('[data-profile-field="' + key + '"]');
   const say = (message: string) => {
-    notice.textContent = message; notice.dataset.tone = 'error'; notice.hidden = false; notice.focus();
+    notice.textContent = message; notice.dataset.tone = 'error'; notice.hidden = false; notice.focus(); senalDeAccion('error');
   };
   const fail = (error: unknown) => {
     if (error instanceof ApiError && (error.status === 401 || error.code === 'FORBIDDEN')) {
@@ -140,7 +141,7 @@ export function initApplicationWizard(root: HTMLElement) {
     }
     if (step === 3 && !consent.checked) return;
     const run = epoch;
-    busy = true; controls();
+    busy = true; controls(); senalDeAccion('progreso');
     controller = new AbortController();
     el('[data-progress-wrap]').hidden = false;
     el('[data-progress-label]').textContent = step === 1 ? 'Leyendo el PDF. Tu postulación aún no se ha enviado.' : 'Enviando tu postulación…';
@@ -185,7 +186,7 @@ export function initApplicationWizard(root: HTMLElement) {
         el('[data-form-content]').hidden = true;
         el('#application-success-title').textContent = current ? 'Currículum actualizado' : 'Postulación registrada';
         el('[data-success-copy]').textContent = 'Tu CV y los datos confirmados para ' + title + ' se guardaron correctamente. Puedes seguir el proceso en Mis postulaciones.';
-        el('[data-wizard-success]').hidden = false; el('[data-wizard-success]').focus();
+        el('[data-wizard-success]').hidden = false; el('[data-wizard-success]').focus(); senalDeAccion('exito');
       }
     } catch (error) {
       if (run !== epoch || !session) return;

@@ -239,3 +239,7 @@ Verificación:
 - `node tests/application-wizard.browser.mjs http://127.0.0.1:3010`: correcto con API y datos sintéticos. Comprueba enlaces de tarjetas, PDF, error/reintento de extracción, ausencia de envío anticipado, correcciones conservadas al retroceder, consentimiento, resumen, reintento de confirmación sin duplicados, reemplazo de CV, nombre obligatorio y limpieza de sesión. Sin errores JavaScript ni desbordamiento horizontal.
 - Capturas inspeccionadas a 1440 y 390 px, incluido tema oscuro: `.impeccable/review/candidate-cards-*.png` y `candidate-wizard-*.png`. Detector de diseño sin hallazgos en los componentes modificados.
 - Límites de la evidencia: no se ejecutó el recorrido completo contra MySQL ni se midió la precisión del extractor con CV reales; las pruebas de interfaz utilizan API simulada.
+
+## Se?ales multimodales en m?dulos implementados (2026-11-13)
+
+Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en registro, perfil, ofertas, postulaciones y revisi?n de CV. El espacio de trabajo permite controlar sonido y vibraci?n; las preferencias se guardan localmente y la vibraci?n empieza desactivada. Los mensajes visuales existentes se conservan. Verificaci?n t?cnica: `npm run check` y `npm run build` del frontend. Pendientes: pruebas con backend real, dispositivos f?sicos y lectores de pantalla.

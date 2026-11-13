@@ -1,3 +1,4 @@
+import { senalDeAccion } from '../compartido/preferencias-senal';
 import { cv, fields, type CvProfile, type Review, type Note } from './cv.service';
 import { ApiError } from '../compartido/services/api';
 import type { Session } from '../auth/auth.service';
@@ -8,7 +9,7 @@ export function initCv() {
   const recruiter=root.dataset.recruiter==='true', id=new URLSearchParams(location.search).get('application')??'';
   const form=el<HTMLFormElement>('[data-cv-form]');
   let session:Session|undefined, current:Review|undefined, epoch=0, dirty=false, busy=false, loading=false;
-  const say=(message:string,error=false)=>{const box=el('[data-cv-message]');box.textContent=message;box.dataset.tone=error?'error':'success';box.hidden=false;box.focus();};
+  const say=(message:string,error=false)=>{const box=el('[data-cv-message]');box.textContent=message;box.dataset.tone=error?'error':'success';box.hidden=false;box.focus();senalDeAccion(error?'error':'exito');};
   const failure=(error:unknown)=>{if(error instanceof ApiError && [401,403].includes(error.status)){document.dispatchEvent(new CustomEvent('qori:auth-error',{detail:error}));return;}say(error instanceof Error?error.message:'No se pudo completar la operación.',true);};
   const input=(key:string)=>form.elements.namedItem(key) as HTMLInputElement|HTMLTextAreaElement;
   const profile=():CvProfile=>Object.fromEntries(fields.map(f=>[f.key,f.array?input(f.key).value.split(f.key==='education'||f.key==='experience'?/\n\s*\n/:/\n/).map(s=>s.trim()).filter(Boolean):input(f.key).value.trim()])) as unknown as CvProfile;
@@ -45,7 +46,7 @@ export function initCv() {
     catch(error){if(run===epoch){failure(error);el('[data-cv-retry]').hidden=false;}}
     finally{if(run===epoch)el('[data-cv-loading]').hidden=true;loading=false;}
   };
-  const withBusy=async(button:HTMLButtonElement,fn:()=>Promise<void>)=>{if(busy)return;busy=true;button.disabled=true;const timer=window.setTimeout(()=>{button.classList.add('q-button-loading');button.setAttribute('aria-busy','true');},220);try{await fn();}finally{clearTimeout(timer);button.disabled=false;button.classList.remove('q-button-loading');button.removeAttribute('aria-busy');busy=false;}};
+  const withBusy=async(button:HTMLButtonElement,fn:()=>Promise<void>)=>{if(busy)return;busy=true;senalDeAccion('progreso');button.disabled=true;const timer=window.setTimeout(()=>{button.classList.add('q-button-loading');button.setAttribute('aria-busy','true');},220);try{await fn();}finally{clearTimeout(timer);button.disabled=false;button.classList.remove('q-button-loading');button.removeAttribute('aria-busy');busy=false;}};
   form.addEventListener('input',event=>{dirty=true;const key=(event.target as HTMLInputElement).name;if(fields.some(f=>f.key===key))el(`[data-cv-origin="${key}"]`).textContent='Editado por ti. Se guardará al confirmar.';});
   root.querySelector('[data-cv-edit]')?.addEventListener('click',()=>{if(!current?.can_confirm)return;fields.forEach(f=>input(f.key).readOnly=false);input('name').focus();el('[data-cv-edit]').hidden=true;});
   form.addEventListener('submit',event=>{event.preventDefault();if(recruiter||!current?.can_confirm||!session||!form.reportValidity())return;const value=current,run=epoch;void withBusy(el<HTMLButtonElement>('[data-cv-save]'),async()=>{try{const result=await cv.confirm(id,value,profile());if(run!==epoch||!session)return;fill(result);say('Perfil actualizado. Tus datos quedaron confirmados.');}catch(error){if(run===epoch){failure(error);if(error instanceof ApiError&&error.status===409)el('[data-cv-retry]').hidden=false;}}});});

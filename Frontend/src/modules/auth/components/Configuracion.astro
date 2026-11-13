@@ -1,0 +1,30 @@
+---
+---
+<section class="q-card max-w-4xl p-5 sm:p-7" aria-labelledby="preferencias-senales">
+  <h2 id="preferencias-senales" class="text-xl font-semibold">Sonido y vibración</h2>
+  <p class="mt-2 max-w-2xl text-slate-600 dark:text-slate-300">Elige cómo recibir las señales al realizar acciones. Los mensajes en pantalla seguirán disponibles.</p>
+  <div class="mt-5 divide-y divide-slate-200 dark:divide-slate-700">
+    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium">Sonido</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">Reproducir sonidos de progreso y resultado.</span></span><input data-config-sound type="checkbox" class="h-5 w-5 shrink-0 accent-sky-700" /></label>
+    <div class="py-4">
+      <div class="flex items-center justify-between gap-4"><label for="volumen-senal" class="font-medium">Volumen del sonido</label><output data-volume-value for="volumen-senal" class="text-sm tabular-nums text-slate-600 dark:text-slate-300">35%</output></div>
+      <input id="volumen-senal" data-config-volume type="range" min="0" max="100" step="1" value="35" aria-describedby="volumen-ayuda" class="mt-2 h-11 w-full cursor-pointer accent-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600" />
+      <p id="volumen-ayuda" class="text-sm text-slate-600 dark:text-slate-300">Ajusta el volumen de las señales de audio.</p>
+    </div>
+    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium">Vibración</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">Vibrar cuando el dispositivo y el navegador lo permitan.</span></span><input data-config-vibration type="checkbox" class="h-5 w-5 shrink-0 accent-sky-700" /></label>
+  </div>
+  <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">Los cambios se guardan en este navegador.</p>
+</section>
+<script>
+  import { configurarSonido, sonidoHabilitado, configurarVibracion, vibracionHabilitada, configurarVolumen, volumenSenal } from '../../compartido/preferencias-senal';
+  const sonido = document.querySelector<HTMLInputElement>('[data-config-sound]')!;
+  const vibracion = document.querySelector<HTMLInputElement>('[data-config-vibration]')!;
+  const volumen = document.querySelector<HTMLInputElement>('[data-config-volume]')!;
+  const valorVolumen = document.querySelector<HTMLOutputElement>('[data-volume-value]')!;
+  volumen.value = String(Math.round(volumenSenal() * 100));
+  valorVolumen.value = volumen.value + '%';
+  volumen.addEventListener('input', () => { valorVolumen.value = volumen.value + '%'; configurarVolumen(Number(volumen.value) / 100); });
+  sonido.checked = sonidoHabilitado();
+  vibracion.checked = vibracionHabilitada();
+  sonido.addEventListener('change', () => configurarSonido(sonido.checked));
+  vibracion.addEventListener('change', () => configurarVibracion(vibracion.checked));
+</script>

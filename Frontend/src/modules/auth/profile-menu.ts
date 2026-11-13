@@ -3,7 +3,7 @@ import { Dropdown } from 'flowbite';
 export function initProfileMenu(root: HTMLElement) {
   const trigger = root.querySelector<HTMLButtonElement>('[data-profile-trigger]')!;
   const menu = root.querySelector<HTMLElement>('[data-profile-menu]')!;
-  const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"]')];
+  const items = [...menu.querySelectorAll<HTMLElement>('[role="menuitem"], [role="menuitemcheckbox"]')];
   const themeButton = root.querySelector<HTMLButtonElement>('[data-theme]')!;
   const themeLabel = menu.querySelector<HTMLElement>('[data-profile-theme-label]')!;
   const updateThemeLabel = () => {

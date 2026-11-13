@@ -1,7 +1,8 @@
-﻿---
+---
 import CampoLogin from './CampoLogin.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
+import SenalMultimodal from '../../compartido/components/SenalMultimodal.astro';
 interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
 const { initialRole='RECRUITER' } = Astro.props;
 ---
@@ -36,6 +37,8 @@ const { initialRole='RECRUITER' } = Astro.props;
         <CampoLogin id="password" label="Contraseña" type="password" autocomplete="current-password" max={128} />
 
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
+        <SenalMultimodal id="login-estado" ocultoInicial />
+        <label class="flex min-h-11 items-center gap-3 text-sm text-slate-700 dark:text-slate-200"><input data-login-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonidos de inicio de sesión</label>
         <button data-submit type="submit" class="q-primary flex w-full items-center justify-center gap-2">Iniciar sesión<svg aria-hidden="true" class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M20 12H4"/></svg></button>
       </form>
       <p class="flex flex-wrap items-center justify-center gap-2 text-slate-600 dark:text-slate-300">¿Aún no tienes cuenta? <a data-register-link href={`/registro?role=${initialRole}`} class="q-link">Crear una cuenta</a></p>

@@ -1,8 +1,8 @@
-﻿---
-interface Props { id: string; textoInicial?: string; sonido?: boolean; vibracion?: boolean; volumen?: number }
-const { id, textoInicial = '', sonido = false, vibracion = false, volumen = 0.35 } = Astro.props;
 ---
-<p id={id} data-senal-multimodal data-sonido={String(sonido)} data-vibracion={String(vibracion)} data-volumen={volumen} role="status" aria-live="polite" class="rounded-lg bg-slate-100 p-4 text-slate-900 dark:bg-slate-800 dark:text-slate-100">{textoInicial}</p>
+interface Props { id: string; textoInicial?: string; sonido?: boolean; vibracion?: boolean; volumen?: number; ocultoInicial?: boolean }
+const { id, textoInicial = '', sonido = false, vibracion = false, volumen = 0.35, ocultoInicial = false } = Astro.props;
+---
+<p id={id} hidden={ocultoInicial} data-senal-multimodal data-sonido={String(sonido)} data-vibracion={String(vibracion)} data-volumen={volumen} role="status" aria-live="polite" class="rounded-lg bg-slate-100 p-4 text-slate-900 dark:bg-slate-800 dark:text-slate-100">{textoInicial}</p>
 <script>
   import { emitirSenal, esEstadoSenal, type OpcionesSenal } from '../senal-multimodal';
   interface DetalleSenal extends OpcionesSenal { estado: unknown; mensaje: string }
@@ -10,8 +10,8 @@ const { id, textoInicial = '', sonido = false, vibracion = false, volumen = 0.35
     elemento.addEventListener('qori:senal', (evento: Event) => {
       const detalle = (evento as CustomEvent<DetalleSenal>).detail;
       if (!detalle || !esEstadoSenal(detalle.estado) || typeof detalle.mensaje !== 'string') return;
-      elemento.textContent = detalle.mensaje;
-      emitirSenal(detalle.estado, { sonido: detalle.sonido ?? elemento.dataset.sonido === 'true', vibracion: detalle.vibracion ?? elemento.dataset.vibracion === 'true', volumen: detalle.volumen ?? Number(elemento.dataset.volumen), alFallarAudio: detalle.alFallarAudio });
+      elemento.textContent = detalle.mensaje; elemento.hidden = false;
+      emitirSenal(detalle.estado, { sonido: detalle.sonido ?? elemento.dataset.sonido === 'true', vibracion: detalle.vibracion ?? elemento.dataset.vibracion === 'true', volumen: detalle.volumen ?? Number(elemento.dataset.volumen), alFallarAudio: detalle.alFallarAudio, alFinalizar: detalle.alFinalizar });
     });
   });
 </script>

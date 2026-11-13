@@ -1,6 +1,8 @@
+import { senalDeAccion, volumenSenal } from '../compartido/preferencias-senal';
 import { initRegistrationDropdowns } from './dropdown';
 import { showToast, queueToast } from '../compartido/services/toast';
 import { auth, homeFor, type Role } from './auth.service';
+import { detenerSenal, type EstadoSenal } from '../compartido/senal-multimodal';
 export function initAuthForm() {
   const form=document.querySelector<HTMLFormElement>('[data-auth-form]');if(!form)return;
   const registration=form.dataset.authForm==='register';
@@ -13,6 +15,17 @@ export function initAuthForm() {
   const kind=form.elements.namedItem('kind') as HTMLInputElement|null;
   const phone=form.elements.namedItem('phone') as HTMLInputElement|null;
   let busy=false, complete=false;
+  const estadoLogin=form.querySelector<HTMLElement>('#login-estado');
+  const sonidoLogin=form.querySelector<HTMLInputElement>('[data-login-sound]');
+  const claveSonido='qori-login-sonido';
+  if(sonidoLogin){
+    try { const preferencia=localStorage.getItem(claveSonido); if(preferencia!==null)sonidoLogin.checked=preferencia==='true'; } catch { /* La preferencia funciona durante esta sesión. */ }
+    sonidoLogin.addEventListener('change',()=>{ if(!sonidoLogin.checked)detenerSenal(); try { localStorage.setItem(claveSonido,String(sonidoLogin.checked)); } catch { /* El almacenamiento es opcional. */ } });
+  }
+  const senalLogin=(estado:EstadoSenal,mensaje:string,alFinalizar?:()=>void)=>{
+    if(!estadoLogin){alFinalizar?.();return;}
+    estadoLogin.dispatchEvent(new CustomEvent('qori:senal',{detail:{estado,mensaje,sonido:sonidoLogin?.checked===true,volumen:volumenSenal(),alFinalizar}}));
+  };
   const show=(text:string,tone:'error'|'success')=>{showToast(text,tone);};
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
@@ -98,20 +111,21 @@ export function initAuthForm() {
     validate();
     if(registration && !form.reportValidity())return;
     if(!registration && !form.checkValidity()){
-      showToast('Revisa los campos marcados antes de continuar.','warning');
+      senalLogin('error','Revisa los campos marcados antes de continuar.');
       form.querySelectorAll<HTMLInputElement>('input').forEach(showFieldError);
       form.querySelector<HTMLElement>(':invalid')?.focus();
       return;
     }
     busy=true;submit.disabled=true;submit.textContent=registration?'Registrando…':'Iniciando sesión…';form.setAttribute('aria-busy','true');message.hidden=true;
+    if(!registration)senalLogin('progreso','Iniciando sesión.');
     const data=Object.fromEntries(new FormData(form));
     try {
-      if(registration){const selected=String(data.role) as Role;delete data.role;delete data.confirm_password;if(selected==='CANDIDATE')delete data.kind;
-        const result=await auth.register(selected,data);complete=true;password.value='';if(confirmation)confirmation.value='';show(result.message,'success');
+      if(registration){senalDeAccion('progreso');const selected=String(data.role) as Role;delete data.role;delete data.confirm_password;if(selected==='CANDIDATE')delete data.kind;
+        const result=await auth.register(selected,data);complete=true;password.value='';if(confirmation)confirmation.value='';show(result.message,'success');senalDeAccion('exito');
         form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select').forEach(input=>input.disabled=true);
-      }else{const session=await auth.login(data);password.value='';queueToast('Sesión iniciada correctamente.','success');location.assign(homeFor(session.user.role));}
-    }catch(error){show(error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.','error');}
-    finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?'Cuenta registrada':registration?'Crear cuenta':'Iniciar sesión';submit.disabled=complete;validate();}
+      }else{const session=await auth.login(data);complete=true;password.value='';queueToast('Sesión iniciada correctamente.','success');await new Promise<void>(resolve=>senalLogin('exito','Sesión iniciada correctamente.',resolve));location.assign(homeFor(session.user.role));}
+    }catch(error){const textoError=error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.';if(registration){show(textoError,'error');senalDeAccion('error');}else senalLogin('error',textoError);}
+    finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?(registration?'Cuenta registrada':'Sesión iniciada'):registration?'Crear cuenta':'Iniciar sesión';submit.disabled=complete;validate();}
   });
   validate();
 }

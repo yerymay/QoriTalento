@@ -3,7 +3,7 @@ import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 import MenuPerfil from './MenuPerfil.astro';
 import Perfil from './Perfil.astro';
-interface Props { view?:'profile'|'home'|'applications'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
+interface Props { view?:'profile'|'home'|'applications'|'settings'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
 <div data-workspace data-view={view} data-role={role} class="min-h-screen lg:pl-64">

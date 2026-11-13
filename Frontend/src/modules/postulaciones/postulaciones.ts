@@ -1,3 +1,4 @@
+import { senalDeAccion } from '../compartido/preferencias-senal';
 import { initApplicationWizard } from './wizard';
 import { postulaciones, type Application } from './postulaciones.service';
 import { ofertas } from '../ofertas/ofertas.service';
@@ -12,7 +13,7 @@ export function initPostulaciones() {
   const notice = el('[data-app-notice]'), loading = el('[data-app-loading]'), recovery = el('[data-app-recovery]');
   const params = new URLSearchParams(location.search), jobId = params.get('id') ?? '', applicationId = params.get('application') ?? '';
   let session: Session | undefined, file: File | undefined, active: AbortController | undefined, current: Application | undefined, title = '', epoch = 0;
-  const say = (message:string, error = false) => { notice.textContent = message; notice.dataset.tone = error ? 'error' : 'success'; notice.hidden = false; notice.focus(); };
+  const say = (message:string, error = false) => { notice.textContent = message; notice.dataset.tone = error ? 'error' : 'success'; notice.hidden = false; notice.focus(); senalDeAccion(error ? 'error' : 'exito'); };
   const failure = (error:unknown) => {
     if (error instanceof ApiError && (error.status === 401 || error.code === 'FORBIDDEN')) { document.dispatchEvent(new CustomEvent('qori:auth-error', {detail:error})); return; }
     say(error instanceof Error ? error.message : 'No se pudo completar la operación.', true);
@@ -60,8 +61,8 @@ export function initPostulaciones() {
     if (!file || active || !session) return;
     const selected = file; el('[data-confirm-copy]').textContent = `${current ? 'Actualizarás tu CV para' : 'Enviarás tu postulación a'} ${title} con el archivo ${selected.name}.`;
     dialog.returnValue = 'cancel'; dialog.showModal(); await new Promise<void>(resolve => dialog.addEventListener('close', () => resolve(), {once:true}));
-    if (dialog.returnValue !== 'confirm' || !session || active) return;
-    active = new AbortController(); const run = epoch, controller = active;
+    if (dialog.returnValue !== 'confirm' || !session || active) { if (session && !active) senalDeAccion('cancelacion'); return; }
+    active = new AbortController(); senalDeAccion('progreso'); const run = epoch, controller = active;
     el<HTMLButtonElement>('[data-submit]').disabled = true; el('[data-cancel-upload]').hidden = false; el('[data-progress-wrap]').hidden = false;
     try {
       const progress = (value:number|null) => { const bar = el<HTMLProgressElement>('[data-progress]'); if (value === null) bar.removeAttribute('value'); else bar.value = value; el('[data-progress-label]').textContent = value === 100 ? 'Leyendo currículum…' : 'Enviando archivo…'; };

@@ -41,6 +41,7 @@ const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulan
         </div>
         <CampoLogin surface="card" id="confirm_password" label="Confirmar contraseña" type="password" autocomplete="new-password" max={128} />
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
+        <label class="flex min-h-11 items-center gap-3 text-sm text-slate-700 dark:text-slate-200"><input data-login-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonidos de confirmaci?n</label>
         <button data-submit type="submit" class="q-primary w-full" disabled>Crear cuenta</button>
         <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a data-signin-link href={`/login?role=${initialRole}`} class="q-link">Inicia sesión</a></p>
         <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">Al registrarte podrás iniciar sesión de inmediato.</p>
