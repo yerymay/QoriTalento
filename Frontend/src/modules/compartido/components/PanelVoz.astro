@@ -1,0 +1,45 @@
+---
+/**
+ * Panel reutilizable de entrada por voz: botón de micrófono, estado visible,
+ * opciones de sonido/vibración, "Deshacer" y tarjeta de aclaración.
+ * La lógica vive en ../entrada-voz.ts; cada pantalla la conecta con su script.
+ */
+interface Props {
+  nombre: string;
+  titulo?: string;
+  textoBoton?: string;
+  ejemplos?: string[];
+  [atributo: string]: unknown;
+}
+const { nombre, titulo = 'Usar la voz', textoBoton = 'Hablar', ejemplos = [], ...atributos } = Astro.props;
+const id = `voz-${nombre}`;
+---
+<section {...atributos} data-voz-panel={nombre} aria-labelledby={`${id}-titulo`} class="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
+  <div class="flex flex-wrap items-center gap-3">
+    <h3 id={`${id}-titulo`} class="font-semibold">{titulo}</h3>
+    <button data-voz-boton data-escuchando="false" type="button" aria-keyshortcuts="Alt+V" class="q-secondary inline-flex items-center gap-2 data-[escuchando=true]:ring-2 data-[escuchando=true]:ring-red-600 motion-safe:data-[escuchando=true]:animate-pulse aria-disabled:cursor-not-allowed aria-disabled:opacity-60">
+      <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
+      <span data-voz-boton-texto>{textoBoton}</span><span class="sr-only"> (atajo Alt + V)</span>
+    </button>
+    <button data-voz-deshacer type="button" class="q-link" hidden>Deshacer el último cambio por voz</button>
+  </div>
+  <p data-voz-estado data-tipo="info" role="status" aria-live="polite" class="font-medium text-slate-700 data-[tipo=aviso]:text-amber-800 data-[tipo=error]:text-red-800 data-[tipo=exito]:text-emerald-800 dark:text-slate-200 dark:data-[tipo=aviso]:text-amber-200 dark:data-[tipo=error]:text-red-200 dark:data-[tipo=exito]:text-emerald-200">Puedes escribir o hablar. Si la voz falla, seguirás con el teclado sin perder nada.</p>
+  <p data-voz-parcial aria-hidden="true" class="italic text-slate-600 empty:hidden dark:text-slate-300"></p>
+  <details class="text-slate-700 dark:text-slate-200">
+    <summary class="q-link cursor-pointer">Ayuda y opciones de voz</summary>
+    <div class="mt-3 space-y-4">
+      {ejemplos.length > 0 && <div><p class="font-medium">Puedes decir:</p><ul class="mt-1 list-disc ps-6">{ejemplos.map(ejemplo => <li>{ejemplo}</li>)}</ul></div>}
+      <fieldset class="space-y-2"><legend class="font-medium">Respuesta al aceptar una orden</legend>
+        <label class="flex min-h-11 items-center gap-3"><input data-voz-sonido type="checkbox" checked class="h-5 w-5" />Sonido corto</label>
+        <label class="flex min-h-11 items-center gap-3"><input data-voz-vibracion type="checkbox" checked class="h-5 w-5" />Vibración (si tu dispositivo la permite)</label>
+      </fieldset>
+      <p class="text-sm">La voz usa el servicio de reconocimiento de tu navegador (funciona mejor en Chrome o Edge). Si falla, puedes seguir con el teclado.</p>
+    </div>
+  </details>
+  <dialog data-voz-dialogo role="alertdialog" aria-labelledby={`${id}-dlg-titulo`} aria-describedby={`${id}-dlg-texto`} class="m-auto w-[calc(100%-2rem)] max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+    <h2 id={`${id}-dlg-titulo`} data-voz-dialogo-titulo class="text-xl font-semibold"></h2>
+    <p id={`${id}-dlg-texto`} data-voz-dialogo-texto class="my-4 leading-relaxed"></p>
+    <div data-voz-dialogo-opciones class="grid gap-3"></div>
+    <button data-voz-dialogo-cancelar type="button" class="q-secondary mt-4 w-full">No cambiar nada</button>
+  </dialog>
+</section>
