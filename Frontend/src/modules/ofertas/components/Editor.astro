@@ -1,8 +1,12 @@
 ---
+import PanelVoz from '../../compartido/components/PanelVoz.astro';
 
 ---
 <div data-job-editor hidden class="space-y-5">
   <a href="/reclutador/ofertas" class="q-link">Volver a mis ofertas</a>
+  <PanelVoz nombre="oferta" titulo="Completar por voz" textoBoton="Hablar"
+  ejemplos={['“Cargo diseñador de producto”', '“Ubicación Lima, Perú”', '“Modalidad remoto”', '“Área tecnología”', '“Requisito experiencia en equipo”', '“Descripción …”', '“Escribir …” (texto en el campo donde estás)']} />
+
   <div data-individual-note class="q-notice" hidden>Como reclutador particular, puedes crear y publicar todas tus ofertas completas.</div>
   <form data-job-form class="q-card p-5 sm:p-7">
     <fieldset data-job-fields class="min-w-0 space-y-6">
@@ -36,3 +40,6 @@
   <p id="job-confirm-text" class="my-5 break-words leading-relaxed"></p>
   <form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary" autofocus>Cancelar</button><button data-job-confirm-action value="confirm" class="q-primary">Confirmar</button></form>
 </dialog>
+
+
+<script>import { initVozOferta } from '../voz-oferta'; initVozOferta();</script>
