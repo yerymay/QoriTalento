@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
-  version: 0.4.0
+  version: 0.5.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05-M08 siguen pendientes.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05 implementa pruebas técnicas con publicación inmutable y reloj del servidor. M06-M08 siguen pendientes.
 servers:
   - url: /api/v1
 components:
@@ -18,6 +18,268 @@ components:
       schema: {type: string, enum: [web]}
       description: Cabecera obligatoria en mutaciones JSON y multipart; no se habilita CORS.
   schemas:
+    ExamInput:
+      type: object
+      additionalProperties: false
+      required:
+        - title
+        - time_limit_minutes
+        - questions
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 180
+        time_limit_minutes:
+          type: integer
+          minimum: 1
+          maximum: 480
+        questions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - text
+              - options
+            properties:
+              text:
+                type: string
+                maxLength: 6000
+              options:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - text
+                    - is_correct
+                  properties:
+                    text: &a3
+                      type: string
+                      maxLength: 2000
+                    is_correct: &a4
+                      type: boolean
+                minItems: 2
+                maxItems: 6
+          maxItems: 50
+      description: "Borrador: admite cero preguntas y contenido incompleto. Publicar
+        exige al menos una pregunta completa y exactamente una clave por pregunta.
+        Tamaño total máximo 90 KB UTF-8."
+    OwnedExam:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - job_id
+        - job_title
+        - title
+        - time_limit_seconds
+        - version_number
+        - status
+        - questions
+      properties:
+        id: &a1
+          type: string
+          pattern: ^[1-9][0-9]{0,19}$
+        job_id: *a1
+        job_title: &a2
+          type: string
+        title: *a2
+        time_limit_seconds: &a5
+          type: integer
+        version_number: &a6
+          type: integer
+        status: &a7
+          type: string
+          enum:
+            - DRAFT
+            - PUBLISHED
+        questions:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - text
+              - options
+            properties:
+              id: *a1
+              text: *a2
+              options:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required:
+                    - id
+                    - text
+                    - is_correct
+                  properties:
+                    id: *a1
+                    text: *a3
+                    is_correct: *a4
+    ExamSummary:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - job_id
+        - job_title
+        - title
+        - time_limit_seconds
+        - version_number
+        - status
+      properties:
+        id: *a1
+        job_id: *a1
+        job_title: *a2
+        title: *a2
+        time_limit_seconds: *a5
+        version_number: *a6
+        status: *a7
+    AvailableExam:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - application_id
+        - job_id
+        - job_title
+        - title
+        - time_limit_seconds
+        - question_count
+        - attempt_id
+        - status
+        - deadline_at_utc
+      properties:
+        id: *a1
+        application_id: *a1
+        job_id: *a1
+        job_title: *a2
+        title: *a2
+        time_limit_seconds:
+          type: integer
+        question_count:
+          type: integer
+        attempt_id:
+          type: string
+          pattern: ^[1-9][0-9]{0,19}$
+          nullable: true
+        status:
+          type: string
+          enum:
+            - AVAILABLE
+            - IN_PROGRESS
+            - SUBMITTED
+            - EXPIRED
+        deadline_at_utc:
+          type: string
+          format: date-time
+          nullable: true
+    ExamAnswer:
+      type: object
+      additionalProperties: false
+      required:
+        - question_id
+        - option_id
+        - client_revision
+        - accepted_at_utc
+      properties:
+        question_id: *a1
+        option_id: *a1
+        client_revision:
+          type: integer
+          minimum: 1
+          maximum: 4294967295
+        accepted_at_utc: &a8
+          type: string
+          format: date-time
+    ExamAttempt:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - exam_id
+        - application_id
+        - started_at_utc
+        - deadline_at_utc
+        - finished_at_utc
+        - status
+        - answers
+      properties:
+        id: *a1
+        exam_id: *a1
+        application_id: *a1
+        started_at_utc: *a8
+        deadline_at_utc: *a8
+        finished_at_utc:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUBMITTED
+            - EXPIRED
+        answers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExamAnswer"
+    CandidateExamView:
+      type: object
+      additionalProperties: false
+      required:
+        - server_now
+        - attempt
+        - exam
+      properties:
+        server_now: *a8
+        attempt:
+          $ref: "#/components/schemas/ExamAttempt"
+        exam:
+          type: object
+          additionalProperties: false
+          required:
+            - id
+            - title
+            - job_title
+            - time_limit_seconds
+            - version_number
+            - questions
+          properties:
+            id: *a1
+            title: *a2
+            job_title: *a2
+            time_limit_seconds:
+              type: integer
+            version_number:
+              type: integer
+            questions:
+              type: array
+              items:
+                type: object
+                additionalProperties: false
+                required:
+                  - id
+                  - text
+                  - options
+                properties:
+                  id: *a1
+                  text: *a2
+                  options:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: false
+                      required:
+                        - id
+                        - text
+                      properties:
+                        id: *a1
+                        text: *a2
     CvProfile:
       type: object
       additionalProperties: false
@@ -1400,3 +1662,439 @@ paths:
             schema:
               type: object
               additionalProperties: false
+
+  /recruiter/exams:
+    get:
+      tags:
+        - Examenes
+      summary: Listar exámenes de ofertas propias
+      description: Aislamiento por propietario individual; los borradores solo son
+        visibles para el reclutador.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: query
+          name: job_id
+          schema: &a1
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ExamSummary"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /recruiter/jobs/{jobId}/exams:
+    post:
+      tags:
+        - Examenes
+      summary: Crear borrador de prueba técnica
+      description: Solo sobre ofertas propias cuyo proceso no ha finalizado.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: jobId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "201":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedExam"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamInput"
+  /recruiter/exams/{examId}:
+    get:
+      tags:
+        - Examenes
+      summary: Consultar prueba propia y claves correctas
+      description: Las claves solo se devuelven al propietario reclutador.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: *a1
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedExam"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+    put:
+      tags:
+        - Examenes
+      summary: Reemplazar contenido del borrador
+      description: Solo DRAFT. Sustitución transaccional de preguntas y alternativas;
+        incrementa la revisión version_number. Publicado es inmutable.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedExam"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExamInput"
+  /recruiter/exams/{examId}/publish:
+    post:
+      tags:
+        - Examenes
+      summary: Publicar prueba técnica
+      description: Idempotente. Requiere preguntas completas, alternativas no vacías y
+        una respuesta correcta por pregunta. Publicada, queda disponible para
+        postulaciones de la oferta.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OwnedExam"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties: {}
+  /candidate/exams:
+    get:
+      tags:
+        - Examenes
+      summary: Listar pruebas de postulaciones propias
+      description: Solo publicadas, sin preguntas ni claves. Se conserva la consulta
+        de intentos existentes tras finalizar el proceso.
+      security:
+        - CookieSession: []
+      parameters: []
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AvailableExam"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /candidate/exams/{examId}/attempts:
+    post:
+      tags:
+        - Examenes
+      summary: Iniciar o recuperar el único intento
+      description: "Verifica propietario de postulación y coincidencia de oferta.
+        Inicio y límite fijados por reloj UTC de la base de datos. Idempotente:
+        devuelve el intento existente, incluso si terminó. No acepta user_id ni
+        fechas del cliente."
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: examId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateExamView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - application_id
+              properties:
+                application_id: *a1
+  /candidate/attempts/{attemptId}:
+    get:
+      tags:
+        - Examenes
+      summary: Recuperar intento propio y tiempo del servidor
+      description: Respuestas confirmadas y revisión por pregunta. Nunca contiene
+        is_correct. La lectura finaliza de forma persistente un intento vencido.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: *a1
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateExamView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /candidate/attempts/{attemptId}/answers/{questionId}:
+    put:
+      tags:
+        - Examenes
+      summary: Guardar respuesta antes del límite
+      description: "Reloj comprobado después del bloqueo transaccional. Solo acepta
+        now < deadline. Revisión mayor sustituye respuesta; misma revisión y
+        opción es idempotente. Revisión antigua o misma revisión con otra opción:
+        ANSWER_CONFLICT (409). Límite alcanzado: ATTEMPT_CLOSED (409), con cierre
+        persistido. La alternativa debe pertenecer a la pregunta del examen."
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: *a1
+        - in: path
+          name: questionId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateExamView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - option_id
+                - client_revision
+              properties:
+                option_id: *a1
+                client_revision:
+                  type: integer
+                  minimum: 1
+                  maximum: 4294967295
+  /candidate/attempts/{attemptId}/submit:
+    post:
+      tags:
+        - Examenes
+      summary: Enviar intento propio
+      description: Idempotente. Antes del límite finaliza SUBMITTED; desde el límite
+        EXPIRED con finished_at_utc igual al límite. El worker del servidor
+        también cierra intentos vencidos cada segundo, sin depender del navegador.
+        No calcula calificaciones M06.
+      security:
+        - CookieSession: []
+      parameters:
+        - in: path
+          name: attemptId
+          required: true
+          schema: *a1
+        - $ref: "#/components/parameters/ClientHeader"
+      responses:
+        "200":
+          description: Operación completada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CandidateExamView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "413":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties: {}

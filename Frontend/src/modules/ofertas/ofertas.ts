@@ -209,6 +209,7 @@ export function initOfertas() {
           trigger.setAttribute('aria-controls', menu.id);
           trigger.setAttribute('aria-label', `Acciones para ${item.title}`);
           link(menuFragment, '[data-job-edit]', href);
+          link(menuFragment, '[data-job-exams]', '/reclutador/examenes?job=' + encodeURIComponent(item.id));
           link(menuFragment, '[data-job-applicants]', `/reclutador/postulantes?job=${encodeURIComponent(item.id)}`);
           menuFragment.querySelector('[data-job-edit]')!.setAttribute('aria-label', `Gestionar ${item.title}`);
           menuFragment.querySelector('[data-job-applicants]')!.setAttribute('aria-label', `Ver currículums de ${item.title}`);

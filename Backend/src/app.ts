@@ -1,3 +1,5 @@
+import { createExamenesRoutes } from './modules/examenes/routes/examenes.routes.js';
+import type { ExamenesRepository } from './modules/examenes/repositories/examenes.repository.js';
 import { createPostulacionesRoutes } from './modules/postulaciones/routes/postulaciones.routes.js';
 import { createCvRoutes } from './modules/cv/routes/cv.routes.js';
 import type { CvRepository } from './modules/cv/repositories/cv.repository.js';
@@ -18,7 +20,7 @@ import { env } from './config/env.js';
 import { createSystemRoutes } from './modules/system/routes/system.routes.js';
 import type { SystemRepository } from './modules/system/repositories/system.repository.js';
 
-export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository, cvRepository?: CvRepository) {
+export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository, cvRepository?: CvRepository, examenesRepository?: ExamenesRepository) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -35,6 +37,8 @@ export function createApp(repository: SystemRepository, authRepository?: AuthRep
   if (authRepository && ofertasRepository) app.use('/api/v1', createOfertasRoutes(ofertasRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
 
 
+
+  if (authRepository && examenesRepository) app.use('/api/v1', createExamenesRoutes(examenesRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
 
   const { controller } = createSystemRoutes(repository);
   app.get('/health', controller.health);

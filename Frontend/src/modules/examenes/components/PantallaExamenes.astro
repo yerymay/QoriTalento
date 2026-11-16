@@ -1,0 +1,25 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+import '../examenes.css';
+interface Props { role: 'RECRUITER' | 'CANDIDATE'; view?: 'list' | 'editor' | 'attempt' }
+const { role, view = 'list' } = Astro.props;
+const title = view === 'editor' ? 'Diseña tu prueba técnica' : view === 'attempt' ? 'Tu evaluación técnica' : 'Pruebas técnicas';
+const description = view === 'editor' ? 'Convierte las habilidades del puesto en preguntas claras y relevantes.' : view === 'attempt' ? 'Un espacio para concentrarte y mostrar lo que sabes.' : role === 'RECRUITER' ? 'Prepara evaluaciones para cada vacante y publícalas cuando estén listas.' : 'Revisa y realiza las evaluaciones de tus postulaciones.';
+---
+<Espacio view="exams" role={role} title={title} description={description}>
+  <div data-exams data-ex-view={view} data-ex-role={role} class="space-y-5">
+    <div data-ex-notice class="q-notice" role="status" tabindex="-1" hidden></div>
+    <div data-ex-loading role="status" class="ex-panel space-y-5 p-6"><p>Cargando evaluaciones…</p><div aria-hidden="true" class="h-9 animate-pulse rounded bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div><div aria-hidden="true" class="h-28 animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800"></div></div>
+    <button data-ex-retry class="q-secondary" type="button" hidden>Volver a cargar</button>
+    <div data-ex-content></div>
+    <dialog data-ex-confirm aria-labelledby="ex-confirm-title" aria-describedby="ex-confirm-copy" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
+      <h2 id="ex-confirm-title" data-ex-confirm-title class="text-xl font-semibold"></h2>
+      <p id="ex-confirm-copy" data-ex-confirm-copy class="my-5 leading-relaxed"></p>
+      <form method="dialog" class="flex flex-wrap justify-end gap-3"><button class="q-secondary" value="cancel" autofocus>Cancelar</button><button data-ex-confirm-action class="q-primary" value="confirm">Confirmar</button></form>
+    </dialog>
+  </div>
+</Espacio>
+<script>
+import { initExams } from '../examenes';
+initExams();
+</script>

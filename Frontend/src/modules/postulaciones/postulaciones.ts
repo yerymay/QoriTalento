@@ -38,7 +38,14 @@ export function initPostulaciones() {
           fragment.querySelector('[data-card-status]')!.textContent = item.status ? labels[item.status] ?? item.status : 'Estado pendiente';
           fragment.querySelector('[data-card-file]')!.textContent = item.filename ? `CV: ${item.filename}` : 'CV no disponible';
           const replace = fragment.querySelector<HTMLAnchorElement>('[data-card-replace]')!;
-          const review = document.createElement('a'); review.className = 'q-link ml-3'; review.href = `/postulante/cv?application=${encodeURIComponent(item.id)}`; review.textContent = 'Revisar datos del CV'; replace.after(review);
+          const review = fragment.querySelector<HTMLAnchorElement>('[data-card-cv]')!;
+          review.href = `/postulante/cv?application=${encodeURIComponent(item.id)}`;
+          const tracking = fragment.querySelector<HTMLDetailsElement>('[data-tracking]')!;
+          const trackingDate = fragment.querySelector<HTMLElement>('[data-tracking-date]')!;
+          const date = item.submitted_at || item.created_at;
+          trackingDate.textContent = date && !Number.isNaN(new Date(date).getTime()) ? 'Registrada el ' + new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium' }).format(new Date(date)) : 'Fecha no disponible';
+          fragment.querySelector<HTMLElement>('[data-tracking-status]')!.textContent = item.status ? labels[item.status] ?? 'Estado no disponible' : 'Estado no disponible';
+          tracking.addEventListener('toggle', () => { tracking.querySelector<HTMLElement>('[data-tracking-toggle]')!.textContent = tracking.open ? 'Ocultar seguimiento' : 'Ver seguimiento'; });
           if (item.status === 'PENDING') { replace.hidden = false; replace.href = `/postulante/postular?application=${encodeURIComponent(item.id)}`; }
           list.append(fragment);
         }

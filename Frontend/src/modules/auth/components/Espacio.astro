@@ -3,7 +3,7 @@ import Marca from './Marca.astro';
 import Tema from './Tema.astro';
 import MenuPerfil from './MenuPerfil.astro';
 import Perfil from './Perfil.astro';
-interface Props { view?:'profile'|'home'|'applications'|'settings'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
+interface Props { view?:'profile'|'home'|'applications'|'settings'|'exams'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
 <div data-workspace data-view={view} data-role={role} class="min-h-screen lg:pl-64">
@@ -16,6 +16,7 @@ const {view='profile',role,title,description}=Astro.props;
     <nav id="account-nav" aria-label="Navegación de la cuenta" class="mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto">
       <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a3 3 0 0 1 6 0v2M4 8h16v11H4V8Zm0 5h16"/></svg><span data-home-label>Ofertas</span></a>
       <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg><span>Mis postulaciones</span></a>
+      <a data-exam-nav href="/login" class:list={['q-nav', {'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='exams'}]} aria-current={view==='exams'?'page':undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 4H5v17h14V4h-3M9 3h6v4H9zM8 12l2 2 5-5M8 18h8"/></svg><span>Pruebas técnicas</span></a>
       <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg><span>Mi perfil</span></a>
     </nav>
     <div class="mt-5 border-t border-slate-200 pt-4 dark:border-slate-700">

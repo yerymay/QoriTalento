@@ -13,9 +13,10 @@ export function initWorkspace(){
   const form=document.querySelector<HTMLFormElement>('[data-profile]');
   const profileValidation=form ? initProfileValidation(form) : undefined;
   const expiry=el<HTMLDialogElement>('[data-expiry]'), confirm=el<HTMLDialogElement>('[data-confirm]');
-  let session:Session|undefined, saving=false, refreshing=false, lastRefresh=0, loadingNow=false;
+  let session:Session|undefined, saving=false, refreshing=false, lastRefresh=0, loadingNow=false, examActive=false;
   const notice=(text:string,tone:'error'|'success'='error')=>{feedback.textContent=text;feedback.dataset.tone=tone;feedback.hidden=false;};
-  const clear=()=>{profileMenu.close();el<HTMLButtonElement>('[data-profile-trigger]').disabled=true;el('[data-profile-name]').textContent='';el('[data-profile-email]').textContent='';el('[data-profile-role]').textContent='';content.hidden=true;el('[data-home]').hidden=true;el('[data-app-nav]').hidden=true;el('[data-user-name]').textContent='Sesión no disponible';el('[data-user-role]').textContent='';el('[data-user-avatar]').textContent='';form?.reset();session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared'));};
+  document.addEventListener('qori:exam-active',event=>{examActive=!!(event as CustomEvent).detail;});
+  const clear=(preserveLocal=false)=>{profileMenu.close();el<HTMLButtonElement>('[data-profile-trigger]').disabled=true;el('[data-profile-name]').textContent='';el('[data-profile-email]').textContent='';el('[data-profile-role]').textContent='';content.hidden=true;el('[data-home]').hidden=true;el('[data-app-nav]').hidden=true;el('[data-exam-nav]').hidden=true;el('[data-user-name]').textContent='Sesión no disponible';el('[data-user-role]').textContent='';el('[data-user-avatar]').textContent='';form?.reset();session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared',{detail:{preserveLocal}}));};
   const failure=(error:unknown)=>{
     notice(error instanceof Error?error.message:'No se pudo completar la operación.');
     if(error instanceof ApiError && [401,403].includes(error.status)){clear();el('[data-signin]').hidden=false;}else el('[data-retry]').hidden=false;
@@ -50,6 +51,7 @@ export function initWorkspace(){
     el('[data-user-avatar]').textContent=user.name.trim().split(/\s+/u).slice(0,2).map(part=>Array.from(part)[0] ?? '').join('').toLocaleUpperCase('es');
     el('[data-space]').textContent=user.role==='RECRUITER'?'Panel de reclutamiento':'Portal de talento';
     const home=el<HTMLAnchorElement>('[data-home]');home.href=homeFor(user.role);home.hidden=false;
+    el<HTMLAnchorElement>('[data-exam-nav]').href=user.role==='RECRUITER'?'/reclutador/examenes':'/postulante/examenes';el('[data-exam-nav]').hidden=false;
     el('[data-home-label]').textContent=user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades';el('[data-app-nav]').hidden=user.role!=='CANDIDATE';
     if(root.dataset.view==='home'){home.setAttribute('aria-current','page');home.classList.add('bg-sky-50','text-sky-800','dark:bg-sky-950','dark:text-sky-200');}content.hidden=false;
     document.dispatchEvent(new CustomEvent('qori:session',{detail:session}));
@@ -67,12 +69,12 @@ export function initWorkspace(){
   el('[data-logout]').addEventListener('click',logout);el('[data-profile-logout]').addEventListener('click',logout);el('[data-end]').addEventListener('click',logout);
   el('[data-continue]').addEventListener('click',refresh);el('[data-retry]').addEventListener('click',load);
 
-  const checkTime=()=>{if(!session)return;const remaining=new Date(session.expires_at).getTime()-Date.now();if(remaining<=0){clear();notice('Tu sesión terminó. Inicia sesión de nuevo.');el('[data-signin]').hidden=false;}else if(remaining<=61000 && !expiry.open)expiry.showModal();};
+  const checkTime=()=>{if(!session)return;const remaining=new Date(session.expires_at).getTime()-Date.now();if(remaining<=0){clear();notice('Tu sesión terminó. Inicia sesión de nuevo.');el('[data-signin]').hidden=false;}else if(examActive && remaining<=90000){void refresh();}else if(remaining<=61000 && !expiry.open)expiry.showModal();};
   const interval=window.setInterval(checkTime,1000);
   const activity=()=>{if(session && !expiry.open && Date.now()-lastRefresh>30000)void refresh();};
   document.addEventListener('pointerdown',activity);document.addEventListener('keydown',activity);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkTime();if(session)void auth.me().then(value=>{session=value;}).catch(failure);}});
-  window.addEventListener('pagehide',()=>{clearInterval(interval);clear();});
+  window.addEventListener('pagehide',()=>{clearInterval(interval);clear(true);});
   window.addEventListener('pageshow',event=>{if(event.persisted)location.reload();});
   if(form){
     const botonPerfil=el<HTMLButtonElement>('#guardar-perfil');

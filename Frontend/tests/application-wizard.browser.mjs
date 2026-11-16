@@ -122,6 +122,16 @@ try {
   await page.locator('[data-next]').click();
   await expect(page.locator('[data-wizard-success]')).toBeVisible();
   await go('/postulante/ofertas'); await shot('candidate-cards-mobile');
+  await go('/postulante/postulaciones');
+  await page.getByText('Ver seguimiento', { exact: true }).click();
+  await expect(page.locator('[data-tracking-status]')).toHaveText('Pendiente de evaluación');
+  await expect(page.locator('[data-tracking-date]')).toContainText('Registrada el');
+  await shot('candidate-tracking-mobile');
+  await expect(page.getByRole('button', { name: 'Ver evaluación' })).toBeDisabled();
+  await page.getByText('Ocultar seguimiento', { exact: true }).click();
+  application.status = 'NOT_ADVANCES';
+  await go('/postulante/postulaciones'); await page.getByText('Ver seguimiento', { exact: true }).click();
+  await expect(page.locator('[data-tracking-status]')).toHaveText('No avanza');
   await go('/postulante/postular?id=1'); await upload();
   await page.evaluate(() => document.dispatchEvent(new CustomEvent('qori:session-cleared')));
   await expect(page.locator('[data-form-content]')).toBeHidden();
