@@ -22,7 +22,7 @@ await page.route('**/api/v1/**', async route => {
   if (path === 'me' || path === 'auth/session/refresh') return send(200, { user: { id: '1', name: 'Ana Torres', email: 'ana@example.test', role: 'CANDIDATE', account_state: 'ACTIVE', kind: null }, expires_at: new Date(Date.now() + 1800000).toISOString() });
   if (path === 'jobs') return send(200, { items: [job, { ...job, id: '2', title: 'Desarrollador frontend', area: 'Tecnología', location: 'Abancay, Perú · Híbrido' }], total: 2, page: 1, page_size: 20 });
   if (path === 'jobs/1') return send(200, job);
-  if (path === 'candidate/cv-preview') { previews++; if (failPreview) return error('No se pudo leer el CV. Intenta nuevamente.'); return send(200, { profile, warnings: [] }); }
+  if (path === 'candidate/cv-preview') { previews++; await new Promise(resolve => setTimeout(resolve, 700)); if (failPreview) return error('No se pudo leer el CV. Intenta nuevamente.'); return send(200, { profile, warnings: [] }); }
   if (path === 'jobs/1/applications' || path === 'applications/7/cv') { sends++; return send(201, application); }
   if (path === 'applications') return send(200, { items: [application] });
   if (path === 'candidate/applications/7/cv-extraction') return send(200, review);
@@ -60,14 +60,29 @@ try {
   await page.locator('[data-apply]').click();
   await expect(page.locator('[data-next]')).toBeDisabled();
   await expect(page.locator('[data-form-content]')).toBeVisible();
+  await expect(page.locator('[data-step-indicator="1"]')).toHaveAttribute('aria-current', 'step');
   await shot('candidate-wizard-upload-desktop');
   await page.locator('[data-file]').setInputFiles({ name: 'cv.docx', mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buffer: Buffer.from('docx') });
   await expect(page.locator('[data-file-error]')).toBeVisible();
+  await page.locator('[data-file]').setInputFiles({ name: 'vacio.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(0) });
+  await expect(page.locator('[data-file-error]')).toBeVisible();
+  await page.locator('[data-file]').setInputFiles({ name: 'grande.pdf', mimeType: 'application/pdf', buffer: Buffer.alloc(5_000_001) });
+  await expect(page.locator('[data-file-error]')).toBeVisible();
+  assert.equal(previews, 0);
   await upload();
-  await page.locator('[data-next]').click();
+  await expect(page.locator('[data-upload-loading]')).toBeVisible();
+  await expect(page.locator('[data-drop]')).toBeHidden();
+  await expect(page.locator('[data-upload-name]')).toHaveText('Mi_CV.pdf');
+  await page.screenshot({ path: out + '/candidate-wizard-loading.png', fullPage: true });
+  await expect(page.locator('[data-next]')).toBeDisabled();
   await expect(page.locator('[data-app-notice]')).toContainText('No se pudo leer');
+  await expect(page.locator('[data-upload-loading]')).toBeHidden();
+  await expect(page.locator('[data-drop]')).toBeVisible();
+  await expect(page.locator('[data-next]')).toHaveText('Reintentar lectura');
   assert.equal(sends, 0);
   failPreview = false; await page.locator('[data-next]').click();
+  await expect(page.locator('[data-step-indicator="1"]')).toHaveAttribute('data-state', 'complete');
+  await expect(page.locator('[data-step-indicator="2"]')).toHaveAttribute('aria-current', 'step');
   await expect(page.locator('[data-wizard-step="2"]')).toBeVisible();
   await expect(page.getByLabel('Nombre completo')).toHaveValue('Ana Torres');
   await shot('candidate-wizard-review-desktop');
@@ -96,7 +111,8 @@ try {
   await expect(page.locator('[data-meta]')).toHaveText('Reemplazo de currículum');
   await page.evaluate(() => document.documentElement.classList.remove('dark'));
   await shot('candidate-wizard-upload-mobile');
-  await upload(); await page.locator('[data-next]').click();
+  await upload();
+  await expect(page.locator('[data-wizard-step="2"]')).toBeVisible();
   await page.getByLabel('Nombre completo').fill('');
   await page.locator('[data-next]').click();
   await expect(page.locator('[data-wizard-step="2"]')).toBeVisible();

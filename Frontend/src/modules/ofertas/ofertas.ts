@@ -1,3 +1,4 @@
+import { initWizardOferta } from './wizard-oferta';
 import { senalDeAccion } from '../compartido/preferencias-senal';
 import { initJobStatusFilter, initJobActions, initEditorDropdown } from './dropdowns';
 import { ofertas, type Job, type JobInput } from './ofertas.service';
@@ -48,6 +49,7 @@ export function initOfertas() {
     education_required: field('education_required').value.trim() || null,
     requirements: field('requirements').value.split(/\r?\n/).map(value => value.trim()).filter(Boolean).map(description => ({ description })),
   });
+  const wizard = view === 'new' && form ? initWizardOferta(form, read) : undefined;
   const updateDirty = () => {
     if (!form) return;
     dirty = JSON.stringify(read()) !== baseline;
@@ -296,9 +298,9 @@ export function initOfertas() {
     event.preventDefault();
     if (busy || !session || !form.reportValidity()) return;
     const body = read();
-    if ([body.responsibilities, body.benefits].some(values => values.length > 50 || values.some(value => value.length > 1000))) { notice('Revisa las funciones y beneficios: máximo 50 elementos de 1000 caracteres por sección.'); return; }
+    if ([body.responsibilities, body.benefits].some(values => values.length > 50 || values.some(value => value.length > 1000))) { wizard?.show(body.responsibilities.length > 50 || body.responsibilities.some(value => value.length > 1000) ? 1 : 2, true); notice('Revisa las funciones y beneficios: máximo 50 elementos de 1000 caracteres por sección.'); return; }
     if (body.requirements.length > 50 || body.requirements.some(item => item.description.length > 1000)) {
-      notice('Revisa los requisitos: máximo 50 líneas, con hasta 1000 caracteres cada una.'); field('requirements').focus(); return;
+      wizard?.show(1); notice('Revisa los requisitos: máximo 50 líneas, con hasta 1000 caracteres cada una.'); field('requirements').focus(); return;
     }
     const run = epoch, creating = !job;
     setBusy(true); senalDeAccion('progreso'); feedback.hidden = true; el('[data-save-job]').textContent = 'Guardando…';

@@ -1,20 +1,12 @@
 ---
 import { fields } from '../../cv/cv.service';
+import Stepper from '../../compartido/components/Stepper.astro';
 ---
 <section data-form-content class="q-card overflow-hidden shadow-sm" hidden aria-labelledby="application-job-title">
   <header class="border-b border-slate-200 p-5 dark:border-slate-700 sm:p-8">
     <p data-meta class="mb-2 text-sm text-slate-600 dark:text-slate-300"></p>
     <h2 id="application-job-title" data-title class="break-words text-xl font-bold sm:text-2xl"></h2>
-    <nav aria-label="Progreso de la postulación" class="mt-7">
-      <ol class="grid grid-cols-3 gap-2 sm:gap-6">
-        {['Cargar currículum', 'Revisar información', 'Confirmar y enviar'].map((label, index) => (
-          <li data-step-indicator={index + 1} class="q-application-step flex min-w-0 flex-col gap-2 border-t-2 border-slate-200 pt-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400 sm:flex-row sm:items-center sm:gap-3">
-            <span data-step-number class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 font-semibold dark:bg-slate-800">{index + 1}</span>
-            <span class="font-medium">{label}</span>
-          </li>
-        ))}
-      </ol>
-    </nav>
+    <div class="mt-7"><Stepper kind="postulacion" label="Progreso de la postulación" labels={['Cargar currículum', 'Revisar información', 'Confirmar y enviar']} /></div>
   </header>
   <form data-wizard-form novalidate>
     <fieldset data-wizard-fields class="min-w-0">
@@ -27,6 +19,12 @@ import { fields } from '../../cv/cv.service';
             <span id="cv-help" class="text-sm text-slate-600 dark:text-slate-300">PDF con texto seleccionable · Hasta 5 MB</span>
             <input id="cv-file" data-file type="file" accept=".pdf,application/pdf" class="sr-only" aria-describedby="cv-help cv-error" />
           </label>
+          <div data-upload-loading role="status" aria-live="polite" class="flex min-h-64 flex-col justify-center rounded-xl border border-sky-200 bg-sky-50 p-6 dark:border-sky-800 dark:bg-sky-950 sm:p-10" hidden>
+            <div class="flex items-start gap-4"><span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-700 dark:bg-sky-900 dark:text-sky-200"><svg aria-hidden="true" class="h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8m-8 4h6"/></svg></span><div class="min-w-0 flex-1"><p data-upload-name class="break-all font-semibold text-slate-900 dark:text-white"></p><p data-upload-size class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p></div></div>
+            <div class="mt-7 flex items-center justify-between gap-3"><p data-upload-status class="font-medium text-slate-900 dark:text-white">Preparando la carga…</p><span data-upload-percent class="text-sm font-semibold tabular-nums text-sky-800 dark:text-sky-200"></span></div>
+            <progress data-upload-progress aria-label="Progreso de carga del currículum" max="100" class="mt-3 h-2 w-full accent-sky-700"></progress>
+            <p class="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Tu postulación aún no se ha enviado. Podrás revisar tus datos antes de confirmarla.</p>
+          </div>
           <p id="cv-error" data-file-error role="alert" class="text-red-700 dark:text-red-300" hidden></p>
           <div data-file-selected class="flex items-center gap-3 rounded-lg bg-sky-50 p-4 text-sky-900 dark:bg-sky-950 dark:text-sky-100" hidden>
             <svg aria-hidden="true" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8M8 16h6"/></svg>
@@ -89,9 +87,5 @@ import { fields } from '../../cv/cv.service';
   <a href="/postulante/postulaciones" class="q-primary inline-flex items-center">Ver mis postulaciones</a>
 </section>
 <style>
-  .q-application-step[aria-current="step"] { border-color:var(--color-sky-600); color:var(--color-sky-700); }
-  .q-application-step[aria-current="step"] [data-step-number] { background:var(--color-sky-700); color:white; }
-  .q-application-step[data-complete="true"] { border-color:var(--color-sky-600); color:var(--color-sky-700); }
-  :global(.dark) .q-application-step[aria-current="step"], :global(.dark) .q-application-step[data-complete="true"] { color:var(--color-sky-300); }
   [data-drop][data-dragging="true"] { border-color:var(--color-sky-600); }
 </style>

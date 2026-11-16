@@ -1,3 +1,4 @@
+import { updateStepper } from '../compartido/stepper';
 import { senalDeAccion } from '../compartido/preferencias-senal';
 import { postulaciones, type Application, type CvPreview } from './postulaciones.service';
 import { ofertas } from '../ofertas/ofertas.service';
@@ -32,18 +33,14 @@ export function initApplicationWizard(root: HTMLElement) {
   const controls = () => {
     el<HTMLFieldSetElement>('[data-wizard-fields]').disabled = busy;
     next.disabled = busy || uncertain || (step === 1 && !file) || (step === 3 && !consent.checked);
-    next.textContent = busy ? (step === 1 ? 'Leyendo currículum…' : 'Enviando…') : submitted ? 'Confirmar datos pendientes' : step === 3 ? (current ? 'Actualizar CV' : 'Enviar postulación') : 'Siguiente';
+    next.textContent = busy ? (step === 1 ? 'Leyendo currículum…' : 'Enviando…') : submitted ? 'Confirmar datos pendientes' : step === 1 && file && !preview ? 'Reintentar lectura' : step === 3 ? (current ? 'Actualizar CV' : 'Enviar postulación') : 'Siguiente';
     back.disabled = busy || step === 1 || !!submitted || uncertain;
     form.setAttribute('aria-busy', String(busy));
   };
   const showStep = (value: number, focus = true) => {
     step = value;
     root.querySelectorAll<HTMLElement>('[data-wizard-step]').forEach(panel => panel.hidden = Number(panel.dataset.wizardStep) !== step);
-    root.querySelectorAll<HTMLElement>('[data-step-indicator]').forEach(item => {
-      const number = Number(item.dataset.stepIndicator);
-      if (number === step) item.setAttribute('aria-current', 'step'); else item.removeAttribute('aria-current');
-      item.dataset.complete = String(number < step);
-    });
+    updateStepper(root.querySelectorAll<HTMLElement>('[data-step-indicator]'), step, 1);
     el('[data-step-status]').textContent = 'Paso ' + step + ' de 3';
     controls();
     if (focus) el<HTMLElement>('[data-wizard-step="' + step + '"] h3').focus();
@@ -80,6 +77,7 @@ export function initApplicationWizard(root: HTMLElement) {
     if (busy || submitted || uncertain) return;
     el('[data-file-error]').hidden = true;
     if (!selected) return;
+    notice.hidden = true;
     preview = undefined; file = undefined; consent.checked = false;
     if (!selected.name.toLowerCase().endsWith('.pdf') || (selected.type && selected.type !== 'application/pdf') || !selected.size || selected.size > 5_000_000) {
       el('[data-file-error]').textContent = 'Selecciona un PDF con texto de hasta 5 MB.';
@@ -89,6 +87,7 @@ export function initApplicationWizard(root: HTMLElement) {
       el('[data-filesize]').textContent = (selected.size / 1_000_000).toLocaleString('es-PE', { maximumFractionDigits: 2 }) + ' MB · Listo para revisar';
     }
     el('[data-file-selected]').hidden = !file; controls();
+    if (file && session && step === 1) form.requestSubmit();
   };
   const load = async () => {
     const run = ++epoch;
@@ -143,11 +142,24 @@ export function initApplicationWizard(root: HTMLElement) {
     const run = epoch;
     busy = true; controls(); senalDeAccion('progreso');
     controller = new AbortController();
-    el('[data-progress-wrap]').hidden = false;
+    const readingCv = step === 1 && !preview;
+    el('[data-progress-wrap]').hidden = step === 1;
+    if (readingCv) {
+      el('[data-drop]').hidden = true; el('[data-file-selected]').hidden = true;
+      el('[data-upload-name]').textContent = file.name;
+      el('[data-upload-size]').textContent = (file.size / 1_000_000).toLocaleString('es-PE', { maximumFractionDigits: 2 }) + ' MB · PDF';
+      el('[data-upload-loading]').hidden = false;
+    }
     el('[data-progress-label]').textContent = step === 1 ? 'Leyendo el PDF. Tu postulación aún no se ha enviado.' : 'Enviando tu postulación…';
     const progress = (value: number | null) => {
       const bar = el<HTMLProgressElement>('[data-progress]');
       if (value === null || value === 100) bar.removeAttribute('value'); else bar.value = value;
+      if (readingCv) {
+        const upload = el<HTMLProgressElement>('[data-upload-progress]');
+        if (value === null || value >= 100) upload.removeAttribute('value'); else upload.value = value;
+        el('[data-upload-status]').textContent = value === null ? 'Preparando la carga…' : value >= 100 ? 'Archivo cargado. Leyendo tu currículum…' : 'Cargando tu currículum…';
+        el('[data-upload-percent]').textContent = value !== null && value < 100 ? value + '%' : '';
+      }
     };
     progress(null);
     try {
@@ -201,7 +213,7 @@ export function initApplicationWizard(root: HTMLElement) {
         el<HTMLButtonElement>('[data-app-retry]').hidden = true;
       }
     } finally {
-      if (run === epoch) { busy = false; controller = undefined; el('[data-progress-wrap]').hidden = true; controls(); }
+      if (run === epoch) { busy = false; controller = undefined; el('[data-progress-wrap]').hidden = true; el('[data-upload-loading]').hidden = true; el('[data-drop]').hidden = false; el('[data-file-selected]').hidden = !file; controls(); }
     }
   });
   el('[data-app-retry]').addEventListener('click', () => void load());
@@ -214,7 +226,7 @@ export function initApplicationWizard(root: HTMLElement) {
     epoch++; controller?.abort(); session = undefined; file = undefined; preview = undefined; submitted = undefined; review = undefined;
     busy = false; uncertain = false; step = 1; current = undefined; title = '';
     root.querySelectorAll<HTMLElement>('[data-summary-field], [data-filename], [data-review-filename], [data-success-copy]').forEach(item => item.textContent = '');
-    form.reset(); fileInput.value = ''; el('[data-form-content]').hidden = true; el('[data-wizard-success]').hidden = true;
+    form.reset(); fileInput.value = ''; el('[data-upload-loading]').hidden = true; el('[data-drop]').hidden = false; el('[data-file-selected]').hidden = true; el('[data-file-error]').hidden = true; el('[data-form-content]').hidden = true; el('[data-wizard-success]').hidden = true;
     notice.hidden = true; el('[data-app-recovery]').hidden = true;
   });
 }

@@ -1,0 +1,27 @@
+---
+interface Props { labels: string[]; kind: 'oferta' | 'postulacion'; label: string }
+const { labels, kind, label } = Astro.props;
+---
+<nav aria-label={label} class="q-stepper">
+  <ol class="flex w-full items-start text-sm font-medium text-slate-600 dark:text-slate-300">
+    {labels.map((text, index) => <li data-wizard-indicator={kind === 'oferta' ? index : undefined} data-step-indicator={kind === 'postulacion' ? index + 1 : undefined} data-state="pending" class="q-stepper-item relative min-w-0 flex-1 text-center">
+      <div class="flex items-center justify-center">
+        <span data-step-icon class="q-stepper-marker relative z-10 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 border-slate-400 bg-white font-semibold dark:border-slate-500 dark:bg-slate-900">
+          <span data-step-number aria-hidden="true">{index + 1}</span>
+          <svg data-step-check aria-hidden="true" class="hidden h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6"/></svg>
+        </span>
+        {index < labels.length - 1 && <span aria-hidden="true" class="q-stepper-line absolute left-1/2 top-[17px] h-0.5 w-full bg-slate-300 dark:bg-slate-700"></span>}
+      </div>
+      <span class="mx-auto mt-2 block max-w-36 px-1 text-center leading-snug">{text}</span>
+      <span data-step-state class="sr-only">Pendiente</span>
+    </li>)}
+  </ol>
+</nav>
+<style is:global>
+  .q-stepper-item[data-state="current"], .q-stepper-item[data-state="complete"] { color: var(--color-sky-700); }
+  .dark .q-stepper-item[data-state="current"], .dark .q-stepper-item[data-state="complete"] { color: var(--color-sky-300); }
+  .q-stepper-item[data-state="current"] .q-stepper-marker, .q-stepper-item[data-state="complete"] .q-stepper-marker { border-color: var(--color-sky-700); background: var(--color-sky-700); color: white; }
+  .q-stepper-item[data-state="complete"] .q-stepper-line { background: var(--color-sky-700); }
+  .q-stepper-item[data-state="complete"] [data-step-number] { display: none; }
+  .q-stepper-item[data-state="complete"] [data-step-check] { display: block; }
+</style>

@@ -16,7 +16,7 @@ const description = view === 'list' ? owned ? 'Gestiona cada oportunidad, desde 
     <div data-job-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
     <div data-job-recovery class="flex flex-wrap gap-3" hidden><button data-job-retry type="button" class="q-secondary">Reintentar</button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link">Volver al listado</a></div>
     <div data-job-loading class="q-card space-y-4 p-6" role="status" hidden><p>Cargando oferta…</p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
-    {view === 'list' ? <Listado owned={owned} /> : view === 'detail' ? <Detalle /> : <Editor />}
+    {view === 'list' ? <Listado owned={owned} /> : view === 'detail' ? <Detalle /> : <Editor wizard={view === 'new'} />}
   </div>
 </Espacio>
 <script>import { initOfertas } from '../ofertas'; initOfertas();</script>
