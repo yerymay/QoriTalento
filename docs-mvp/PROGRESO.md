@@ -243,3 +243,11 @@ Verificación:
 ## Se?ales multimodales en m?dulos implementados (2026-11-13)
 
 Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en registro, perfil, ofertas, postulaciones y revisi?n de CV. El espacio de trabajo permite controlar sonido y vibraci?n; las preferencias se guardan localmente y la vibraci?n empieza desactivada. Los mensajes visuales existentes se conservan. Verificaci?n t?cnica: `npm run check` y `npm run build` del frontend. Pendientes: pruebas con backend real, dispositivos f?sicos y lectores de pantalla.
+
+
+### Detalle ampliado de ofertas — 2026-11-15
+
+- Registro y edición de modalidad separada, jornada, funciones y beneficios opcionales; selección de beneficios frecuentes y texto personalizado. Las ofertas antiguas conservan su descripción y ubicación; la modalidad heredada se interpreta solo cuando coincide con el formato reconocido.
+- API documentada en openapi-implemented.yaml; migración aditiva database/06_job_content.sql. Ver instrucciones en M02-OFERTAS.md.
+- Verificación: comprobación y compilación de frontend y backend, 67 pruebas backend aprobadas (6 omitidas), prueba MySQL de ofertas aprobada con datos sintéticos y prueba de navegador con API simulada, incluidos los campos nuevos.
+- Pendiente: validación de usabilidad con usuarios y pruebas adicionales del formulario con lector de pantalla.

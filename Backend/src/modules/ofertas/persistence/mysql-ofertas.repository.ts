@@ -3,7 +3,7 @@ import type { Pool, PoolConnection, RowDataPacket, ResultSetHeader } from 'mysql
 import type { Job, JobChange, JobFilter, JobInput, JobScope, OfertasRepository } from '../repositories/ofertas.repository.js';
 
 const columns = `SELECT CAST(id AS CHAR) AS id, CAST(owner_user_id AS CHAR) AS owner_user_id,
- title, description, area, location, experience_required, education_required, status,
+ title, description, area, location, modality, work_schedule, responsibilities_json, benefits_json, experience_required, education_required, status,
  published_at, closed_at, process_finished_at, created_at, updated_at FROM jobs`;
 const iso = (value: Date | string | null): string | null => value === null ? null : new Date(value).toISOString();
 function scopeWhere(scope: JobScope) {
@@ -19,7 +19,8 @@ async function hydrate(connection: PoolConnection, rows: RowDataPacket[]): Promi
   );
   return rows.map(row => ({
     id: row.id, owner_user_id: row.owner_user_id, title: row.title, description: row.description,
-    area: row.area, location: row.location, experience_required: row.experience_required, education_required: row.education_required,
+    area: row.area, location: row.location, modality: row.modality, work_schedule: row.work_schedule,
+    responsibilities: row.responsibilities_json ? JSON.parse(row.responsibilities_json) : [], benefits: row.benefits_json ? JSON.parse(row.benefits_json) : [], experience_required: row.experience_required, education_required: row.education_required,
     status: row.status, published_at: iso(row.published_at), closed_at: iso(row.closed_at), process_finished_at: iso(row.process_finished_at),
     created_at: iso(row.created_at)!, updated_at: iso(row.updated_at)!,
     requirements: requirements.filter(item => item.job_id === row.id).map(item => ({ description: item.description })),
@@ -100,8 +101,8 @@ export class MySqlOfertasRepository implements OfertasRepository {
   }
   async create(ownerId: string, fields: JobInput) {
     return this.transaction(async connection => {
-      await connection.execute(`INSERT INTO jobs (owner_user_id,title,description,area,location,experience_required,education_required,status) VALUES (?,?,?,?,?,?,?,'DRAFT')`,
-        [ownerId, fields.title, fields.description, fields.area, fields.location, fields.experience_required, fields.education_required]);
+      await connection.execute(`INSERT INTO jobs (owner_user_id,title,description,area,location,modality,work_schedule,responsibilities_json,benefits_json,experience_required,education_required,status) VALUES (?,?,?,?,?,?,?,?,?,?,?,'DRAFT')`,
+        [ownerId, fields.title, fields.description, fields.area, fields.location, fields.modality, fields.work_schedule, JSON.stringify(fields.responsibilities), JSON.stringify(fields.benefits), fields.experience_required, fields.education_required]);
       // CAST evita perder precisión de BIGINT en el identificador.
       const [inserted] = await connection.execute<RowDataPacket[]>('SELECT CAST(LAST_INSERT_ID() AS CHAR) AS id');
       const id = inserted[0]!.id as string;
@@ -118,8 +119,8 @@ export class MySqlOfertasRepository implements OfertasRepository {
       const change = decide(current);
       if (change.fields) {
         const fields = change.fields;
-        await connection.execute<ResultSetHeader>(`UPDATE jobs SET title=?,description=?,area=?,location=?,experience_required=?,education_required=? WHERE id=? AND owner_user_id=?`,
-          [fields.title, fields.description, fields.area, fields.location, fields.experience_required, fields.education_required, id, ownerId]);
+        await connection.execute<ResultSetHeader>(`UPDATE jobs SET title=?,description=?,area=?,location=?,modality=?,work_schedule=?,responsibilities_json=?,benefits_json=?,experience_required=?,education_required=? WHERE id=? AND owner_user_id=?`,
+          [fields.title, fields.description, fields.area, fields.location, fields.modality, fields.work_schedule, JSON.stringify(fields.responsibilities), JSON.stringify(fields.benefits), fields.experience_required, fields.education_required, id, ownerId]);
         await replaceRequirements(connection, id, fields);
       }
       if (change.state) {

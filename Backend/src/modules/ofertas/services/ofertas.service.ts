@@ -3,7 +3,7 @@ import type { User } from '../../auth/repositories/auth.repository.js';
 import type { Job, JobFilter, JobInput, JobStatus, OfertasRepository } from '../repositories/ofertas.repository.js';
 
 type Actor = Pick<User, 'id' | 'role' | 'kind'>;
-const keys = ['title', 'description', 'area', 'location', 'experience_required', 'education_required', 'requirements'];
+const keys = ['title', 'description', 'area', 'location', 'experience_required', 'education_required', 'requirements', 'modality', 'work_schedule', 'responsibilities', 'benefits'];
 const invalid = (message: string): never => { throw new AppError(400, 'INVALID_INPUT', message); };
 function object(input: unknown): Record<string, unknown> {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return invalid('Envía un formulario válido.');
@@ -25,10 +25,17 @@ function inputFields(input: unknown, partial = false): Partial<JobInput> {
   if (!partial || 'title' in body) result.title = text(body.title, 'Cargo', 180, 1);
   if (!partial || 'description' in body) result.description = text(body.description === undefined ? '' : body.description, 'Descripción', 10000);
   for (const [key, label, max] of [
-    ['area', 'Área', 120], ['location', 'Ubicación y modalidad', 180],
+    ['area', 'Área', 120], ['location', 'Ubicación', 180], ['modality', 'Modalidad', 30], ['work_schedule', 'Jornada', 120],
     ['experience_required', 'Experiencia', 2000], ['education_required', 'Formación', 2000],
   ] as const) {
     if (!partial || key in body) result[key] = body[key] == null ? null : text(body[key], label, max) || null;
+  }
+  for (const key of ['responsibilities', 'benefits'] as const) {
+    if (!partial || key in body) {
+      const values = body[key] === undefined ? [] : body[key];
+      if (!Array.isArray(values) || values.length > 50) return invalid('Máximo 50 elementos por sección.');
+      result[key] = values.map(value => text(value, key === 'benefits' ? 'Beneficio' : 'Función', 1000, 1));
+    }
   }
   if (!partial || 'requirements' in body) {
     const requirements = body.requirements === undefined ? [] : body.requirements;

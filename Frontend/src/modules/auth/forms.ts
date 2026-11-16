@@ -1,4 +1,4 @@
-import { senalDeAccion, volumenSenal } from '../compartido/preferencias-senal';
+import { senalDeAccion, volumenSenal, sonidoHabilitado } from '../compartido/preferencias-senal';
 import { initRegistrationDropdowns } from './dropdown';
 import { showToast, queueToast } from '../compartido/services/toast';
 import { auth, homeFor, type Role } from './auth.service';
@@ -24,7 +24,7 @@ export function initAuthForm() {
   }
   const senalLogin=(estado:EstadoSenal,mensaje:string,alFinalizar?:()=>void)=>{
     if(!estadoLogin){alFinalizar?.();return;}
-    estadoLogin.dispatchEvent(new CustomEvent('qori:senal',{detail:{estado,mensaje,sonido:sonidoLogin?.checked===true,volumen:volumenSenal(),alFinalizar}}));
+    estadoLogin.dispatchEvent(new CustomEvent('qori:senal',{detail:{estado,mensaje,sonido:sonidoHabilitado(),volumen:volumenSenal(),alFinalizar}}));
   };
   const show=(text:string,tone:'error'|'success')=>{showToast(text,tone);};
   const validate=()=>{

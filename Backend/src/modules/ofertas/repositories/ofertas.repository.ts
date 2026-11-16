@@ -7,6 +7,10 @@ export interface JobInput {
   location: string | null;
   experience_required: string | null;
   education_required: string | null;
+  modality: string | null;
+  work_schedule: string | null;
+  responsibilities: string[];
+  benefits: string[];
   requirements: Requirement[];
 }
 export interface Job extends JobInput {

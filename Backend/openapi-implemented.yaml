@@ -209,6 +209,22 @@ components:
           type: string
           nullable: true
           maxLength: 180
+        modality:
+          type: string
+          nullable: true
+          maxLength: 30
+        work_schedule:
+          type: string
+          nullable: true
+          maxLength: 120
+        responsibilities:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
+        benefits:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
         experience_required:
           type: string
           nullable: true
@@ -252,6 +268,22 @@ components:
           type: string
           nullable: true
           maxLength: 180
+        modality:
+          type: string
+          nullable: true
+          maxLength: 30
+        work_schedule:
+          type: string
+          nullable: true
+          maxLength: 120
+        responsibilities:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
+        benefits:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
         experience_required:
           type: string
           nullable: true
@@ -307,6 +339,22 @@ components:
           type: string
           nullable: true
           maxLength: 180
+        modality:
+          type: string
+          nullable: true
+          maxLength: 30
+        work_schedule:
+          type: string
+          nullable: true
+          maxLength: 120
+        responsibilities:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
+        benefits:
+          type: array
+          maxItems: 50
+          items: { type: string, minLength: 1, maxLength: 1000 }
         experience_required:
           type: string
           nullable: true

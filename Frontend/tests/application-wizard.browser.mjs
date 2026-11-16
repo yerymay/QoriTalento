@@ -12,6 +12,7 @@ page.on('pageerror', error => errors.push(error.message));
 let sends = 0, previews = 0, confirmations = 0, failPreview = true, failConfirm = true;
 const profile = { name: 'Ana Torres', email: 'ana@example.test', phone: '+51 987654321', location: 'Abancay, Perú', summary: 'Diseñadora de producto con experiencia en interfaces accesibles.', education: ['Diseño digital'], experience: ['Diseño de productos digitales'], skills: ['Figma', 'Investigación de usuarios'], languages: ['Español'] };
 const job = { id: '1', title: 'Diseñador de producto', area: 'Producto & Diseño', location: 'Lima, Perú · Remoto', description: 'Diseña experiencias digitales accesibles junto a un equipo que investiga, prototipa y aprende de las personas. Participa en cada etapa del producto.', requirements: [{ description: 'Experiencia en diseño' }], status: 'PUBLISHED', published_at: '2026-11-09T12:00:00Z', experience_required: null, education_required: null };
+Object.assign(job, { modality: 'Remoto', work_schedule: 'Tiempo completo', responsibilities: ['Coordinar el soporte'], benefits: ['Horario flexible', 'Seguro de salud'] });
 const application = { id: '7', job_id: '1', title: job.title, status: 'PENDING', filename: 'Mi_CV.pdf', created_at: '2026-11-10T12:00:00Z' };
 const review = { application_id: '7', document: { id: '4', filename: 'Mi_CV.pdf' }, extraction: { profile }, confirmed: null, current_profile_id: null, can_confirm: true };
 await page.route('**/api/v1/**', async route => {
@@ -51,6 +52,10 @@ try {
   await expect(page.locator('[data-job-detail]')).toBeVisible();
   await expect(page.locator('[data-detail-description]')).toHaveText(job.description);
   await expect(page.locator('[data-detail-requirements]')).toContainText(job.requirements[0].description);
+  await expect(page.locator('[data-detail-modality]')).toHaveText('Remoto');
+  await expect(page.locator('[data-detail-schedule]')).toHaveText('Tiempo completo');
+  await expect(page.locator('[data-detail-responsibilities]')).toContainText('Coordinar el soporte');
+  await expect(page.locator('[data-detail-benefits]')).toContainText('Horario flexible');
   await expect(page.locator('[data-apply]')).toHaveAttribute('href', '/postulante/postular?id=1');
   await page.locator('[data-apply]').click();
   await expect(page.locator('[data-next]')).toBeDisabled();

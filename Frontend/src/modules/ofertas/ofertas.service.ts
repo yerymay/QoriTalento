@@ -3,6 +3,7 @@ export type JobStatus = 'DRAFT' | 'PUBLISHED' | 'CLOSED';
 export interface JobInput {
   title: string; description: string; area: string | null; location: string | null;
   experience_required: string | null; education_required: string | null;
+  modality: string | null; work_schedule: string | null; responsibilities: string[]; benefits: string[];
   requirements: { description: string }[];
 }
 export interface Job extends JobInput {

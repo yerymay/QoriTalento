@@ -34,6 +34,7 @@ describe.skipIf(process.env.TEST_MYSQL !== '1')('M02 con MySQL real', () => {
       return method === 'get' ? req : req.send(body);
     };
     const body = { title: 'Oferta sintética ' + randomUUID(), description: 'Diseña interfaces accesibles.', area: 'Tecnología', location: 'Abancay · Híbrido', experience_required: 'Sin experiencia', education_required: 'Sistemas', requirements: [{ description: 'TypeScript' }, { description: 'Accesibilidad' }] };
+    Object.assign(body, { modality: 'Híbrido', work_schedule: 'Tiempo completo', responsibilities: ['Mantener sistemas'], benefits: ['Horario flexible', 'Seguro de salud'] });
     const created = await call('post', 'recruiter/jobs', body);
     if (created.status === 201) jobs.push(created.body.id);
     expect(created.status).toBe(201);

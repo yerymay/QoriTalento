@@ -40,7 +40,10 @@ export function initOfertas() {
   const field = (name: string) => form!.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
   const read = (): JobInput => ({
     title: field('title').value.trim(), description: field('description').value.trim(),
-    area: field('area').value.trim() || null, location: [field('location').value.trim(), field('modality').value].filter(Boolean).join(' · ') || null,
+    area: field('area').value.trim() || null, location: field('location').value.trim() || null,
+    modality: field('modality').value || null, work_schedule: field('work_schedule').value.trim() || null,
+    responsibilities: field('responsibilities').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean),
+    benefits: [...form!.querySelectorAll<HTMLInputElement>('[name="benefit"]:checked')].map(input => input.value).concat(field('other_benefits').value.split(/\r?\n/).map(s => s.trim()).filter(Boolean)),
     experience_required: field('experience_required').value.trim() || null,
     education_required: field('education_required').value.trim() || null,
     requirements: field('requirements').value.split(/\r?\n/).map(value => value.trim()).filter(Boolean).map(description => ({ description })),
@@ -80,9 +83,15 @@ export function initOfertas() {
       const area = field('area') as HTMLSelectElement;
       if (job.area && !Array.from(area.options).some(option => option.value === job!.area)) area.add(new Option(job.area, job.area));
       area.value = job.area ?? '';
+      field('work_schedule').value = job.work_schedule ?? '';
+      field('responsibilities').value = (job.responsibilities ?? []).join('\n');
+      const benefitInputs = [...form.querySelectorAll<HTMLInputElement>('[name="benefit"]')];
+      benefitInputs.forEach(input => { input.checked = (job!.benefits ?? []).includes(input.value); });
+      field('other_benefits').value = (job.benefits ?? []).filter(value => !benefitInputs.some(input => input.value === value)).join('\n');
       const parts = (job.location ?? '').split(' · ');
       const modality = parts[parts.length - 1];
-      if (['Remoto', 'Presencial', 'Híbrido'].includes(modality)) { field('modality').value = modality; field('location').value = parts.slice(0, -1).join(' · '); }
+      if (job.modality) { field('modality').value = job.modality; field('location').value = job.location ?? ''; }
+      else if (['Remoto', 'Presencial', 'Híbrido'].includes(modality)) { field('modality').value = modality; field('location').value = parts.slice(0, -1).join(' · '); }
       else field('location').value = job.location ?? '';
       field('requirements').value = job.requirements.map(item => item.description).join('\n');
     }
@@ -94,13 +103,40 @@ export function initOfertas() {
   const fillDetail = (value: Job) => {
     text(root, '[data-detail-title]', value.title);
     text(root, '[data-detail-area]', value.area || 'Área no especificada');
-    text(root, '[data-detail-meta]', `${value.location || 'Ubicación no especificada'} · QT-${value.id} · ${date(value.published_at)}`);
+    const detailParts = (value.location ?? '').split(' · ');
+    const detailLastPart = detailParts[detailParts.length - 1];
+    const detailModality = value.modality || (['Remoto', 'Presencial', 'Híbrido'].includes(detailLastPart) ? detailLastPart : '');
+    const detailLocation = ((!value.modality && detailModality) ? detailParts.slice(0, -1).join(' · ') : value.location) || 'Ubicación no especificada';
+    text(root, '[data-detail-location]', detailLocation);
+    text(root, '[data-detail-modality]', detailModality);
+    el('[data-detail-modality-wrap]').hidden = !detailModality;
+    text(root, '[data-detail-schedule]', value.work_schedule || '');
+    el('[data-detail-schedule-wrap]').hidden = !value.work_schedule;
+    for (const [section, selector, entries] of [['[data-responsibilities-section]', '[data-detail-responsibilities]', value.responsibilities ?? []], ['[data-benefits-section]', '[data-detail-benefits]', value.benefits ?? []]] as const) {
+      el(section).hidden = !entries.length;
+      const target = el(selector); target.replaceChildren();
+      for (const entry of entries) { const li = document.createElement('li'); li.className = 'flex items-start gap-3 rounded-lg bg-slate-50 p-3 leading-relaxed dark:bg-slate-800'; const marker = document.createElement('span'); marker.className = 'shrink-0 text-sky-700 dark:text-sky-300'; marker.setAttribute('aria-hidden','true'); marker.innerHTML = '<svg class="mt-0.5 h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6"/></svg>'; const label = document.createElement('span'); label.className='min-w-0 break-words'; label.textContent=entry; li.append(marker,label); target.append(li); }
+    }
+    text(root, '[data-detail-code]', `QT-${value.id}`);
+    text(root, '[data-detail-date]', date(value.published_at));
+    text(root, '[data-summary-modality]', detailModality || 'No especificada');
+    text(root, '[data-summary-code]', `QT-${value.id}`);
+    text(root, '[data-summary-area]', value.area || 'No especificada');
     text(root, '[data-detail-description]', value.description || 'Descripción no especificada.');
     text(root, '[data-detail-experience]', value.experience_required || 'El reclutador no ha especificado la experiencia requerida.');
     text(root, '[data-detail-education]', value.education_required || 'El reclutador no ha especificado la formación requerida.');
     const list = el('[data-detail-requirements]'); list.replaceChildren();
     for (const requirement of value.requirements) {
-      const item = document.createElement('li'); item.className = 'whitespace-pre-wrap break-words'; item.textContent = requirement.description; list.append(item);
+      const item = document.createElement('li');
+      item.className = 'flex items-start gap-3';
+      const icon = document.createElement('span');
+      icon.className = 'mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-sky-100 text-sky-800 dark:bg-slate-800 dark:text-sky-300';
+      icon.setAttribute('aria-hidden', 'true');
+      icon.innerHTML = '<svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6"/></svg>';
+      const description = document.createElement('span');
+      description.className = 'min-w-0 whitespace-pre-wrap break-words';
+      description.textContent = requirement.description;
+      item.append(icon, description); list.append(item);
     }
     if (!value.requirements.length) { const item = document.createElement('li'); item.textContent = 'Requisitos no especificados.'; list.append(item); }
     link(root, '[data-apply]', '/postulante/postular?id=' + encodeURIComponent(value.id));
@@ -187,11 +223,11 @@ export function initOfertas() {
           text(fragment, '[data-job-area]', item.area || 'Área no especificada');
 
           const parts = (item.location ?? '').split(' · ');
-          const modality = parts[parts.length - 1];
-          const isModality = ['Remoto', 'Presencial', 'Híbrido'].includes(modality);
+          const modality = item.modality || parts[parts.length - 1];
+          const isModality = !!item.modality || ['Remoto', 'Presencial', 'Híbrido'].includes(modality);
           const badge = fragment.querySelector<HTMLElement>('[data-job-modality]')!;
           badge.hidden = !isModality; badge.textContent = isModality ? modality : '';
-          text(fragment, '[data-job-location]', (isModality ? parts.slice(0, -1).join(' · ') : item.location) || 'Ubicación no especificada');
+          text(fragment, '[data-job-location]', (isModality && !item.modality ? parts.slice(0, -1).join(' · ') : item.location) || 'Ubicación no especificada');
           text(fragment, '[data-job-description]', item.description || 'Consulta el detalle para conocer los requisitos de esta oportunidad.');
           link(fragment, '[data-job-view]', href);
           fragment.querySelector('[data-job-view]')!.setAttribute('aria-label', `Ver oferta: ${item.title}`);
@@ -260,6 +296,7 @@ export function initOfertas() {
     event.preventDefault();
     if (busy || !session || !form.reportValidity()) return;
     const body = read();
+    if ([body.responsibilities, body.benefits].some(values => values.length > 50 || values.some(value => value.length > 1000))) { notice('Revisa las funciones y beneficios: máximo 50 elementos de 1000 caracteres por sección.'); return; }
     if (body.requirements.length > 50 || body.requirements.some(item => item.description.length > 1000)) {
       notice('Revisa los requisitos: máximo 50 líneas, con hasta 1000 caracteres cada una.'); field('requirements').focus(); return;
     }

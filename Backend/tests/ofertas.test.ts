@@ -146,6 +146,22 @@ describe('M02: ofertas con sesión, propiedad y transiciones explícitas', () =>
     expect((await call('post', base, body)).status).toBe(400);
     expect(repo.jobs).toHaveLength(0);
   });
+  it('guarda y actualiza modalidad, jornada, funciones y beneficios sin exponerlos a otros reclutadores', async () => {
+    const extra = { modality: 'Híbrido', work_schedule: 'Tiempo completo', responsibilities: ['Mantener sistemas', 'Dar soporte'], benefits: ['Horario flexible', 'Seguro de salud'] };
+    const created = await call('post', base, { ...input, ...extra });
+    expect(created.status).toBe(201);
+    expect(created.body).toMatchObject(extra);
+    const changed = await call('patch', base + '/1', { benefits: ['Capacitaciones'] });
+    expect(changed.body).toMatchObject({ ...extra, benefits: ['Capacitaciones'] });
+    expect((await call('patch', base + '/1', { benefits: ['Intrusión'] }, 1)).status).toBe(404);
+    expect((await call('post', base + '/1/publish', {})).status).toBe(200);
+    expect((await call('get', '/api/v1/jobs/1', undefined, 2)).body).toMatchObject({ ...extra, benefits: ['Capacitaciones'] });
+  });
+  it('rechaza listas nuevas inválidas', async () => {
+    for (const extra of [{ responsibilities: null }, { benefits: [''] }, { benefits: new Array(51).fill('Beneficio') }, { responsibilities: ['x'.repeat(1001)] }]) {
+      expect((await call('post', base, { ...input, ...extra })).status).toBe(400);
+    }
+  });
   it('valida ids, filtros, cuerpo vacío de acciones y PATCH vacío', async () => {
     await call('post', base, input);
     for (const id of ['0', '-1', '1e1', '18446744073709551616', 'sql']) expect((await call('get', base + '/' + id)).status).toBe(400);

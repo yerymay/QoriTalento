@@ -54,3 +54,8 @@ Backend: `npm.cmd run check`, `npm.cmd test` y `npm.cmd run build`. La suite nor
 Frontend: `npm.cmd run check` y `npm.cmd run build`. Con Astro activo y Chrome instalado, `node tests/ofertas.browser.mjs` ejecuta la comprobación de interfaz con API sintética y guarda evidencia en `.impeccable/review/`. No sustituye la validación con usuarios ni una prueba completa del navegador contra una cuenta real.
 
 Resultados y límites: [PROGRESO.md](PROGRESO.md), evidencia del 2026-11-04.
+
+
+### Contenido adicional de ofertas
+
+Para usar la versión que añade modalidad independiente, jornada, funciones y beneficios, aplicar una sola vez `database/06_job_content.sql` después de las migraciones previas. El script añade columnas sin borrar los datos existentes y requiere permisos ALTER; verificar previamente respaldo y esquema. El servidor actualizado requiere estas columnas. Las ofertas anteriores conservan su ubicación y descripción: la interfaz reconoce la modalidad antigua únicamente si termina en « · Remoto», « · Presencial» o « · Híbrido» (o si el campo contiene solo esa modalidad). Al guardar desde el editor se separa la modalidad reconocida. Las funciones y beneficios antiguos no se deducen del texto.
