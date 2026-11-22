@@ -22,7 +22,7 @@
 - [ ] M03: postular a ofertas y adjuntar CV PDF.
 - [x] M04: base funcional de extracción, corrección y confirmación del perfil, revisión de PDF y notas; verificada con pruebas automatizadas, MariaDB y navegador. Pendiente medir precisión sobre CV representativos; B-07 sigue abierta.
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
-- [ ] M06: calificación objetiva y evaluación asistida con Ollama (rúbrica pendiente).
+- [ ] M06: calificación objetiva y evaluación asistida con Ollama. B-06 aprobada parcialmente: fórmula 60/40 con examen o perfil sobre 100 sin examen, y preguntas filtro como apoyo; aprobados niveles por requisito y pesos ajustables; pendientes umbrales y validación.
 - [ ] M07: resultados y decisión humana.
 - [ ] M08: consulta, actualización y seguimiento de estados.
 - [ ] Validación IHC: tareas con usuarios, heurísticas, responsive, accesibilidad, recuperación y cinco estados UI.
@@ -251,3 +251,19 @@ Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en
 - API documentada en openapi-implemented.yaml; migración aditiva database/06_job_content.sql. Ver instrucciones en M02-OFERTAS.md.
 - Verificación: comprobación y compilación de frontend y backend, 67 pruebas backend aprobadas (6 omitidas), prueba MySQL de ofertas aprobada con datos sintéticos y prueba de navegador con API simulada, incluidos los campos nuevos.
 - Pendiente: validación de usabilidad con usuarios y pruebas adicionales del formulario con lector de pantalla.
+
+## Evidencia — M06, evaluación asistida (2026-11-22)
+
+- Implementadas las cuatro capas de `Backend/src/modules/evaluacion/`, adaptador local Ollama, composición en `server.ts` y cuatro endpoints exclusivamente en `Backend/openapi-implemented.yaml` (0.6.0).
+- Nota objetiva de exámenes finalizados calculada desde M05; perfil confirmado por postulación desde M04; requisitos con evidencia y explicación; sugerencias separadas de la revisión humana; fórmula 60/40 o 100, pesos ajustables y total pendiente cuando falta evidencia/revisión. No se cambia ningún estado de selección.
+- Migración aditiva `database/07_m06_evaluacion.sql`: historial inmutable de revisiones con actor/fecha. La tabla ya estaba presente al verificar la base local y coincidía con el esquema; no se alteraron tablas existentes.
+- Autorización de sesión/rol/propiedad, protección de origen, rechazo de campos adicionales, notas idempotentes y revisiones concurrentes. Huella de fuentes para conservar evaluaciones históricas sin inventar reevaluaciones de B-07. Varios exámenes se califican individualmente; total combinado pendiente de regla.
+- UI integrada desde cada postulante, como confirmó el usuario: `/reclutador/evaluacion?application=...`. Tokens Sky/Inter y marco Tailwind/Flowbite existentes; estados de carga, vacío, parcial, contenido y error. Revisión humana, pesos, recuperación sin perder cambios y limpieza por expiración. Se consultó Figma, ficha `11107:4159`, como guía de jerarquía; no se trasladaron decisiones M07 ni umbrales simulados.
+- Verificación backend: `npm.cmd run check`, `npm.cmd test` y `npm.cmd run build` correctos. Suite: **114 pruebas aprobadas, 8 MySQL optativas omitidas**; M06 aporta **34 pruebas**. Chequeo TypeScript estricto separado de los tres archivos de pruebas M06 correcto.
+- `TEST_MYSQL=1 npx.cmd vitest run tests/evaluacion.mysql.test.ts`: **1 prueba aprobada**, con nota objetiva, aislamiento, preparación concurrente idempotente, revisión concurrente, historial, rollback y conservación de la versión de perfil por postulación. Limpieza de los fixtures al terminar.
+- Frontend: `npm.cmd run check` con **0 errores, 0 advertencias y 0 sugerencias**; `npm.cmd run build` correcto (**20 rutas**).
+- `node tests/evaluacion.browser.mjs http://127.0.0.1:4321`: aprobado con API sintética. Preparación, sugerencias, revisión, fallo al guardar sin pérdida, fuentes obsoletas, perfil sin confirmar, caducidad de sesión y limpieza. Capturas inspeccionadas a 1440 y 390 px, claro/oscuro, sin errores JavaScript ni desbordamiento horizontal: `.impeccable/review/m06-*.png`. Detector Impeccable ejecutado una vez: sin hallazgos.
+- **Límite de evidencia:** Ollama local no estaba disponible. No se presentan las respuestas sintéticas como prueba del modelo real ni como validación de B-06 por un reclutador. Permanecen pendientes la precisión/sesgo/latencia reales, los umbrales, B-07 y la evaluación IHC integral.
+- RSF22 marcado con esta evidencia. RSF23/24 permanecen parciales y RSF25 pendiente. Guía: [M06-IMPLEMENTACION.md](M06-IMPLEMENTACION.md).
+
+- Revisión independiente de interfaz: detectó que el aviso de guardado quedaba fuera de vista en móvil. Se corrigió llevando foco y vista al aviso en éxito y error; la prueba de navegador verificó ambos con teclado y conservación de campos. La segunda revisión independiente no pudo completarse por límite de uso; no se afirma un dictamen independiente final.

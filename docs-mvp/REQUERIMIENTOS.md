@@ -47,7 +47,9 @@
 
 ### Módulo 06 — Calificación y evaluación asistida
 
-- [ ] **RSF22 — Calificación automática de respuestas.** El sistema debe comparar automáticamente las respuestas registradas por el postulante con las alternativas correctas de cada pregunta y obtener la calificación del examen.
+**B-06, decisión parcial aprobada 2026-11-22:** con examen, perfil hasta 60 puntos y examen hasta 40; sin examen, perfil sobre 100. Preguntas filtro como apoyo, sin puntaje ni descarte automático. Por requisito se proponen valores de 100 %, 50 % o 0 % con evidencia; si falta evidencia, el resultado final queda pendiente de revisión. Pesos iguales por defecto y ajustables por el reclutador. Umbrales y validación siguen pendientes; esta decisión no acredita implementación.
+
+- [x] **RSF22 — Calificación automática de respuestas.** El sistema debe comparar automáticamente las respuestas registradas por el postulante con las alternativas correctas de cada pregunta y obtener la calificación del examen.
 - [ ] **RSF23 — Comparación del CV con los requisitos de la oferta.** El sistema debe confrontar la información extraída del currículum con los requisitos definidos en la oferta y determinar el nivel de compatibilidad del perfil con la oferta (Alta, Media o Baja). Esta comparación es la parte inteligente del sistema. **Condicionado B-06:** no exponer rankings/puntajes IA reales sin rúbrica validada.
 - [ ] **RSF24 — Cálculo de la calificación o puntaje.** El sistema debe calcular un puntaje para cada postulante a partir de la calificación del examen y de la comparación entre su currículum y los requisitos de la oferta. El puntaje acompaña al postulante durante todo el proceso. **Condicionado B-06:** no exponer rankings/puntajes IA reales sin rúbrica validada.
 - [ ] **RSF25 — Ordenamiento de postulantes por resultados.** El sistema debe permitir ordenar y filtrar la lista de postulantes de una oferta según su puntaje, para que el reclutador revise primero a los perfiles mejor evaluados. **Condicionado B-06:** no exponer rankings/puntajes IA reales sin rúbrica validada.

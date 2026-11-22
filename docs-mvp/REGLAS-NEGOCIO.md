@@ -8,7 +8,7 @@
 - **RN-04 (DEC-04).** CV únicamente PDF digital con texto; extracción clásica (sin OCR ni IA generativa para extraer). Documentos almacenados fuera de la carpeta pública.
 - **RN-05 (DEC-05/06).** Servidor determina inicio/límite de examen; respuestas recibidas y aceptadas antes del límite; guardado por pregunta. Reconectar no suspende el reloj; la UI no controla el resultado oficial.
 - **RN-06 (DEC-07, precisada 2026-11-06).** El postulante revisa, corrige y confirma los datos propuestos a partir de su CV. La extracción debe asistir el llenado del perfil y minimizar errores mediante reglas y patrones sobre el texto del PDF, pero no inventa datos ni reemplaza la revisión humana. Al confirmar, los valores editados actualizan el perfil del postulante. El reclutador solo consulta el PDF y los datos confirmados, y deja notas; no modifica el perfil fuente.
-- **RN-07.** El cálculo de compatibilidad/score con IA (Ollama `qwen2.5:7b-instruct`) es indicativo, documenta evidencia y nunca decide contrataciones. El reclutador autorizado registra la decisión humana. Sin B-06 aprobada, resultados IA solo con datos sintéticos/estado pendiente de revisión.
+- **RN-07 (B-06, decisión parcial aprobada 2026-11-22).** La IA (Ollama `qwen2.5:7b-instruct`) sugiere una evaluación por requisito basada en el perfil confirmado y muestra evidencia verificable; el reclutador la revisa y toma la decisión. La fórmula y los niveles por requisito están aprobados parcialmente; los umbrales de compatibilidad y la validación previa al uso real siguen pendientes.
 - **RN-08.** Estados operativos UI Ideal, Vacío, Parcial, Carga y Error son independientes de estados de negocio. No crear opción "Estados de UI" en la navegación.
 - **RN-09.** Dos roles de acceso definidos: reclutador y postulante. La mención al jefe de RRHH en documentación original **no otorga por sí sola** acceso transversal mientras B-09 esté abierto.
 
@@ -21,12 +21,32 @@
 | B-03 | Resuelta 2026-11-06: no hay activación externa; el registro activa la cuenta de inmediato. | no bloquea M01 |
 | B-04 | Decisión parcial aprobada 2026-11-06: máximo 5 MB, validación estricta de PDF real, bloqueo de duplicados activos, reemplazo de CV en estado inicial y conservación de 2 años tras finalizar el concurso. Sin antivirus obligatorio por ahora; estados activos y finalización definidos parcialmente en B-08. | implementar y verificar las obligaciones aprobadas |
 | B-05 | Cantidad de intentos, versión de examen, edición y borde de expiración | operación completa M05 |
-| B-06 | Rúbrica, pesos, evidencias y umbrales de evaluación IA | puntuación IA real M06 |
+| B-06 | Decisión parcial aprobada 2026-11-22: fórmula según exista examen y preguntas de apoyo; pendientes validación y umbrales. | puntuación IA real hasta completar y validar la rúbrica |
 | B-07 | Reevaluación tras actualizar perfil confirmado | M04/M06 |
 | B-08 | Parcialmente aprobada 2026-11-06: estados para duplicados y reemplazo, y finalización explícita. Pendientes: transiciones completas, actores y reversión. | M07/M08 y finalización del proceso |
 | B-09 | Permisos de jefe RRHH frente a propiedad individual | M01/M07 |
 | B-10 | Ratificación de constitución y métricas RNF | formalidad documental |
 
+
+### B-06 — decisión parcial aprobada el 2026-11-22
+
+- La IA compara cada requisito de la oferta con la información del perfil confirmada por el postulante. Para cada requisito presenta evidencia verificable del perfil, una explicación breve y una sugerencia: «evidencia encontrada», «evidencia parcial» o «sin evidencia suficiente».
+- La ausencia de evidencia no implica que el postulante carezca de la habilidad. La IA no debe inventar ni completar información ausente.
+- Las sugerencias son indicativas y deben ser revisadas por el reclutador autorizado, quien toma la decisión; la IA nunca decide contrataciones.
+- La calificación objetiva del examen se calcula por separado. La ampliación de B-06 define la fórmula y los pesos; los umbrales y la validación previa al uso real siguen pendientes.
+- Aprobado por el usuario del proyecto en conversación el 2026-11-22. Esta decisión define el alcance inicial de M06; no acredita implementación ni validación.
+
+### B-06 — ampliación aprobada el 2026-11-22
+
+- Con examen, la propuesta de puntuación asigna hasta 60 puntos a la afinidad del perfil confirmado con la oferta y hasta 40 puntos al examen. La nota del examen se calcula objetivamente según respuestas correctas.
+- Sin examen, la evaluación se basa en el perfil confirmado y los requisitos de la oferta, expresada sobre 100 puntos. La interfaz debe identificar la modalidad; los resultados de ambas modalidades no son directamente equivalentes.
+- La IA muestra evidencia por requisito, explicaciones y datos faltantes. La ausencia de evidencia se indica como tal y queda para revisión, sin asumir incumplimiento. El reclutador toma la decisión final.
+- Las preguntas filtro son información de apoyo: sin puntaje ni descarte automático. Se ofrecen plantillas con opciones para marcar y una opción «Otro» que permite escribir una respuesta; el reclutador revisa las opciones y puede definir cada pregunta como obligatoria u opcional. En preguntas opcionales se ofrece «Prefiero responder después». La pretensión salarial puede usar rangos y permitir otra cantidad.
+- La IA propone para cada requisito: cumple (100 % de sus puntos), cumple parcialmente (50 %) o no cumple (0 %, solo con evidencia explícita). La regla concreta aplicable a cada requisito debe ser visible para el reclutador, quien revisa la propuesta y su evidencia.
+- Si falta evidencia suficiente, el requisito queda pendiente de revisión: se muestra el desglose disponible, pero no un puntaje final hasta que el reclutador revise el dato. No se considera automáticamente incumplido.
+- Los puntos de perfil se distribuyen por igual entre requisitos por defecto. El reclutador puede ajustarlos; deben sumar 60 con examen o 100 sin examen.
+- Antes de usar puntajes o rankings IA reales, validar con casos sintéticos de cumplimiento, cumplimiento parcial, incumplimiento y datos incompletos, revisados por un reclutador. Comprobar evidencia, datos personales ajenos al puesto y revisión humana. Los umbrales de niveles siguen pendientes. No implica implementación verificada.
+- Aprobado por el usuario del proyecto en conversación el 2026-11-22.
 ### Alcance precisado de M04 — 2026-11-06
 
 - El perfil inicial puede contener solo los datos indispensables del registro. La información curricular se completa de forma asistida después de cargar un CV PDF con texto.
@@ -64,3 +84,9 @@ Efecto en requisitos, SQL, API y pruebas:
 El SQL de `database/01_schema.sql` es una **propuesta inicial ejecutable** basada en el modelo conceptual, no una aprobación de todas las políticas. Las columnas de estados son `VARCHAR` deliberadamente para no imponer flujos aún pendientes; las restricciones de cuota, moderación y scoring se implementarán cuando se aprueben reglas correspondientes.
 
 **Fuentes:** `docs/decisions/decisiones-aprobadas.md`, `docs/decisions/00-acta-decisiones-pendientes.md`, modelo conceptual v0.4.
+
+### M06 — alcance de implementación solicitado el 2026-11-22
+
+El usuario autorizó expresamente implementar la calificación objetiva y la comparación con el perfil confirmado mediante Ollama, con las cuatro valoraciones por requisito (cumple, parcial, no cumple y sin evidencia suficiente), evidencia, explicación, pesos ajustables y fórmula 60/40 o perfil sobre 100. La implementación distingue sugerencia de valoración humana y solo presenta un total indicativo cuando cada requisito está revisado con evidencia y el examen aplicable ha finalizado.
+
+Esta autorización no resuelve los umbrales, la validación previa al uso real de B-06 ni la reevaluación de B-07. Tampoco define una combinación de varios exámenes; se mantienen notas separadas y un total pendiente en ese caso. No autoriza rankings ni cambios automáticos de estado. Los pesos editados se guardan en la evaluación concreta, sin crear una rúbrica global para comparar postulantes.

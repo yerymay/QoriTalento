@@ -84,3 +84,9 @@ Frontend/src/
 ## No implementar aún
 
 Sin autorización adicional: enviar OTP reales, permitir cambios de estado arbitrarios, calcular scores IA reales ni habilitar roles de jefe RRHH. La retención aprobada en B-04 aún requiere eliminación segura o anonimización automatizada. Reclutadores pueden publicar varias ofertas propias sin moderación previa. Revisar `REGLAS-NEGOCIO.md`.
+
+## M06 implementado — 2026-11-22
+
+`evaluacion` mantiene controladores HTTP, servicio de calificación/revisión, interfaces de repositorio/asistente y adaptadores MySQL/Ollama. Las dependencias se inyectan en `server.ts`; `app.ts` monta las cuatro rutas. Ollama se consulta fuera de transacciones y su respuesta se valida contra referencias del perfil confirmado; la persistencia vuelve a verificar versión y fuentes antes de escribir. El historial usa `m06_evaluation_revisions`, creado por una migración separada, sin alterar el esquema inicial.
+
+El frontend compone la ruta con `EvaluacionPostulante.astro` y concentra UI/API en `modules/evaluacion/`. La autorización explícita de M06 prepara la fórmula indicativa con revisión humana; los rankings, umbrales y validación real de B-06, así como la reevaluación de B-07, siguen fuera del alcance implementado. Ver [M06-IMPLEMENTACION.md](M06-IMPLEMENTACION.md).

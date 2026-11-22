@@ -1,11 +1,11 @@
 export class ApiError extends Error {
   constructor(message: string, public status: number, public code?: string) { super(message); }
 }
-export async function requestJson<T>(path: string, method = 'GET', data?: unknown): Promise<T> {
+export async function requestJson<T>(path: string, method = 'GET', data?: unknown, timeoutMs = 15000): Promise<T> {
   let response: Response;
   try {
     response = await fetch(`/api/v1/${path.replace(/^\//, '')}`, {
-      method, credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(15000),
+      method, credentials: 'same-origin', cache: 'no-store', signal: AbortSignal.timeout(timeoutMs),
       headers: { Accept: 'application/json', ...(method !== 'GET' ? {'Content-Type':'application/json','X-Qori-Client':'web'} : {}) },
       ...(data !== undefined ? {body: JSON.stringify(data)} : {}),
     });

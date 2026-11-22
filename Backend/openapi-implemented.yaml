@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
-  version: 0.5.0
+  version: 0.6.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05 implementa pruebas técnicas con publicación inmutable y reloj del servidor. M06-M08 siguen pendientes.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05 implementa pruebas técnicas con publicación inmutable y reloj del servidor. M06 implementa calificación objetiva y revisión asistida por requisito con Ollama local y revisión humana; la fórmula 60/40 o perfil sobre 100 es indicativa y requiere validación para uso real. M07-M08 siguen pendientes.
 servers:
   - url: /api/v1
 components:
@@ -18,6 +18,246 @@ components:
       schema: {type: string, enum: [web]}
       description: Cabecera obligatoria en mutaciones JSON y multipart; no se habilita CORS.
   schemas:
+    EvaluationAssessment:
+      type: object
+      additionalProperties: false
+      required:
+        - rating
+        - source_refs
+        - explanation
+      properties:
+        rating:
+          type: string
+          enum:
+            - MEETS
+            - PARTIAL
+            - DOES_NOT_MEET
+            - INSUFFICIENT_EVIDENCE
+        source_refs:
+          type: array
+          items:
+            type: string
+        explanation:
+          type: string
+          minLength: 1
+          maxLength: 2000
+    EvaluationCriterion:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - text
+        - weight
+        - suggestion
+        - review
+      properties:
+        id:
+          type: string
+        text:
+          type: string
+        weight:
+          type: number
+          minimum: 0
+          maximum: 100
+        suggestion:
+          $ref: "#/components/schemas/EvaluationAssessment"
+          nullable: true
+        review:
+          $ref: "#/components/schemas/EvaluationAssessment"
+          nullable: true
+    EvaluationDocument:
+      type: object
+      additionalProperties: false
+      required:
+        - revision
+        - fingerprint
+        - profile_version_id
+        - sources
+        - criteria
+        - profile_max
+        - model
+        - prompt_version
+        - reviewed_by
+        - reviewed_at
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        fingerprint:
+          type: string
+        profile_version_id:
+          type: string
+        sources:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - ref
+              - text
+            properties:
+              ref:
+                type: string
+              text:
+                type: string
+        criteria:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvaluationCriterion"
+        profile_max:
+          type: integer
+          enum:
+            - 60
+            - 100
+        model:
+          type: string
+          nullable: true
+        prompt_version:
+          type: string
+          nullable: true
+        reviewed_by:
+          type: string
+          nullable: true
+        reviewed_at:
+          type: string
+          format: date-time
+          nullable: true
+    EvaluationGrade:
+      type: object
+      additionalProperties: false
+      required:
+        - attempt_id
+        - exam_id
+        - title
+        - status
+        - correct
+        - total
+        - unanswered
+        - percent
+      properties:
+        attempt_id:
+          type: string
+        exam_id:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - SUBMITTED
+            - EXPIRED
+        correct:
+          type: integer
+        total:
+          type: integer
+          minimum: 1
+        unanswered:
+          type: integer
+        percent:
+          type: number
+          minimum: 0
+          maximum: 100
+    EvaluationView:
+      type: object
+      additionalProperties: false
+      required:
+        - application_id
+        - job_id
+        - job_title
+        - candidate_name
+        - confirmed
+        - requirement_count
+        - evaluation
+        - stale
+        - grades
+        - exam_count
+        - profile_max
+        - profile_points
+        - exam_points
+        - total
+        - pending
+        - indicative
+        - filter_questions_scored
+      properties:
+        application_id:
+          type: string
+        job_id:
+          type: string
+        job_title:
+          type: string
+        candidate_name:
+          type: string
+          nullable: true
+        confirmed:
+          type: boolean
+        requirement_count:
+          type: integer
+        evaluation:
+          $ref: "#/components/schemas/EvaluationDocument"
+          nullable: true
+        stale:
+          type: boolean
+        grades:
+          type: array
+          items:
+            $ref: "#/components/schemas/EvaluationGrade"
+        exam_count:
+          type: integer
+        profile_max:
+          type: integer
+          enum:
+            - 60
+            - 100
+        profile_points:
+          type: number
+        exam_points:
+          type: number
+          nullable: true
+        total:
+          type: number
+          nullable: true
+        pending:
+          type: array
+          items:
+            type: string
+        indicative:
+          type: boolean
+          enum:
+            - true
+        filter_questions_scored:
+          type: boolean
+          enum:
+            - false
+    EvaluationReviewInput:
+      type: object
+      additionalProperties: false
+      required:
+        - revision
+        - criteria
+      properties:
+        revision:
+          type: integer
+          minimum: 1
+        criteria:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required:
+              - id
+              - weight
+              - review
+            properties:
+              id:
+                type: string
+              weight:
+                type: number
+                minimum: 0
+                maximum: 100
+                multipleOf: 0.01
+              review:
+                $ref: "#/components/schemas/EvaluationAssessment"
+                nullable: true
     ExamInput:
       type: object
       additionalProperties: false
@@ -395,7 +635,7 @@ components:
         name: {type: string, minLength: 2, maxLength: 160}
         email: {type: string, format: email, maxLength: 254}
         phone: {type: string, nullable: true, maxLength: 32, description: 'Opcional; entre 7 y 15 dígitos, con separadores habituales.'}
-        dni: {type: string, nullable: true, pattern: '^([0-9]{8})?$', description: 'DNI peruano opcional; conserva ceros iniciales. Una cadena vac?a elimina el DNI.'}
+        dni: {type: string, nullable: true, pattern: '^([0-9]{8})?$', description: 'DNI peruano opcional; conserva ceros iniciales. Una cadena vacía elimina el DNI.'}
     RegisterCandidate:
       type: object
       additionalProperties: false
@@ -2098,3 +2338,229 @@ paths:
               additionalProperties: false
               required: []
               properties: {}
+  /recruiter/applications/{applicationId}/evaluation:
+    get:
+      tags:
+        - M06 Evaluación asistida
+      summary: Consultar evaluación y calificación objetiva
+      description: Solo reclutador propietario. Compara cada respuesta guardada de intentos SUBMITTED/EXPIRED con la clave del examen publicado; todas las preguntas pesan igual. Las omitidas aportan cero. Solo cuenta respuestas aceptadas antes del límite y no posteriores al envío. No devuelve claves ni perfiles sin confirmar.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+      responses:
+        "200":
+          description: Desglose indicativo; total nulo mientras falte revisión, evidencia o un único examen finalizado. No modifica estados de selección.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+    post:
+      tags:
+        - M06 Evaluación asistida
+      summary: Preparar revisión y persistir notas objetivas
+      description: Idempotente; exige perfil confirmado y requisitos. Conserva una instantánea profesional y distribuye 60 puntos con examen publicado o 100 sin examen, en centésimas. Incluye requisitos registrados y campos de experiencia y formación. Los exámenes en borrador no forman parte de la evaluación. Varias pruebas reciben notas separadas, pero el total queda pendiente de una regla de combinación. No reevalúa nuevas fuentes (B-07).
+      security:
+        - CookieSession: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+        - $ref: "#/components/parameters/ClientHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: []
+              properties: {}
+      responses:
+        "200":
+          description: Desglose indicativo; total nulo mientras falte revisión, evidencia o un único examen finalizado. No modifica estados de selección.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /recruiter/applications/{applicationId}/evaluation/assist:
+    post:
+      tags:
+        - M06 Evaluación asistida
+      summary: Solicitar sugerencias de Ollama local
+      description: Compara requisitos con fuentes profesionales del perfil confirmado. Referencias inexistentes, duplicadas o sin evidencia para una valoración se rechazan. No sustituye revisiones humanas. Timeout de 120 segundos; el cliente debe esperar hasta 130 segundos. Conflicto 409 si cambia revisión o fuentes durante la llamada; 422 si el contenido es demasiado extenso, 429 si el modelo está ocupado, 502 si la respuesta no pasa la validación, 503 si Ollama falla. La salida siempre requiere revisión.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+        - $ref: "#/components/parameters/ClientHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required:
+                - revision
+              properties:
+                revision:
+                  type: integer
+                  minimum: 1
+      responses:
+        "200":
+          description: Desglose indicativo; total nulo mientras falte revisión, evidencia o un único examen finalizado. No modifica estados de selección.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /recruiter/applications/{applicationId}/evaluation/review:
+    put:
+      tags:
+        - M06 Evaluación asistida
+      summary: Guardar revisión humana y pesos de la evaluación
+      description: Envía cada requisito exactamente una vez. Pesos no negativos con dos decimales que suman 60 o 100 según modalidad; son propios de esta evaluación, no crean una rúbrica global para ordenar postulantes. review=null conserva un requisito sin revisar. Toda valoración salvo INSUFFICIENT_EVIDENCE exige referencias existentes y explicación. MEETS=100 %, PARTIAL=50 %, DOES_NOT_MEET=0 % del peso. Sin evidencia o revisión, incluso con peso cero, total=null. El historial conserva actor, fecha y revisiones. No selecciona, descarta ni cambia el estado del postulante.
+      security:
+        - CookieSession: []
+      parameters:
+        - name: applicationId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]{0,19}$
+        - $ref: "#/components/parameters/ClientHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EvaluationReviewInput"
+      responses:
+        "200":
+          description: Desglose indicativo; total nulo mientras falte revisión, evidencia o un único examen finalizado. No modifica estados de selección.
+          headers:
+            X-Request-ID:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EvaluationView"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "409":
+          $ref: "#/components/responses/Error"
+        "422":
+          $ref: "#/components/responses/Error"
+        "429":
+          $ref: "#/components/responses/Error"
+        "502":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"

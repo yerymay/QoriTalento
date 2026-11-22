@@ -1,0 +1,20 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+---
+<Espacio view="home" role="RECRUITER" title="Evaluación del postulante" description="Contrasta la evidencia del perfil y revisa cada requisito antes de guardar tu valoración.">
+  <div data-evaluation class="space-y-6">
+    <nav aria-label="Expediente del postulante" class="flex flex-wrap gap-4">
+      <a data-evaluation-back href="/reclutador/ofertas" class="q-link inline-flex min-h-11 items-center">Volver a postulantes</a>
+      <a data-evaluation-cv href="/reclutador/ofertas" class="q-link inline-flex min-h-11 items-center">Consultar perfil y CV</a>
+    </nav>
+    <div data-evaluation-loading role="status" class="space-y-4">
+      <p>Cargando perfil, requisitos y resultados…</p>
+      <div aria-hidden="true" class="h-28 animate-pulse rounded-xl bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div>
+      <div aria-hidden="true" class="h-48 animate-pulse rounded-xl bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div>
+    </div>
+    <p data-evaluation-message role="status" tabindex="-1" class="q-notice" hidden></p>
+    <button data-evaluation-retry type="button" class="q-secondary" hidden>Volver a cargar</button>
+    <div data-evaluation-content class="space-y-6"></div>
+  </div>
+</Espacio>
+<script>import { initEvaluation } from '../evaluacion'; initEvaluation();</script>
