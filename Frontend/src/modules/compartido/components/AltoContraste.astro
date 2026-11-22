@@ -1,0 +1,26 @@
+﻿<button data-contrast-toggle type="button" aria-pressed="false" title="Alto contraste" class="q-secondary inline-flex min-w-11 items-center justify-center gap-2">
+  <svg aria-hidden="true" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"></path></svg>
+  <span class="sr-only lg:not-sr-only">Alto contraste</span>
+</button>
+<script>
+  const clave = 'qori-contrast';
+  const raiz = document.documentElement;
+  const media = matchMedia('(prefers-contrast: more)');
+  let memoria: 'high' | 'normal' | null = null;
+  const guardado = (): 'high' | 'normal' | null => {
+    try { const valor = localStorage.getItem(clave); return valor === 'high' || valor === 'normal' ? valor : memoria; } catch { return memoria; }
+  };
+  const botones = document.querySelectorAll<HTMLButtonElement>('[data-contrast-toggle]');
+  const pintar = (alto: boolean) => {
+    if (alto) raiz.dataset.contraste = 'alto'; else delete raiz.dataset.contraste;
+    botones.forEach(boton => boton.setAttribute('aria-pressed', String(alto)));
+  };
+  pintar((guardado() ?? (media.matches ? 'high' : 'normal')) === 'high');
+  botones.forEach(boton => boton.addEventListener('click', () => {
+    const alto = raiz.dataset.contraste !== 'alto';
+    memoria = alto ? 'high' : 'normal';
+    try { localStorage.setItem(clave, memoria); } catch { /* Funciona durante la sesión sin persistencia. */ }
+    pintar(alto);
+  }));
+  media.addEventListener('change', () => { if (guardado() === null) pintar(media.matches); });
+</script>

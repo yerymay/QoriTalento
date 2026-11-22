@@ -3,9 +3,9 @@ import Espacio from '../../auth/components/Espacio.astro';
 ---
 <Espacio view="home" role="RECRUITER" title="Currículums de la oferta" description="Consulta los perfiles confirmados y revisa cada documento original.">
   <div data-cv-applicants class="space-y-5">
-    <a href="/reclutador/ofertas" class="q-link">Volver a mis ofertas</a>
-    <p data-applicants-state role="status">Cargando postulantes…</p>
-    <button data-applicants-retry type="button" class="q-secondary" hidden>Reintentar</button>
+    <a href="/reclutador/ofertas" class="q-link" data-i18n="texto.Vm9sdmVyIGEgbWlzIG9mZXJ0YXM">Volver a mis ofertas</a>
+    <p data-applicants-state role="status" data-i18n="texto.Q2FyZ2FuZG8gcG9zdHVsYW50ZXM_">Cargando postulantes…</p>
+    <button data-applicants-retry type="button" class="q-secondary" hidden data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button>
     <ul data-applicants-list class="divide-y divide-slate-200 dark:divide-slate-700"></ul>
   </div>
 </Espacio>

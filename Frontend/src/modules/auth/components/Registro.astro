@@ -3,37 +3,38 @@ import CampoLogin from './CampoLogin.astro';
 import DropdownSelector from './DropdownSelector.astro';
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
+import AltoContraste from '../../compartido/components/AltoContraste.astro';
 interface Props { initialRole?: 'CANDIDATE'|'RECRUITER' }
 const { initialRole='CANDIDATE' } = Astro.props;
 const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulante';
 ---
-<header class="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-9"><Marca /><Tema /></header>
-<main class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-9">
+<header class="flex items-center justify-between gap-4 border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900 sm:px-9"><Marca /><div class="flex items-center gap-3"><AltoContraste /><Tema /></div></header>
+<main id="contenido" tabindex="-1" class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-9">
   <div class="grid items-start gap-10 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
-    <section class="hidden space-y-5 pt-6 lg:block"><p class="font-semibold text-sky-700 dark:text-sky-300">Qori Talento</p><h1 class="max-w-md text-4xl font-bold leading-tight">Un espacio para cada paso del proceso.</h1><p class="max-w-sm leading-7 text-slate-600 dark:text-slate-300">Elige cómo participar. Tu cuenta queda lista al registrarte.</p></section>
+    <section class="hidden space-y-5 pt-6 lg:block"><p class="font-semibold text-sky-700 dark:text-sky-300">Qori Talento</p><h1 class="max-w-md text-4xl font-bold leading-tight" data-i18n="texto.VW4gZXNwYWNpbyBwYXJhIGNhZGEgcGFzbyBkZWwgcHJvY2Vzby4">Un espacio para cada paso del proceso.</h1><p class="max-w-sm leading-7 text-slate-600 dark:text-slate-300" data-i18n="texto.RWxpZ2UgYz9tbyBwYXJ0aWNpcGFyLiBUdSBjdWVudGEgcXVlZGEgbGlzdGEgYWwgcmVnaXN0cmFydGUu">Elige cómo participar. Tu cuenta queda lista al registrarte.</p></section>
     <section class="q-card mx-auto w-full max-w-xl p-6 sm:p-8">
-      <div class="mb-7"><h1 class="text-3xl font-bold">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300">Completa tus datos para registrarte.</p><p class="mt-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-200"><span class="h-2 w-2 rounded-full bg-sky-600"></span>Crearás una cuenta como: <span data-role-summary>{selectedRoleLabel}</span></p></div>
+      <div class="mb-7"><h1 class="text-3xl font-bold" data-i18n="texto.Q3JlYSB0dSBjdWVudGE">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300" data-i18n="texto.Q29tcGxldGEgdHVzIGRhdG9zIHBhcmEgcmVnaXN0cmFydGUu">Completa tus datos para registrarte.</p><p class="mt-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-200"><span class="h-2 w-2 rounded-full bg-sky-600"></span>Crearás una cuenta como: <span data-role-summary>{selectedRoleLabel}</span></p></div>
       <form method="post" data-auth-form="register" class="space-y-5" novalidate>
         <DropdownSelector id="role" label="Quiero registrarme como" name="role" value={initialRole} options={[{value:'CANDIDATE',label:'Postulante'},{value:'RECRUITER',label:'Reclutador'}]} />
         <div data-recruiter hidden class="space-y-2">
           <DropdownSelector id="kind" label="Tipo de reclutador" name="kind" value="COMPANY" options={[{value:'COMPANY',label:'Empresa'},{value:'INDIVIDUAL',label:'Particular'}]} />
-          <p class="text-sm text-slate-600 dark:text-slate-300">Si representas a una empresa, usa tu correo corporativo.</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.U2kgcmVwcmVzZW50YXMgYSB1bmEgZW1wcmVzYSwgdXNhIHR1IGNvcnJlbyBjb3Jwb3JhdGl2by4">Si representas a una empresa, usa tu correo corporativo.</p>
         </div>
         <CampoLogin surface="card" id="name" label="Nombre completo" type="text" autocomplete="name" min={2} max={160} />
         <CampoLogin surface="card" id="email" label="Correo electrónico" type="email" autocomplete="email" max={254} />
         <div data-phone-group hidden>
           <CampoLogin surface="card" id="phone" label="Teléfono de contacto" type="tel" autocomplete="tel" min={7} max={32} />
-          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Necesario para reclutadores particulares.</p>
+          <p class="mt-2 text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.TmVjZXNhcmlvIHBhcmEgcmVjbHV0YWRvcmVzIHBhcnRpY3VsYXJlcy4">Necesario para reclutadores particulares.</p>
         </div>
         <div>
           <CampoLogin surface="card" id="password" label="Contraseña" type="password" autocomplete="new-password" min={8} max={128} describedby="password-rules" />
           <div id="password-rules" class="mt-3 text-sm text-slate-700 dark:text-slate-300">
-            <p class="font-medium">Revisa tu contraseña</p>
+            <p class="font-medium" data-i18n="texto.UmV2aXNhIHR1IGNvbnRyYXNlP2E">Revisa tu contraseña</p>
             <ul class="mt-2 space-y-1">
               {[['length','Al menos 8 caracteres (obligatorio)'],['lowercase','Una letra minúscula (recomendado)'],['special','Un carácter especial, como ! o @ (recomendado)']].map(([rule,label]) =>
                 <li data-password-rule={rule} class="flex items-start gap-2">
                   <svg class="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.5 11.5 11 14l4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                  <span>{label} — <span data-rule-status>Pendiente</span></span>
+                  <span>{label} — <span data-rule-status data-i18n="texto.UGVuZGllbnRl">Pendiente</span></span>
                 </li>
               )}
             </ul>
@@ -41,13 +42,14 @@ const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulan
         </div>
         <CampoLogin surface="card" id="confirm_password" label="Confirmar contraseña" type="password" autocomplete="new-password" max={128} />
         <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
-        <label class="flex min-h-11 items-center gap-3 text-sm text-slate-700 dark:text-slate-200"><input data-login-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> Sonidos de confirmaci?n</label>
-        <button data-submit type="submit" class="q-primary w-full" disabled>Crear cuenta</button>
-        <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a data-signin-link href={`/login?role=${initialRole}`} class="q-link">Inicia sesión</a></p>
-        <p class="text-sm leading-6 text-slate-600 dark:text-slate-300">Al registrarte podrás iniciar sesión de inmediato.</p>
+        <label class="flex min-h-11 items-center gap-3 text-sm text-slate-700 dark:text-slate-200"><input data-login-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> <span data-i18n="revisado.787bec62b79f4c06">Sonidos de confirmación</span></label>
+        <button data-submit type="submit" class="q-primary w-full" disabled data-i18n="texto.Q3JlYXIgY3VlbnRh">Crear cuenta</button>
+        <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a data-signin-link href={`/login?role=${initialRole}`} class="q-link" data-i18n="texto.SW5pY2lhIHNlc2k_bg">Inicia sesión</a></p>
+        <p class="text-sm leading-6 text-slate-600 dark:text-slate-300" data-i18n="texto.QWwgcmVnaXN0cmFydGUgcG9kcj9zIGluaWNpYXIgc2VzaT9uIGRlIGlubWVkaWF0by4">Al registrarte podrás iniciar sesión de inmediato.</p>
       </form>
       <noscript>Activa JavaScript para registrar tu cuenta.</noscript>
     </section>
   </div>
 </main>
 <script>import { initAuthForm } from '../forms'; initAuthForm();</script>
+

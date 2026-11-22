@@ -13,7 +13,7 @@ const { labels, kind, label } = Astro.props;
         {index < labels.length - 1 && <span aria-hidden="true" class="q-stepper-line absolute left-1/2 top-[17px] h-0.5 w-full bg-slate-300 dark:bg-slate-700"></span>}
       </div>
       <span class="mx-auto mt-2 block max-w-36 px-1 text-center leading-snug">{text}</span>
-      <span data-step-state class="sr-only">Pendiente</span>
+      <span data-step-state class="sr-only" data-i18n="texto.UGVuZGllbnRl">Pendiente</span>
     </li>)}
   </ol>
 </nav>

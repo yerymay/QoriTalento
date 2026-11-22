@@ -1,47 +1,49 @@
----
+﻿---
 import Marca from './Marca.astro';
 import Tema from './Tema.astro';
+import AltoContraste from '../../compartido/components/AltoContraste.astro';
 import MenuPerfil from './MenuPerfil.astro';
 import Perfil from './Perfil.astro';
 interface Props { view?:'profile'|'home'|'applications'|'settings'|'exams'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string }
 const {view='profile',role,title,description}=Astro.props;
 ---
 <div data-workspace data-view={view} data-role={role} class="min-h-screen lg:pl-64">
-  <aside id="account-sidebar" aria-label="Navegación principal" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white p-5 transition-transform duration-200 motion-reduce:transition-none dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0">
+  <aside data-i18n-aria-label="revisado.781509b25aa03251" id="account-sidebar" aria-label="Navegación principal" class="fixed inset-y-0 left-0 z-40 flex w-64 -translate-x-full flex-col border-r border-slate-200 bg-white p-5 transition-transform duration-200 motion-reduce:transition-none dark:border-slate-800 dark:bg-slate-900 lg:translate-x-0">
     <div class="flex items-center justify-between gap-2">
       <Marca />
-      <button data-menu-close type="button" aria-label="Cerrar menú" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 18 18 6M18 18 6 6"/></svg></button>
+      <button data-i18n-aria-label="revisado.f296f95ab8b39321" data-menu-close type="button" aria-label="Cerrar menú" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 18 18 6M18 18 6 6"/></svg></button>
     </div>
-    <div class="mt-8 rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700"><p class="text-sm text-slate-600 dark:text-slate-300">Mi espacio</p><p data-space class="mt-1 font-semibold">Tu cuenta</p></div>
-    <nav id="account-nav" aria-label="Navegación de la cuenta" class="mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto">
-      <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a3 3 0 0 1 6 0v2M4 8h16v11H4V8Zm0 5h16"/></svg><span data-home-label>Ofertas</span></a>
-      <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg><span>Mis postulaciones</span></a>
-      <a data-exam-nav href="/login" class:list={['q-nav', {'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='exams'}]} aria-current={view==='exams'?'page':undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 4H5v17h14V4h-3M9 3h6v4H9zM8 12l2 2 5-5M8 18h8"/></svg><span>Pruebas técnicas</span></a>
-      <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg><span>Mi perfil</span></a>
+    <div class="mt-8 rounded-xl border border-slate-200 px-3 py-3 dark:border-slate-700"><p class="text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.TWkgZXNwYWNpbw">Mi espacio</p><p data-space class="mt-1 font-semibold" data-i18n="texto.VHUgY3VlbnRh">Tu cuenta</p></div>
+    <nav data-i18n-aria-label="revisado.222a5890db7a0817" id="account-nav" aria-label="Navegación de la cuenta" class="mt-6 min-h-0 flex-1 space-y-1 overflow-y-auto">
+      <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7V5a3 3 0 0 1 6 0v2M4 8h16v11H4V8Zm0 5h16"/></svg><span data-home-label data-i18n="texto.T2ZlcnRhcw">Ofertas</span></a>
+      <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg><span data-i18n="texto.TWlzIHBvc3R1bGFjaW9uZXM">Mis postulaciones</span></a>
+      <a data-exam-nav href="/login" class:list={['q-nav', {'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='exams'}]} aria-current={view==='exams'?'page':undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M8 4H5v17h14V4h-3M9 3h6v4H9zM8 12l2 2 5-5M8 18h8"/></svg><span data-i18n="texto.UHJ1ZWJhcyB0P2NuaWNhcw">Pruebas técnicas</span></a>
+      <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg><span data-i18n="texto.TWkgcGVyZmls">Mi perfil</span></a>
     </nav>
     <div class="mt-5 border-t border-slate-200 pt-4 dark:border-slate-700">
       <button data-logout type="button" class="q-nav w-full text-left"><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H4m12 0-4 4m4-4-4-4m3-4h2a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3h-2"/></svg>Cerrar sesión</button>
-      <p class="mt-4 text-sm leading-5 text-slate-600 dark:text-slate-300">Hecho para conectar<br /><span class="font-semibold text-slate-900 dark:text-white">personas y posibilidades.</span></p>
+      <p class="mt-4 text-sm leading-5 text-slate-600 dark:text-slate-300">Hecho para conectar<br /><span class="font-semibold text-slate-900 dark:text-white" data-i18n="texto.cGVyc29uYXMgeSBwb3NpYmlsaWRhZGVzLg">personas y posibilidades.</span></p>
     </div>
   </aside>
   <div class="min-w-0">
     <header class="sticky top-0 z-20 flex min-h-18 items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900 sm:px-8">
       <div class="flex min-w-0 items-center gap-2">
-        <button data-menu type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="account-sidebar" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/></svg></button>
+        <button data-i18n-aria-label="revisado.1a7de9bc490f0ea3" data-menu type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="account-sidebar" class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:text-slate-200 dark:hover:bg-slate-800 lg:hidden"><svg aria-hidden="true" class="h-6 w-6" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M5 7h14M5 12h14M5 17h10"/></svg></button>
         <div class="hidden sm:block lg:hidden"><Marca /></div><span class="hidden text-sm font-bold text-sky-800 dark:text-sky-200 min-[360px]:inline sm:hidden">Qori Talento</span>
         <p class="hidden text-sm text-slate-600 dark:text-slate-300 lg:block">Mi espacio <span aria-hidden="true" class="mx-2">/</span><span class="font-medium text-slate-900 dark:text-white">{title ?? (view==='profile'?'Mi perfil':'Ofertas')}</span></p>
       </div>
       <div class="flex min-w-0 shrink items-center gap-3">
+        <AltoContraste />
         <Tema />
         <MenuPerfil />
       </div>
     </header>
-    <main class="space-y-6 p-4 sm:p-9">
+    <main id="contenido" tabindex="-1" class="space-y-6 p-4 sm:p-9">
       <header><h1 class="text-3xl font-bold">{title ?? (view==='profile'?'Mi perfil':role==='RECRUITER'?'Mis ofertas':'Encuentra tu próxima oportunidad')}</h1><p class="mt-2 text-slate-600 dark:text-slate-300">{description ?? (view==='profile'?'Mantén tus datos de contacto actualizados.':'Tu espacio según el rol de tu cuenta.')}</p></header>
-      <div data-loading role="status" class="q-card space-y-5 p-6"><p>Cargando tu cuenta…</p><div class="h-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div></div>
+      <div data-loading role="status" class="q-card space-y-5 p-6"><p data-i18n="texto.Q2FyZ2FuZG8gdHUgY3VlbnRhPw">Cargando tu cuenta…</p><div class="h-8 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div><div class="h-12 animate-pulse rounded bg-slate-200 dark:bg-slate-700"></div></div>
       <div data-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
-      <button data-retry type="button" class="q-secondary" hidden>Reintentar</button>
-      <a data-signin href="/login" class="q-primary inline-flex items-center" hidden>Iniciar sesión</a>
+      <button data-retry type="button" class="q-secondary" hidden data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button>
+      <a data-signin href="/login" class="q-primary inline-flex items-center" hidden data-i18n="texto.SW5pY2lhciBzZXNpP24">Iniciar sesión</a>
       <section data-private hidden>
         {view==='profile' ? <Perfil /> : <slot />}
         {view==='profile' && <slot name="profile-details" />}
@@ -51,9 +53,10 @@ const {view='profile',role,title,description}=Astro.props;
   </div>
 </div>
 <dialog data-expiry aria-labelledby="expiry-title" class="m-auto max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
-  <h2 id="expiry-title" class="text-xl font-bold">Tu sesión está por terminar</h2><p class="my-4">Llevas un tiempo sin actividad. Continúa para mantener tu sesión.</p><div class="flex flex-wrap gap-3"><button data-continue class="q-primary" type="button">Continuar sesión</button><button data-end class="q-secondary" type="button">Cerrar sesión</button></div>
+  <h2 id="expiry-title" class="text-xl font-bold" data-i18n="texto.VHUgc2VzaT9uIGVzdD8gcG9yIHRlcm1pbmFy">Tu sesión está por terminar</h2><p class="my-4" data-i18n="texto.TGxldmFzIHVuIHRpZW1wbyBzaW4gYWN0aXZpZGFkLiBDb250aW4_YSBwYXJhIG1hbnRlbmVyIHR1IHNlc2k_bi4">Llevas un tiempo sin actividad. Continúa para mantener tu sesión.</p><div class="flex flex-wrap gap-3"><button data-continue class="q-primary" type="button" data-i18n="texto.Q29udGludWFyIHNlc2k_bg">Continuar sesión</button><button data-end class="q-secondary" type="button" data-i18n="texto.Q2VycmFyIHNlc2k_bg">Cerrar sesión</button></div>
 </dialog>
 <dialog data-confirm aria-labelledby="confirm-title" class="m-auto max-w-md rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
-<h2 id="confirm-title" class="text-xl font-bold">Vuelve a iniciar sesión</h2><p class="my-4">Este cambio cerrará tus sesiones. Podrás volver a ingresar con tus datos actualizados.</p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary">Cancelar</button><button value="save" class="q-primary">Guardar y cerrar sesión</button></form>
+<h2 id="confirm-title" class="text-xl font-bold" data-i18n="texto.VnVlbHZlIGEgaW5pY2lhciBzZXNpP24">Vuelve a iniciar sesión</h2><p class="my-4" data-i18n="texto.RXN0ZSBjYW1iaW8gY2VycmFyPyB0dXMgc2VzaW9uZXMuIFBvZHI_cyB2b2x2ZXIgYSBpbmdyZXNhciBjb24gdHVzIGRhdG9zIGFjdHVhbGl6YWRvcy4">Este cambio cerrará tus sesiones. Podrás volver a ingresar con tus datos actualizados.</p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary" data-i18n="texto.Q2FuY2VsYXI">Cancelar</button><button value="save" class="q-primary" data-i18n="texto.R3VhcmRhciB5IGNlcnJhciBzZXNpP24">Guardar y cerrar sesión</button></form>
 </dialog>
 <script>import { initWorkspace } from '../workspace'; initWorkspace();</script>
+

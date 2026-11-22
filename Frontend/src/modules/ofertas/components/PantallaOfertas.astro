@@ -14,8 +14,8 @@ const description = view === 'list' ? owned ? 'Gestiona cada oportunidad, desde 
   <div data-ofertas data-job-view={view} data-job-owned={String(owned)} class="q-ofertas space-y-5">
     {owned && view === 'list' && <div class="flex justify-end"><a href="/reclutador/nueva-oferta" class="q-primary inline-flex items-center">Crear oferta</a></div>}
     <div data-job-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
-    <div data-job-recovery class="flex flex-wrap gap-3" hidden><button data-job-retry type="button" class="q-secondary">Reintentar</button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link">Volver al listado</a></div>
-    <div data-job-loading class="q-card space-y-4 p-6" role="status" hidden><p>Cargando oferta…</p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
+    <div data-job-recovery class="flex flex-wrap gap-3" hidden><button data-job-retry type="button" class="q-secondary" data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link"><span data-i18n="revisado.afbd45731e06272b">Volver al listado</span></a></div>
+    <div data-job-loading class="q-card space-y-4 p-6" role="status" hidden><p><span data-i18n="revisado.03a61ec8d9305473">Cargando oferta…</span></p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
     {view === 'list' ? <Listado owned={owned} /> : view === 'detail' ? <Detalle /> : <Editor wizard={view === 'new'} />}
   </div>
 </Espacio>

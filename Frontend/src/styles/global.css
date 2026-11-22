@@ -1,5 +1,6 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 @import "@fontsource-variable/inter";
+@import "./inclusivo.css";
 @plugin "flowbite/plugin";
 @source "../../node_modules/flowbite";
 @custom-variant dark (&:where(.dark, .dark *));
@@ -43,3 +44,4 @@ input::placeholder { color: var(--color-slate-600); }
 /* Asegura el contraste de los controles secundarios en tema oscuro. */
 :root.dark .q-secondary { background-color: var(--color-slate-900); color: white; border-color: var(--color-slate-600); }
 @media (hover: hover) { :root.dark .q-secondary:hover { background-color: var(--color-slate-800); } }
+

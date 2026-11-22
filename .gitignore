@@ -36,3 +36,5 @@ skills-lock.json
 **/.impeccable/live/pending-manual-edits.json
 **/.impeccable/live/deferred-svelte-component-accepts.json
 **/.impeccable/live/*.png
+/Frontend/scripts/
+/Frontend/src/modules/compartido/i18n/FUENTES-QUECHUA.md
