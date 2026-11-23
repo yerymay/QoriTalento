@@ -1,4 +1,5 @@
 ---
+import Button from './ui/Button.astro';
 interface Props {
   id: string;
   texto: string;
@@ -10,7 +11,7 @@ interface Props {
 }
 const { id, texto, tipo = 'button', tono = 'exito', sonido = false, vibracion = false, alActivar = false } = Astro.props;
 ---
-<button id={id} type={tipo} class="q-primary motion-reduce:transform-none motion-reduce:transition-none" data-boton-multimodal data-tono={tono} data-sonido={String(sonido)} data-vibracion={String(vibracion)} data-al-activar={String(alActivar)}>{texto}</button>
+<Button variant="primary" id={id} type={tipo} class="ui-button--primary motion-reduce:transform-none motion-reduce:transition-none" data-boton-multimodal data-tono={tono} data-sonido={String(sonido)} data-vibracion={String(vibracion)} data-al-activar={String(alActivar)}>{texto}</Button>
 
 <script>
   import { prepararAudio, emitirRetroalimentacion, esTono } from '../confirmacion-multimodal';

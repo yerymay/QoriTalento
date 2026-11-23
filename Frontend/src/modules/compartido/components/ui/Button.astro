@@ -1,0 +1,30 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = Omit<HTMLAttributes<'button'>, 'disabled'> &
+  Pick<HTMLAttributes<'a'>, 'href' | 'target' | 'rel' | 'download'> & {
+    as?: 'button' | 'a';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon';
+    disabled?: boolean;
+    loading?: boolean;
+    success?: boolean;
+  };
+
+const {as, variant='primary', href, loading=false, success=false,
+  disabled=false, class:className, type='button', ...attrs} = Astro.props;
+const Tag = as ?? (href !== undefined ? 'a' : 'button');
+const isLink = Tag === 'a';
+const unavailable = disabled || loading;
+---
+<Tag
+  {...attrs}
+  href={unavailable ? undefined : href}
+  type={isLink ? undefined : type}
+  disabled={isLink ? undefined : unavailable}
+  role={isLink && unavailable ? 'link' : attrs.role}
+  tabindex={isLink && unavailable ? -1 : attrs.tabindex}
+  aria-disabled={isLink ? unavailable || attrs['aria-disabled'] : attrs['aria-disabled']}
+  aria-busy={loading || attrs['aria-busy']}
+  class:list={['ui-button', `ui-button--${variant}`, {'ui-button-loading':loading}, className]}
+  data-success={success || undefined}
+><slot /></Tag>

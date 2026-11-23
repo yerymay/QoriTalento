@@ -21,8 +21,13 @@ export function initApplicationWizard(root: HTMLElement) {
   let step = 1, busy = false, epoch = 0, title = '', uncertain = false;
   let controller: AbortController | undefined;
   const field = (key: keyof CvProfile) => el<HTMLInputElement | HTMLTextAreaElement>('[data-profile-field="' + key + '"]');
+  const setNotice=(heading:string,detail:string,tone='info')=>{
+    const title=document.createElement('strong');title.className='block';title.textContent=heading;
+    const text=document.createElement('p');text.className='mt-1';text.textContent=detail;
+    notice.replaceChildren(title,text);notice.dataset.tone=tone;notice.setAttribute('role',tone==='error'?'alert':'status');notice.hidden=false;
+  };
   const say = (message: string) => {
-    notice.textContent = message; notice.dataset.tone = 'error'; notice.hidden = false; notice.focus(); senalDeAccion('error');
+    setNotice('Revisa este paso',message,'error');notice.focus(); senalDeAccion('error');
   };
   const fail = (error: unknown) => {
     if (error instanceof ApiError && (error.status === 401 || error.code === 'FORBIDDEN')) {
@@ -42,6 +47,10 @@ export function initApplicationWizard(root: HTMLElement) {
     root.querySelectorAll<HTMLElement>('[data-wizard-step]').forEach(panel => panel.hidden = Number(panel.dataset.wizardStep) !== step);
     updateStepper(root.querySelectorAll<HTMLElement>('[data-step-indicator]'), step, 1);
     el('[data-step-status]').textContent = 'Paso ' + step + ' de 3';
+    const panel=el<HTMLElement>('[data-wizard-step="'+step+'"]');panel.insertBefore(notice,panel.children[1]??null);notice.dataset.wizardAlert=String(step);
+    const titles=['Adjunta un PDF con texto','Verifica los datos del CV','Confirma el envío'];
+    const details=['Tu postulación se registrará únicamente al confirmar el último paso.','Los campos detectados están marcados; completa los demás y corrige lo necesario.','El reclutador podrá consultar el CV y los datos confirmados. Revisa el resumen antes de aceptar.'];
+    setNotice(titles[step-1]!,details[step-1]!+(step===2&&preview?.warnings.length?' '+preview.warnings.join(' '):''),step===2&&preview?.warnings.length?'warning':'info');
     controls();
     if (focus) el<HTMLElement>('[data-wizard-step="' + step + '"] h3').focus();
   };
@@ -77,7 +86,6 @@ export function initApplicationWizard(root: HTMLElement) {
     if (busy || submitted || uncertain) return;
     el('[data-file-error]').hidden = true;
     if (!selected) return;
-    notice.hidden = true;
     preview = undefined; file = undefined; consent.checked = false;
     if (!selected.name.toLowerCase().endsWith('.pdf') || (selected.type && selected.type !== 'application/pdf') || !selected.size || selected.size > 5_000_000) {
       el('[data-file-error]').textContent = 'Selecciona un PDF con texto de hasta 5 MB.';
@@ -91,6 +99,7 @@ export function initApplicationWizard(root: HTMLElement) {
   };
   const load = async () => {
     const run = ++epoch;
+    root.insertBefore(notice,el('[data-form-content]'));delete notice.dataset.wizardAlert;
     el('[data-app-loading]').hidden = false; el('[data-app-recovery]').hidden = true; notice.hidden = true;
     try {
       if (applicationId) {
@@ -130,7 +139,6 @@ export function initApplicationWizard(root: HTMLElement) {
   form.addEventListener('submit', async event => {
     event.preventDefault();
     if (busy || uncertain || !session || !file) return;
-    notice.hidden = true;
     if (step === 2) {
       if (!validate()) return;
       const data = read();
@@ -172,10 +180,8 @@ export function initApplicationWizard(root: HTMLElement) {
             const value = result.profile[definition.key];
             field(definition.key).value = Array.isArray(value) ? value.join('\n\n') : value;
             const origin = root.querySelector<HTMLElement>('[data-field-origin="' + definition.key + '"]');
-            if (origin) origin.textContent = value.length ? 'Extraído del CV · Revisa este dato' : 'No detectado · Puedes completarlo';
+            if(origin){origin.textContent=value.length?'Detectado del CV':'Completa tú';origin.dataset.tone=value.length?'info':'warning';}
           }
-          el('[data-extraction-warning]').textContent = result.warnings.join(' ');
-          el('[data-extraction-warning]').hidden = !result.warnings.length;
         }
         showStep(2);
       } else {
@@ -195,6 +201,7 @@ export function initApplicationWizard(root: HTMLElement) {
         await cv.confirm(submitted.id, review, read());
         if (run !== epoch || !session) return;
         file = undefined; preview = undefined; fileInput.value = '';
+        notice.hidden = true; el('[data-app-recovery]').hidden = true;
         el('[data-form-content]').hidden = true;
         el('#application-success-title').textContent = current ? 'Currículum actualizado' : 'Postulación registrada';
         el('[data-success-copy]').textContent = 'Tu CV y los datos confirmados para ' + title + ' se guardaron correctamente. Puedes seguir el proceso en Mis postulaciones.';

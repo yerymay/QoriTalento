@@ -3,18 +3,18 @@
 .q-skip:focus { transform: none; }
 main:focus { outline: none; }
 @media (forced-colors: active) {
-  .q-primary, .q-secondary, .q-input, .q-card, .q-notice, dialog { border: 2px solid CanvasText; }
+  .ui-button--primary, .ui-button--secondary, .q-input, .ui-panel, .ui-alert, dialog { border: 2px solid CanvasText; }
   :focus-visible { outline: 3px solid Highlight; outline-offset: 2px; }
 }
 :root[data-contraste="alto"] { --hc-fondo: #fff; --hc-texto: #000; --hc-borde: #000; --hc-foco: #000; --hc-interior: #fff; }
 :root.dark[data-contraste="alto"] { --hc-fondo: #000; --hc-texto: #fff; --hc-borde: #fff; --hc-foco: #ffd400; --hc-interior: #000; }
 :root[data-contraste="alto"] body { background: var(--hc-fondo); color: var(--hc-texto); font-weight: 600; }
 :root[data-contraste="alto"] :is(h1,h2,h3,h4,button,label,legend,summary,th,strong) { font-weight: 700; }
-:root[data-contraste="alto"] :is(.q-card,dialog,[role="menu"]) { background: var(--hc-fondo); color: var(--hc-texto); border: 2px solid var(--hc-borde); }
-:root[data-contraste="alto"] :is(.q-input,.q-secondary,textarea,select) { background: var(--hc-fondo); color: var(--hc-texto); border: 2px solid var(--hc-borde); }
-:root[data-contraste="alto"] .q-primary { background: var(--hc-texto); color: var(--hc-fondo); border: 2px solid var(--hc-borde); }
+:root[data-contraste="alto"] :is(.ui-panel,dialog,[role="menu"]) { background: var(--hc-fondo); color: var(--hc-texto); border: 2px solid var(--hc-borde); }
+:root[data-contraste="alto"] :is(.q-input,.ui-button--secondary,textarea,select) { background: var(--hc-fondo); color: var(--hc-texto); border: 2px solid var(--hc-borde); }
+:root[data-contraste="alto"] .ui-button--primary { background: var(--hc-texto); color: var(--hc-fondo); border: 2px solid var(--hc-borde); }
 :root[data-contraste="alto"] input::placeholder, :root[data-contraste="alto"] textarea::placeholder { color: var(--hc-texto); opacity: 1; }
-:root[data-contraste="alto"] a:not(.q-nav):not(.q-primary):not(.q-secondary) { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+:root[data-contraste="alto"] a:not(.q-nav):not(.ui-button--primary):not(.ui-button--secondary) { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
 :root[data-contraste="alto"] :disabled { border: 2px dashed var(--hc-borde); opacity: 1; }
 :root[data-contraste="alto"] [aria-current="page"] { outline: 2px solid var(--hc-borde); outline-offset: -2px; font-weight: 700; }
 :root[data-contraste="alto"] :is(a,button,input,select,textarea,summary,[tabindex]):focus-visible { outline: 3px solid var(--hc-foco); outline-offset: 3px; box-shadow: 0 0 0 3px var(--hc-interior) !important; }

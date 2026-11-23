@@ -1,4 +1,7 @@
-﻿---
+---
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
 import CampoLogin from './CampoLogin.astro';
 import DropdownSelector from './DropdownSelector.astro';
 import Marca from './Marca.astro';
@@ -12,7 +15,7 @@ const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulan
 <main id="contenido" tabindex="-1" class="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-9">
   <div class="grid items-start gap-10 lg:grid-cols-[minmax(280px,0.8fr)_minmax(0,1.2fr)] lg:gap-16">
     <section class="hidden space-y-5 pt-6 lg:block"><p class="font-semibold text-sky-700 dark:text-sky-300">Qori Talento</p><h1 class="max-w-md text-4xl font-bold leading-tight" data-i18n="texto.VW4gZXNwYWNpbyBwYXJhIGNhZGEgcGFzbyBkZWwgcHJvY2Vzby4">Un espacio para cada paso del proceso.</h1><p class="max-w-sm leading-7 text-slate-600 dark:text-slate-300" data-i18n="texto.RWxpZ2UgYz9tbyBwYXJ0aWNpcGFyLiBUdSBjdWVudGEgcXVlZGEgbGlzdGEgYWwgcmVnaXN0cmFydGUu">Elige cómo participar. Tu cuenta queda lista al registrarte.</p></section>
-    <section class="q-card mx-auto w-full max-w-xl p-6 sm:p-8">
+    <Panel as="section" class="ui-panel mx-auto w-full max-w-xl p-6 sm:p-8">
       <div class="mb-7"><h1 class="text-3xl font-bold" data-i18n="texto.Q3JlYSB0dSBjdWVudGE">Crea tu cuenta</h1><p class="mt-2 text-slate-600 dark:text-slate-300" data-i18n="texto.Q29tcGxldGEgdHVzIGRhdG9zIHBhcmEgcmVnaXN0cmFydGUu">Completa tus datos para registrarte.</p><p class="mt-4 inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-2 text-sm font-semibold text-sky-800 dark:bg-sky-950 dark:text-sky-200"><span class="h-2 w-2 rounded-full bg-sky-600"></span>Crearás una cuenta como: <span data-role-summary>{selectedRoleLabel}</span></p></div>
       <form method="post" data-auth-form="register" class="space-y-5" novalidate>
         <DropdownSelector id="role" label="Quiero registrarme como" name="role" value={initialRole} options={[{value:'CANDIDATE',label:'Postulante'},{value:'RECRUITER',label:'Reclutador'}]} />
@@ -41,14 +44,14 @@ const selectedRoleLabel = initialRole === 'RECRUITER' ? 'Reclutador' : 'Postulan
           </div>
         </div>
         <CampoLogin surface="card" id="confirm_password" label="Confirmar contraseña" type="password" autocomplete="new-password" max={128} />
-        <p data-message role="status" tabindex="-1" class="q-notice" hidden></p>
+        <Alert as="p" data-message role="status" tabindex="-1" class="ui-alert" hidden></Alert>
         <label class="flex min-h-11 items-center gap-3 text-sm text-slate-700 dark:text-slate-200"><input data-login-sound type="checkbox" checked class="h-5 w-5 accent-sky-700" /> <span data-i18n="revisado.787bec62b79f4c06">Sonidos de confirmación</span></label>
-        <button data-submit type="submit" class="q-primary w-full" disabled data-i18n="texto.Q3JlYXIgY3VlbnRh">Crear cuenta</button>
+        <Button variant="primary" data-submit type="submit" class="ui-button--primary w-full" disabled data-i18n="texto.Q3JlYXIgY3VlbnRh">Crear cuenta</Button>
         <p class="text-center text-slate-600 dark:text-slate-300">¿Ya tienes cuenta? <a data-signin-link href={`/login?role=${initialRole}`} class="q-link" data-i18n="texto.SW5pY2lhIHNlc2k_bg">Inicia sesión</a></p>
         <p class="text-sm leading-6 text-slate-600 dark:text-slate-300" data-i18n="texto.QWwgcmVnaXN0cmFydGUgcG9kcj9zIGluaWNpYXIgc2VzaT9uIGRlIGlubWVkaWF0by4">Al registrarte podrás iniciar sesión de inmediato.</p>
       </form>
       <noscript>Activa JavaScript para registrar tu cuenta.</noscript>
-    </section>
+    </Panel>
   </div>
 </main>
 <script>import { initAuthForm } from '../forms'; initAuthForm();</script>

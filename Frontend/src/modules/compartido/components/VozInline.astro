@@ -1,0 +1,20 @@
+---
+interface Props {nombre?:string}
+const {nombre='oferta'}=Astro.props;
+import Button from './ui/Button.astro';
+---
+<div data-voz-panel={nombre}>
+  <button data-voz-boton type="button" hidden tabindex="-1" aria-hidden="true"><span data-voz-boton-texto>Dictar</span></button>
+  <input data-voz-sonido type="checkbox" hidden /><input data-voz-vibracion type="checkbox" hidden />
+  <div data-voz-feedback class="ui-alert text-sm" hidden>
+    <p data-voz-estado data-tipo="info" role="status" aria-live="polite"></p>
+    <p data-voz-parcial aria-hidden="true" class="mt-1 italic empty:hidden"></p>
+    <button data-voz-deshacer type="button" class="q-link mt-2" hidden>Deshacer el último cambio por voz</button>
+  </div>
+  <dialog data-voz-dialogo aria-labelledby={'voz-'+nombre+'-titulo'} aria-describedby={'voz-'+nombre+'-texto'} class="m-auto w-[calc(100%-2rem)] max-w-md rounded-floating bg-floating p-6 text-slate-900 shadow-3 backdrop:bg-slate-950/60 dark:text-white">
+    <h2 id={'voz-'+nombre+'-titulo'} data-voz-dialogo-titulo class="text-xl font-semibold"></h2>
+    <p id={'voz-'+nombre+'-texto'} data-voz-dialogo-texto class="my-4"></p>
+    <div data-voz-dialogo-opciones class="grid gap-3"></div>
+    <Button variant="secondary" data-voz-dialogo-cancelar type="button" class="mt-4 w-full">No cambiar nada</Button>
+  </dialog>
+</div>

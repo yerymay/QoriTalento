@@ -193,7 +193,7 @@ export function crearPanelVoz(raiz: HTMLElement): PanelVoz {
         dialogoTexto.textContent = texto;
         dialogoOpciones.replaceChildren(...opciones.map(opcion => {
           const b = document.createElement('button');
-          b.type = 'button'; b.className = 'q-primary w-full text-left'; b.textContent = opcion.etiqueta;
+          b.type = 'button'; b.className = 'ui-button--primary w-full text-left'; b.textContent = opcion.etiqueta;
           b.addEventListener('click', () => { elegido = opcion.valor; dialogo.close(); });
           return b;
         }));

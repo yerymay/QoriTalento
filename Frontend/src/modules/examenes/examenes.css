@@ -1,10 +1,7 @@
 @reference "../../styles/global.css";
 @layer components {
-  .ex-icon { @apply h-5 w-5 shrink-0; }
   .ex-toolbar { @apply flex flex-wrap items-center justify-between gap-3; }
   .ex-muted { @apply text-slate-600 dark:text-slate-300; }
-  .ex-panel { @apply rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900; }
-  .ex-button { @apply inline-flex min-h-11 items-center justify-center gap-2; }
   .ex-grid { @apply grid min-w-0 gap-6 xl:grid-cols-[240px_minmax(0,1fr)]; }
   .ex-rail { @apply self-start xl:sticky xl:top-24; }
   .ex-nav-button { @apply flex min-h-12 w-full flex-col items-center gap-2 xl:flex-row xl:gap-3 rounded-lg px-2 py-3 text-center text-sm xl:px-3 xl:text-left xl:text-base hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-sky-600 dark:hover:bg-slate-800; }
@@ -19,8 +16,6 @@
   .ex-option input { @apply mt-1.5 h-5 w-5 shrink-0 accent-sky-700; }
   .ex-question-text { @apply whitespace-pre-wrap break-words text-lg leading-relaxed; overflow-wrap:anywhere; }
   .ex-row { @apply flex flex-col gap-4 border-b border-slate-200 py-6 last:border-0 dark:border-slate-700 sm:flex-row sm:items-center sm:justify-between; }
-  .ex-state { @apply inline-flex items-center gap-2 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200; }
-  .ex-state[data-state="PUBLISHED"], .ex-state[data-state="SUBMITTED"] { @apply bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200; }
   .ex-sticky-actions { @apply sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900; }
   .ex-label { @apply mb-2 block font-medium; }
   .ex-progress { @apply h-2 w-full overflow-hidden rounded-full bg-slate-200 accent-sky-700 dark:bg-slate-700; }
@@ -32,12 +27,29 @@
 }
 [data-exams] { min-width:0; overflow-wrap:anywhere; }
 [data-exams] :is(button,a) { touch-action:manipulation; }
-[data-exams] button:active:not(:disabled) { transform:scale(.98); }
 [data-exams] :is(input,textarea)::placeholder { color:var(--color-slate-500); }
 .dark [data-exams] :is(input,textarea)::placeholder { color:var(--color-slate-400); }
 [data-exams] textarea { resize:vertical; }
 [data-exams] :is(button,a):focus-visible { outline-offset:3px; }
-@media (prefers-reduced-motion: reduce) { [data-exams] button:active:not(:disabled) { transform:none; } }
 
 [data-exams] input[type="radio"]:checked { background-color:var(--color-sky-700); border-color:var(--color-sky-700); }
-[data-exams] button:disabled { cursor:not-allowed; opacity:.55; }
+
+.ex-editor-pages{display:flex;flex-wrap:wrap;gap:.5rem;}
+.ex-editor-chip{display:inline-flex;align-items:center;border:1px solid var(--ui-border);border-radius:var(--radius-control);background:var(--color-panel);overflow:hidden;}
+.ex-editor-chip>button{min-height:44px;padding:.5rem .75rem;}
+.ex-editor-chip:has([aria-current=true]){border-color:var(--color-sky-600);background:var(--color-sky-50);color:var(--color-sky-900);}
+.dark .ex-editor-chip:has([aria-current=true]){background:var(--color-sky-950);color:var(--color-sky-100);}
+.ex-editor-chip[data-drop-target]{outline:2px solid var(--color-sky-600);outline-offset:2px;}
+.ex-drag-handle{display:flex;align-items:center;justify-content:center;min-width:44px;cursor:grab;touch-action:none;}
+.ex-drag-handle[data-dragging]{cursor:grabbing;}
+.ex-editor-menu{position:relative;flex-shrink:0;}
+.ex-editor-menu .ui-menu-popup{left:auto;right:0;min-width:12rem;}
+.ex-editor-menu [role=menuitem]{color:var(--color-red-800);}
+.dark .ex-editor-menu [role=menuitem]{color:var(--color-red-200);}
+.ex-editor-option{display:grid;grid-template-columns:1.5rem minmax(0,1fr) auto 44px;align-items:start;gap:.5rem;}
+.ex-option-letter{display:flex;align-items:center;min-height:44px;font-weight:600;}
+.ex-editor-option textarea{min-height:44px;padding:.5rem .75rem;resize:vertical;}
+.ex-correct-label{display:flex;align-items:center;gap:.5rem;min-height:44px;padding:.5rem;cursor:pointer;border-radius:var(--radius-control);}
+.ex-correct-label:has(:checked){background:var(--color-sky-50);color:var(--color-sky-900);font-weight:600;}
+.dark .ex-correct-label:has(:checked){background:var(--color-sky-950);color:var(--color-sky-100);}
+@media(max-width:639px){.ex-editor-option{grid-template-columns:1.25rem minmax(0,1fr) 44px;}.ex-correct-label{grid-column:2;grid-row:2;justify-self:start;padding-top:0;}.ex-editor-option .ex-editor-menu{grid-column:3;grid-row:1;}}

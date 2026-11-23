@@ -1,28 +1,40 @@
 ---
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+import Badge from '../../compartido/components/ui/Badge.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+const sections = [
+  {id:'personal',title:'Datos personales',description:'Tu nombre y documento de identidad.',fields:[{key:'name',label:'Nombre completo',type:'text',required:true,max:160,autocomplete:'name'},{key:'dni',label:'DNI',type:'password',required:false,max:8,autocomplete:'off'}]},
+  {id:'contacto',title:'Datos de contacto',description:'Información para acceder a tu cuenta y contactarte.',fields:[{key:'email',label:'Correo electrónico',type:'email',required:true,max:254,autocomplete:'email'},{key:'phone',label:'Teléfono de contacto',type:'tel',required:false,max:32,autocomplete:'tel'}]},
+] as const;
 ---
-<section class="q-card max-w-4xl p-5 sm:p-7" aria-labelledby="datos-personales-titulo">
-  <div class="flex flex-wrap items-start justify-between gap-4">
-    <div><h2 id="datos-personales-titulo" class="text-xl font-semibold" data-i18n="texto.RGF0b3MgcGVyc29uYWxlcw">Datos personales</h2><p class="mt-1 text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.Q29uc3VsdGEgbyBhY3R1YWxpemEgbGEgaW5mb3JtYWNpP24gZGUgdHUgY3VlbnRhLg">Consulta o actualiza la información de tu cuenta.</p></div>
-    <button data-edit type="button" class="q-secondary" data-i18n="texto.RWRpdGFyIGRhdG9z">Editar datos</button>
-  </div>
-  <div data-profile-view class="mt-6">
-    <dl class="divide-y divide-slate-200 dark:divide-slate-700">
-      {[['name','Nombre completo'],['email','Correo electrónico'],['phone','Teléfono de contacto'],['dni','DNI'],['role','Rol']].map(([field,label]) =>
-        <div class="grid gap-1 py-3 sm:grid-cols-[minmax(10rem,0.8fr)_2fr] sm:gap-4">
-          <dt class="text-sm text-slate-600 dark:text-slate-300">{label}</dt>
-          <dd data-profile-display={field} class="min-w-0 break-words font-medium">—</dd>
-        </div>
-      )}
-    </dl>
-  </div>
-  <form data-profile method="post" class="mt-6 space-y-5" novalidate hidden>
-    <div><label for="name" class="mb-2 block font-medium" data-i18n="texto.Tm9tYnJlIGNvbXBsZXRv">Nombre completo</label><input id="name" name="name" type="text" required minlength="2" maxlength="160" autocomplete="name" aria-describedby="name-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="name-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
-    <div><label for="email" class="mb-2 block font-medium" data-i18n="texto.Q29ycmVvIGVsZWN0cj9uaWNv">Correo electrónico</label><input id="email" name="email" type="email" required maxlength="254" autocomplete="email" aria-describedby="email-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="email-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
-    <div><label for="phone" class="mb-2 block font-medium"><span data-i18n="revisado.319f70881572dd3a">Teléfono de contacto</span> <span data-phone-optional class="font-normal text-slate-600 dark:text-slate-300" data-i18n="texto.KG9wY2lvbmFsKQ">(opcional)</span></label><input id="phone" name="phone" type="tel" maxlength="32" autocomplete="tel" aria-describedby="phone-help phone-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="phone-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.RW50cmUgNyB5IDE1IGQ_Z2l0b3M7IHB1ZWRlcyBpbmNsdWlyIGVsIGM_ZGlnbyBkZSBwYT9zLg">Entre 7 y 15 dígitos; puedes incluir el código de país.</p><p id="phone-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
-    <div><label for="dni" class="mb-2 block font-medium">DNI <span class="font-normal text-slate-600 dark:text-slate-300" data-i18n="texto.KG9wY2lvbmFsKQ">(opcional)</span></label><input id="dni" name="dni" type="text" inputmode="numeric" maxlength="8" autocomplete="off" aria-describedby="dni-help dni-error" class="q-input aria-invalid:border-red-700 dark:aria-invalid:border-red-300" /><p id="dni-help" class="mt-2 text-sm text-slate-600 dark:text-slate-300" data-i18n="texto.SW5ncmVzYSBsb3MgOCBkP2dpdG9zIGRlIHR1IEROSSBwZXJ1YW5vLg">Ingresa los 8 dígitos de tu DNI peruano.</p><p id="dni-error" class="mt-2 text-sm text-red-700 dark:text-red-300" aria-live="polite" hidden></p></div>
-    <p data-verification-warning class="q-notice" hidden data-i18n="texto.U2kgY2FtYmlhcyBlbCBjb3JyZW8gbyBlbCB0ZWw_Zm9ubyBvYmxpZ2F0b3JpbyBkZSByZWNsdXRhZG9yIHBhcnRpY3VsYXIsIHNlIGNlcnJhcj9uIHR1cyBzZXNpb25lcyB5IHRlbmRyP3MgcXVlIHZvbHZlciBhIGluaWNpYXIgc2VzaT9uLg">Si cambias el correo o el teléfono obligatorio de reclutador particular, se cerrarán tus sesiones y tendrás que volver a iniciar sesión.</p>
-    <div class="space-y-3">
-      <div class="flex flex-wrap gap-3"><button id="guardar-perfil" type="submit" class="q-primary" data-i18n="texto.R3VhcmRhciBjYW1iaW9z">Guardar cambios</button><button data-cancel type="button" class="q-secondary" data-i18n="texto.Q2FuY2VsYXI">Cancelar</button></div>
+<div data-account-profile class="space-y-6">
+  <header class="flex flex-wrap items-center justify-between gap-5">
+    <div class="flex min-w-0 items-center gap-4">
+      <span data-account-avatar aria-hidden="true" class="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-slate-200 text-2xl font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-200"></span>
+      <div class="min-w-0"><h1 data-account-name class="break-words text-3xl font-bold"></h1><Badge data-account-role class="mt-2" /><p class="mt-2 text-slate-600 dark:text-slate-300">Administra la información de tu cuenta.</p></div>
     </div>
-  </form>
-</section>
+    <Button variant="secondary" data-account-edit type="button">Editar</Button>
+  </header>
+  <div class="grid items-start gap-6 md:grid-cols-2">
+    {sections.map(section=><Panel data-account-section={section.id} class="p-5 sm:p-6" aria-labelledby={'account-'+section.id}>
+      <div class="flex items-start justify-between gap-4"><div><h2 id={'account-'+section.id} class="text-xl font-semibold">{section.title}</h2><p class="mt-2 text-sm text-slate-600 dark:text-slate-300">{section.description}</p></div><Button variant="ghost" data-section-edit={section.id} type="button" aria-label={'Editar '+section.title.toLowerCase()}>Editar</Button></div>
+      <div data-section-view class="mt-6"><dl class="space-y-5">
+        {section.fields.map(field=><div><dt class="text-sm text-slate-600 dark:text-slate-300">{field.label}</dt><dd class="mt-1 flex min-w-0 flex-wrap items-center gap-3"><span data-account-value={field.key} class="break-words font-medium">No registrado</span>{field.key==='dni' && <Button variant="ghost" data-dni-toggle type="button" aria-pressed="false" aria-label="Mostrar DNI">Mostrar</Button>}</dd></div>)}
+      </dl></div>
+      <form data-account-form={section.id} method="post" class="mt-6 space-y-5" novalidate hidden>
+        <fieldset class="space-y-5">
+          {section.fields.map(field=><div><label for={field.key} class="mb-2 block font-medium">{field.label}{!field.required&&<span class="font-normal text-slate-600 dark:text-slate-300" data-phone-optional={field.key==='phone'||undefined}> (opcional)</span>}</label>
+            <input id={field.key} name={field.key} type={field.type} required={field.required} minlength={field.key==='name'?2:undefined} maxlength={field.max} autocomplete={field.autocomplete} inputmode={field.key==='dni'?'numeric':undefined} aria-describedby={field.key+'-error'} class="q-input" />
+            {field.key==='dni'&&<Button variant="ghost" data-dni-toggle type="button" aria-pressed="false" class="mt-2">Mostrar DNI</Button>}
+            <p id={field.key+'-error'} class="ui-field-error mt-2 text-sm text-red-800 dark:text-red-200" aria-live="polite" hidden></p>
+          </div>)}
+          {section.id==='contacto'&&<Alert tone="warning" title="Cambios de acceso" class="text-sm">Al cambiar tu correo o el teléfono obligatorio de una cuenta particular, tendrás que volver a iniciar sesión.</Alert>}
+          <div class="flex flex-wrap items-center gap-3"><Button type="submit">Guardar cambios</Button><Button variant="secondary" data-section-cancel type="button">Cancelar</Button></div>
+        </fieldset>
+      </form>
+      <p data-section-save role="status" class="mt-5 text-sm text-slate-600 dark:text-slate-300" hidden></p>
+      <Alert data-section-error tone="error" title="No se pudieron guardar los cambios" class="mt-4" hidden><p data-section-error-text></p><Button slot="action" variant="secondary" data-section-retry type="button">Reintentar</Button></Alert>
+    </Panel>)}
+  </div>
+</div>

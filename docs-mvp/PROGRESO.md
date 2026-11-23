@@ -267,3 +267,84 @@ Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en
 - RSF22 marcado con esta evidencia. RSF23/24 permanecen parciales y RSF25 pendiente. Guía: [M06-IMPLEMENTACION.md](M06-IMPLEMENTACION.md).
 
 - Revisión independiente de interfaz: detectó que el aviso de guardado quedaba fuera de vista en móvil. Se corrigió llevando foco y vista al aviso en éxito y error; la prueba de navegador verificó ambos con teclado y conservación de campos. La segunda revisión independiente no pudo completarse por límite de uso; no se afirma un dictamen independiente final.
+
+
+## Evidencia — componentes UI, DESIGN §2, §6 y §7 (2026-11-22)
+
+- Alcance aprobado: tokens de capas, elevación, radios, espaciado y movimiento; nueve componentes compartidos; migración de primitivas visuales manteniendo rutas, estructura y lógica de negocio. Fuente: DESIGN suministrado como adjunto por el usuario, no incorporado al repositorio.
+- Biblioteca en `Frontend/src/modules/compartido/components/ui/`, con guía de props y uso en `README.md`. Estilos únicos en `Frontend/src/styles/ui.css` tanto para Astro como para contenido generado por JavaScript; retiradas las definiciones duplicadas de botones/paneles/avisos/etiquetas.
+- Componentes: Button, Panel, Badge, Switch, Alert, Toast, Skeleton, EmptyState y Menu. Button conserva enlaces con href dinámico y el estado nativo de botones habilitados por los formularios. Menús con navegación por teclado; avisos con cierre, roles accesibles, pausa, máximo tres y espacio propio bajo la cabecera.
+- `/dev/componentes` disponible exclusivamente en desarrollo, sin acceso desde navegación y ausente del resultado estático. Galería con variantes, cinco estados UI, claro/oscuro y movimiento reducido.
+- Verificación final: `npm run check` (0 errores, 0 advertencias, 0 sugerencias), `npm run build` (20 rutas) y `git diff --check` correctos.
+- Pruebas aprobadas con API sintética: `componentes.browser.mjs`, `ui-ofertas.browser.mjs`, `examenes.browser.mjs`, `evaluacion.browser.mjs`, `cv.browser.mjs`, `application-wizard.browser.mjs` y `nueva-oferta-wizard.browser.mjs`. Incluyen navegación, error/reintento sin pérdida, sesión, enlaces dinámicos, teclado, temas y móvil. La prueba antigua `ofertas.browser.mjs` se detiene en un selector que busca visible el enlace «Gestionar…» antes de abrir el menú Acciones; no se presenta esa prueba como aprobada. La nueva prueba de regresión usa los controles actuales.
+- Capturas inspeccionadas: `.impeccable/review/componentes-{1440,390}-{claro,oscuro}.png`, sin desbordamiento horizontal. Detector Impeccable ejecutado una vez sobre la biblioteca: sin hallazgos.
+- Límite: la revisión independiente no pudo ejecutarse por límite de uso del agente. Se realizó revisión propia de código y de las capturas; no se afirma un dictamen independiente. No se validó con lectores de pantalla físicos.
+- Sin cambios de API, base de datos, reglas de puntuación ni decisiones de selección. Se conservaron los cambios previos del usuario en `.gitignore`.
+
+
+## Evidencia — shell §3 y Configuración, plantilla E (2026-11-22)
+
+- Sidebar agrupado por Reclutamiento y Cuenta, contraíble a iconos en escritorio y Drawer en móvil. Eliminada la tarjeta «Mi espacio / Tu cuenta» y el cierre de sesión del sidebar. Pie con Configuración y ayuda contextual dentro de Configuración.
+- Topbar de 56 px con breadcrumb y menú de usuario: perfil, configuración y cierre de sesión. Se retiraron los controles globales de tema/contraste y la opción de tema del menú de usuario.
+- Configuración con navegación de secciones: Apariencia, Idioma, Sonido y vibración, Cuenta. Apariencia incluye tema claro/oscuro/sistema con previsualización y radios nativos, y alto contraste mediante Switch. Preferencias persistentes en el navegador, seguimiento de cambios del sistema y sincronización entre pestañas.
+- Corregida la clave de traducción estática del nombre dinámico del usuario y retiradas las referencias a elementos eliminados. La carga de cuenta muestra nombre/rol al resolver; ante fallo muestra estado de error y Reintentar, con acceso privado oculto. Una sesión inválida solicita iniciar sesión.
+- Verificado el login completo sin toast. Se conserva su señal multimodal existente.
+- Validación: `npm run check` (0 errores/advertencias/sugerencias), `npm run build` (20 rutas), `git diff --check`. Pruebas con API sintética: `configuracion.browser.mjs` y regresión `evaluacion.browser.mjs` aprobadas. Incluyen roles, error/reintento, sesión, traducción sin sobrescribir nombre, tema Sistema, persistencia, switches, teclado en menú, navegación móvil y ausencia de desbordamiento.
+- Capturas inspeccionadas a 1440 y 390 px en claro/oscuro: `.impeccable/review/configuracion-*.png`. No se modificaron endpoints ni reglas de negocio.
+
+
+## Evidencia — Mis ofertas, plantilla A (2026-11-22)
+
+- Encabezado sobre canvas con título, contexto y Crear oferta a la derecha. Slot de acciones del encabezado compartido; la acción aparece tras validar sesión y se oculta al expirar o en vacío sin filtros, donde queda un único CTA centrado.
+- Búsqueda del reclutador con icono, debounce de 300 ms y chips Todas/Publicadas/Borradores/Cerradas; sin botón Buscar. Conserva el foco durante las consultas, reinicia paginación al filtrar y descarta respuestas anteriores mediante la época de carga existente.
+- Tabla en Panel, filas clicables mediante el enlace nativo del título, badge de estado, conteo alineado a la derecha y menú de icono de tres puntos. Acción de gestionar visible al hover/foco y disponible en pantallas táctiles. Los clics en controles de la fila no activan su navegación. Se conservan las confirmaciones de acciones destructivas.
+- Estados: contenido, vacío con CTA, parcial con aviso de datos pendientes en borradores, carga Skeleton y error Alert con reintento. Vacío por filtros ofrece Limpiar filtros. Conteo y paginación al pie.
+- Móvil: desplazamiento horizontal contenido en la tabla; se corrigió el desbordamiento de etiquetas accesibles posicionadas fuera de su contenedor.
+- Verificación: `npm run check` (0 errores/advertencias/sugerencias), `npm run build` (20 rutas), `git diff --check` correctos. `mis-ofertas.browser.mjs` aprobado con API sintética: estados, debounce, concurrencia, chips, paginación, menú/teclado, filas, sesión y capturas. Regresiones `application-wizard.browser.mjs` y `ui-ofertas.browser.mjs` aprobadas; esta última abre ahora la sección Sonido de Configuración explícitamente.
+- Capturas revisadas a 1440/390 px en claro/oscuro y estados vacío/error/carga: `.impeccable/review/mis-ofertas-*.png`. Datos sintéticos identificados en la prueba; no se crearon ofertas reales ni se alteraron endpoints o reglas de negocio.
+
+
+## Evidencia — Mi perfil, plantilla D (2026-11-22)
+
+- Cabecera sobre canvas con avatar de iniciales, nombre, badge de rol y Editar. Datos personales y Datos de contacto en grilla de dos columnas, con edición inline por sección y una sección activa a la vez.
+- DNI enmascarado con los últimos cuatro dígitos y controles Mostrar/Ocultar. El campo de edición comienza oculto; se vuelve a enmascarar al guardar, cancelar o cambiar de pestaña. Los campos y textos de datos personales se limpian al terminar la sesión.
+- Lógica de edición en `Frontend/src/modules/auth/account-profile.ts`, separada del marco de sesión. Usa el endpoint de cuenta existente y conserva los valores de la otra sección. Validación al salir del campo y al enviar; confirmación de cambios sensibles conservada.
+- Guardado inline `Guardando… → Guardado`, sin toast. Bloqueo de campos durante envío, retorno del foco al botón de edición y Alert con reintento sin pérdida de lo escrito ante error. Se conservan las señales multimodales configuradas por el usuario.
+- Verificación: `npm run check` (0 errores/advertencias/sugerencias) y `npm run build` (20 rutas) correctos. `perfil.browser.mjs` aprobado con API sintética: máscara DNI, validación, guardado, error/reintento, cancelación, confirmación de cambio de correo y teléfono obligatorio, roles y limpieza por expiración. Regresiones `cv.browser.mjs` y `configuracion.browser.mjs` aprobadas.
+- Capturas inspeccionadas a 1440/390 px en claro y oscuro: `.impeccable/review/perfil-{1440,390}-{claro,oscuro}.png`; captura adicional de error conservando los campos. Sin desbordamiento horizontal.
+- No se modificaron endpoints ni reglas de negocio. La edición de datos curriculares confirmados conserva el flujo existente de revisión de CV.
+
+
+## Evidencia — editor de preguntas y revisión de pruebas (2026-11-22)
+
+- Estado vacío de pruebas centrado, con CTA y sin panel anidado. Vacío de preguntas con una sola acción para crear la primera.
+- Reemplazados Subir/Bajar por asas en los chips de preguntas. Orden mediante arrastre con eventos de puntero y atajos Alt + flechas / Inicio / Fin, anuncio de posición y conservación de la pregunta seleccionada, sus alternativas y su clave correcta.
+- Eliminar pregunta y eliminar alternativa dentro de menús de tres puntos con teclado y Escape. Se conserva la confirmación cuando corresponde y se explica el mínimo de dos alternativas.
+- Alternativas compactas con etiqueta visible Correcta y selección única; paginador del editor como chips. Textareas ajustadas a su contenido y distribución móvil sin desbordamiento.
+- Revisión con Alert de advertencia, detalle de pendientes y enlaces Ir a la pregunta N que llevan el foco al enunciado. Publicar prueba deshabilitado mientras falta configuración o contenido, con motivo visible y asociado mediante aria-describedby.
+- Guardado de borrador exclusivamente inline: Guardando… / Borrador guardado; se retiró el Alert de éxito del guardado. Toast de éxito únicamente al publicar.
+- Validación: `npm run check` (0 errores/advertencias/sugerencias), `npm run build` (20 rutas) y `git diff --check` correctos. `editor-preguntas.browser.mjs` aprobado con API sintética: arrastre y teclado persistidos, selección y contenido conservados, menús, advertencias/enlaces, bloqueo/motivo, reintento y toast solo al publicar. Regresión completa `examenes.browser.mjs` aprobada, incluidos intentos, guardado de respuestas, envío, caducidad y sesión.
+- Capturas inspeccionadas: `.impeccable/review/preguntas-{1440,390}-{claro,oscuro}.png`, vacío y revisión pendiente. No se escribieron exámenes reales ni se modificaron endpoints o reglas de negocio. El arrastre se verificó con ratón en navegador; no se afirma una prueba en dispositivo táctil físico.
+
+
+## Evidencia — editor de ofertas: voz, acciones y progreso (2026-11-22)
+
+- Micrófonos integrados en los campos de texto y desplegables; retirada la tarjeta grande de voz y la nota de reclutador particular. Respuesta compacta de dictado con deshacer, aclaración ante conflicto con teclado y recuperación tras fallos. Cada micrófono dicta exclusivamente en su campo y conserva la frase completa. Se mantiene el motor y el uso de preferencias de sonido/vibración existentes.
+- Enlace de retorno integrado en el breadcrumb Mis ofertas / Nueva oferta o Gestionar oferta.
+- Barra de acciones fija al pie, ajustada al sidebar normal/contraído y al ancho móvil. Espacio reservado según su altura y desplazamiento del campo enfocado para que el teclado no lo deje detrás de la barra.
+- Guardado inline Guardando… / Guardado; sin Alert ni toast de éxito del borrador. Los errores conservan el contenido y permiten reintentar.
+- Stepper con contador y progress accesible calculados desde los datos. Recorrer una sección incompleta no la marca como completa; cambiar datos invalida el estado de revisión guardada. Condiciones se completa tras revisarla y la revisión termina al guardar. Los estados se reinician al terminar sesión.
+- Verificación: `npm run check` (0 errores/advertencias/sugerencias), `npm run build` (20 rutas) y `git diff --check` correctos. `oferta-editor.browser.mjs` aprobado con API y reconocimiento de voz sintéticos: dictado por campo, deshacer, conflicto, aislamiento entre campos, fallo de permiso con continuidad por teclado, breadcrumb, barra fija, progreso, guardado, reintento y sesión. `nueva-oferta-wizard.browser.mjs` aprobado; expectativa actualizada al estado inline.
+- Capturas inspeccionadas a 1440/390 px en claro/oscuro: `.impeccable/review/oferta-editor-{1440,390}-{claro,oscuro}.png`. La prueba de reconocimiento es simulada; no se afirma precisión del micrófono real ni del servicio de voz del navegador.
+- Sin cambios de endpoints, permisos de publicación o reglas de negocio.
+
+
+## Evidencia — ofertas y postulaciones del candidato según DESIGN.md (2026-11-22)
+
+- Ofertas: encabezado compacto sobre el canvas sin introducción duplicada, búsqueda automática con micrófono dentro del campo y una acción primaria Ver oferta por tarjeta. La voz conserva dictado, deshacer, aclaración ante conflicto con teclado y recuperación por teclado cuando se deniega el micrófono. Se reutiliza VozInline en el buscador y el editor de ofertas.
+- Mis postulaciones: una acción primaria Revisar datos del CV por tarjeta; oferta, pruebas, seguimiento y reemplazo de CV en menú de tres puntos. El reemplazo conserva la condición PENDING. Seguimiento horizontal accesible con registro, estado recibido del servidor y evaluación aún no disponible; se explica que no existe historial, sin inferir avances.
+- Wizard: un único Alert visible por paso que también presenta errores y advertencias de extracción. Chips Detectado del CV / Completa tú en todos los campos; datos ausentes vacíos y placeholders de instrucción o ejemplo, con contraste en ambos temas. Acción final Enviar postulación; el reemplazo conserva Actualizar CV.
+- Éxito con check dibujado y respeto por movimiento reducido. Tras recuperarse de un fallo de confirmación, se ocultan las acciones de recuperación. Se conserva el envío únicamente al confirmar, consentimiento, edición al retroceder y reintento de confirmación sin duplicar la postulación.
+- Verificación: npm run check (107 archivos, 0 errores/advertencias/sugerencias), npm run build (20 rutas) y git diff --check correctos. Cinco pruebas de navegador aprobadas: application-wizard.browser.mjs, postulante-ui.browser.mjs, ui-ofertas.browser.mjs, oferta-editor.browser.mjs y componentes.browser.mjs. Cubren positivos, validación negativa, permiso de micrófono, estados vacío/carga/error/reintento, teclado, sesión y regresión de componentes compartidos.
+- Capturas de las tres pantallas a 1440/390 px en claro/oscuro: .impeccable/review/m06-ui-{ofertas,postulaciones,wizard}-{1440,390}-{light,dark}.png; éxito en m06-ui-wizard-success.png. Inspección visual sin desbordamiento horizontal.
+- API y reconocimiento simulados en las pruebas; no se enviaron postulaciones reales ni se evaluó la precisión de un micrófono físico. Sin cambios de endpoints ni reglas de negocio.

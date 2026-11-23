@@ -1,0 +1,7 @@
+---
+import Button from './Button.astro';
+interface Props { id:string; label:string }
+const {id,label}=Astro.props;
+---
+<div class="ui-menu" data-ui-menu><Button variant="secondary" aria-haspopup="menu" aria-controls={id} aria-expanded="false" data-ui-menu-trigger>{label}</Button><div id={id} role="menu" aria-label={label} class="ui-menu-popup" hidden><slot /></div></div>
+<script>import { initMenus } from './menu';initMenus();</script>

@@ -1,29 +1,49 @@
 ---
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+import Badge from '../../compartido/components/ui/Badge.astro';
+import EmptyState from '../../compartido/components/ui/EmptyState.astro';
 import Espacio from '../../auth/components/Espacio.astro';
 import WizardPostulacion from './WizardPostulacion.astro';
-interface Props { view: 'form' | 'list' }
-const { view } = Astro.props;
+import './postulaciones.css';
+interface Props {view:'form'|'list'}
+const {view}=Astro.props;
 ---
-<Espacio view={view === 'list' ? 'applications' : 'home'} role="CANDIDATE" title={view === 'form' ? 'Envía tu postulación' : 'Mis postulaciones'} description={view === 'form' ? 'Tu experiencia es el inicio de una nueva historia.' : 'Sigue cada paso de tu proceso.'}>
-  <div data-applications data-view={view} class="space-y-5">
-    <div data-app-loading role="status" class="q-card space-y-4 p-6"><p><span data-i18n="revisado.5ec59ad7c16b1ce2">Cargando información.</span></p><div class="h-20 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
-    <div data-app-notice class="q-notice" role="status" tabindex="-1" hidden></div>
-    <div data-app-recovery class="flex flex-wrap gap-3" hidden><button data-app-retry type="button" class="q-secondary" data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button><a href="/postulante/ofertas" class="q-link" data-i18n="texto.RXhwbG9yYXIgb3BvcnR1bmlkYWRlcw">Explorar oportunidades</a><a href="/postulante/postulaciones" class="q-link" data-i18n="texto.TWlzIHBvc3R1bGFjaW9uZXM">Mis postulaciones</a></div>
-    {view === 'form' ? <WizardPostulacion /> : <section aria-label="Listado de postulaciones">
-      <div data-app-empty class="q-card space-y-3 p-6" hidden><h2 class="text-xl font-semibold">Tu primera postulación te espera</h2><p>Encuentra una vacante que encaje contigo y consulta aquí su avance.</p><a href="/postulante/ofertas" class="q-link" data-i18n="texto.RXhwbG9yYXIgb3BvcnR1bmlkYWRlcw">Explorar oportunidades</a></div>
-      <div data-app-list class="space-y-4"></div>
-      <template data-card><article class="q-card space-y-4 p-6"><div class="flex flex-wrap items-start justify-between gap-3"><div><h2 data-card-title class="break-words text-xl font-semibold"></h2><p data-card-meta class="mt-1 text-slate-600 dark:text-slate-300"></p></div><span data-card-status class="rounded-md bg-sky-100 px-3 py-1 text-sky-900 dark:bg-sky-950 dark:text-sky-100"></span></div><p data-card-file class="break-all"></p><div class="flex flex-wrap items-center gap-3"><a data-card-replace class="q-secondary inline-flex items-center" hidden>Reemplazar CV</a><a data-card-cv class="q-link">Revisar datos del CV</a></div>
-      <details data-tracking class="group border-t border-slate-200 pt-4 dark:border-slate-700"><summary class="q-secondary inline-flex min-h-11 cursor-pointer list-none items-center gap-2 [&::-webkit-details-marker]:hidden"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5h2m-2 7h2m-2 7h2M12 5h7m-7 7h7m-7 7h7"/></svg><span data-tracking-toggle>Ver seguimiento</span><svg aria-hidden="true" class="h-4 w-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m6 9 6 6 6-6"/></svg></summary>
-        <div class="mt-6 max-w-2xl"><h3 class="text-lg font-semibold">Seguimiento de tu postulación</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Consulta el estado actual de esta postulación.</p>
-          <ol class="relative ms-4 mt-6 border-s border-slate-300 text-slate-700 dark:border-slate-600 dark:text-slate-200">
-            <li class="relative mb-8 ms-7"><span class="absolute -start-11 flex h-8 w-8 items-center justify-center rounded-full bg-sky-100 text-sky-800 ring-4 ring-white dark:bg-sky-900 dark:text-sky-100 dark:ring-slate-900"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m5 12 4 4L19 6"/></svg></span><h4 class="font-semibold" data-i18n="texto.UG9zdHVsYWNpP24gcmVnaXN0cmFkYQ">Postulación registrada</h4><p data-tracking-date class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p></li>
-            <li class="relative mb-8 ms-7"><span class="absolute -start-11 flex h-8 w-8 items-center justify-center rounded-full bg-sky-700 text-white ring-4 ring-white dark:ring-slate-900"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 7v5l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></span><h4 class="font-semibold">Estado actual</h4><p data-tracking-status class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p></li>
-            <li class="relative ms-7"><span class="absolute -start-11 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 ring-4 ring-white dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-900"><svg aria-hidden="true" class="h-5 w-5" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg></span><h4 class="font-semibold">Evaluación</h4><p class="mt-1 text-sm text-slate-600 dark:text-slate-300">La información de evaluación estará disponible más adelante.</p><button type="button" class="q-secondary mt-3 cursor-not-allowed opacity-60" disabled>Ver evaluación</button></li>
-          </ol><p class="mt-6 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Se muestra el estado actual; el historial de cambios aún no está disponible.</p>
+<Espacio view={view==='list'?'applications':'home'} role="CANDIDATE" title={view==='form'?'Envía tu postulación':'Mis postulaciones'} description={view==='form'?'Tu experiencia es el inicio de una nueva historia.':'Sigue cada paso de tu proceso.'}>
+<div data-applications data-view={view} class="space-y-5">
+  <Panel data-app-loading role="status" class="space-y-4 p-6"><p>Cargando información…</p><div class="ui-skeleton h-20"></div></Panel>
+  <Alert data-app-notice role="status" tabindex="-1" hidden />
+  <div data-app-recovery class="flex flex-wrap gap-3" hidden><Button variant="secondary" data-app-retry type="button">Reintentar</Button><a href="/postulante/postulaciones" class="q-link">Ver mis postulaciones</a></div>
+  {view==='form'?<WizardPostulacion />:<section aria-label="Listado de postulaciones">
+    <EmptyState data-app-empty title="Tu primera postulación te espera" description="Encuentra una vacante que encaje contigo y consulta aquí su avance." hidden><Button as="a" href="/postulante/ofertas">Explorar oportunidades</Button></EmptyState>
+    <div data-app-list class="space-y-5"></div>
+    <template data-card>
+      <Panel as="article" class="space-y-5 p-5 sm:p-6">
+        <div class="flex items-start justify-between gap-3"><div class="min-w-0"><h2 data-card-title class="break-words text-xl font-semibold"></h2><p data-card-meta class="mt-2 text-sm text-slate-600 dark:text-slate-300"></p></div>
+          <div data-ui-menu class="ui-menu shrink-0"><Button variant="icon" data-ui-menu-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Opciones de la postulación"><svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></Button>
+            <div data-card-menu role="menu" aria-label="Opciones de la postulación" class="ui-menu-popup" hidden>
+              <a data-card-replace role="menuitem" hidden>Reemplazar CV</a>
+              <a data-card-job role="menuitem">Ver oferta</a>
+              <a href="/postulante/examenes" role="menuitem">Ver mis pruebas</a>
+              <button type="button" role="menuitem" data-card-tracking>Ver seguimiento</button>
+              <button type="button" role="menuitem" disabled>Ver evaluación</button><p class="px-3 py-2 text-sm text-slate-600 dark:text-slate-300">La evaluación aún no está disponible en esta vista.</p>
+            </div>
+          </div>
         </div>
-      </details></article></template>
-    </section>}
-    <dialog data-app-confirm aria-labelledby="application-confirm-title" class="m-auto w-[min(90vw,35rem)] rounded-xl bg-white p-6 text-slate-900 backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white"><h2 id="application-confirm-title" class="text-xl font-bold"><span data-i18n="revisado.de8831b64c8aaa99">Confirmar postulación</span></h2><p data-confirm-copy class="my-4"></p><form method="dialog" class="flex flex-wrap gap-3"><button value="cancel" class="q-secondary"><span data-i18n="revisado.ab26ae7bca362195">Volver</span></button><button value="confirm" class="q-primary" data-i18n="texto.Q29uZmlybWFy">Confirmar</button></form></dialog>
-  </div>
+        <Badge data-card-status /><p data-card-file class="break-words text-sm text-slate-600 dark:text-slate-300"></p>
+        <section data-tracking tabindex="-1" aria-label="Seguimiento de tu postulación" class="border-t border-slate-200 pt-5 dark:border-slate-700">
+          <ol class="application-tracking">
+            <li data-state="complete"><span class="tracking-marker" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="m5 12 4 4L19 6"/></svg></span><h3 class="mt-3 font-medium">Registrada</h3><p data-tracking-date class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p></li>
+            <li aria-current="step"><span class="tracking-marker" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg></span><h3 class="mt-3 font-medium">Estado actual</h3><p data-tracking-status class="mt-1 text-sm text-slate-600 dark:text-slate-300"></p></li>
+            <li><span class="tracking-marker" aria-hidden="true"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg></span><h3 class="mt-3 font-medium">Evaluación</h3><p class="mt-1 text-sm text-slate-600 dark:text-slate-300">Aún no disponible</p></li>
+          </ol>
+          <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">Se muestra el estado actual; el historial de cambios aún no está disponible.</p>
+        </section>
+        <div class="flex justify-end"><Button as="a" data-card-cv>Revisar datos del CV</Button></div>
+      </Panel>
+    </template>
+  </section>}
+</div>
 </Espacio>
-<script>import { initPostulaciones } from '../postulaciones'; initPostulaciones();</script>
+<script>import {initPostulaciones} from '../postulaciones';initPostulaciones();</script>

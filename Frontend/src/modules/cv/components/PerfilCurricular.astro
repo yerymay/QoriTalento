@@ -1,8 +1,12 @@
-<section data-cv-profile-summary class="q-card mt-6 space-y-4 p-6" hidden>
+---
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+---
+<Panel as="section" data-cv-profile-summary class="ui-panel mt-6 space-y-4 p-6" hidden>
   <h2 class="text-xl font-semibold" data-i18n="texto.UGVyZmlsIGN1cnJpY3VsYXI">Perfil curricular</h2>
   <p data-cv-profile-status role="status" data-i18n="texto.Q2FyZ2FuZG8gdHUgcGVyZmlsIGN1cnJpY3VsYXI_">Cargando tu perfil curricular…</p>
   <dl data-cv-profile-values class="grid gap-6 sm:grid-cols-2"></dl>
   <a href="/postulante/postulaciones" class="q-link" data-i18n="texto.UmV2aXNhciBlbCBDViBkZSBtaXMgcG9zdHVsYWNpb25lcw">Revisar el CV de mis postulaciones</a>
-  <button data-cv-profile-retry type="button" class="q-secondary" hidden data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button>
-</section>
+  <Button variant="secondary" data-cv-profile-retry type="button" class="ui-button--secondary" hidden data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</Button>
+</Panel>
 <script>import { initProfileSummary } from '../profile'; initProfileSummary();</script>

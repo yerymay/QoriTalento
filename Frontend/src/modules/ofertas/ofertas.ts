@@ -1,3 +1,4 @@
+import { showToast } from '../compartido/services/toast';
 import { initWizardOferta } from './wizard-oferta';
 import { senalDeAccion } from '../compartido/preferencias-senal';
 import { initJobStatusFilter, initJobActions, initEditorDropdown } from './dropdowns';
@@ -19,14 +20,19 @@ export function initOfertas() {
   const search = root.querySelector<HTMLFormElement>('[data-job-search]');
   const listControls=[...root.querySelectorAll<HTMLElement>('[data-job-list-control]')];
   const statusFilter=owned && search ? initJobStatusFilter(search) : undefined;
+  let searchTimer: ReturnType<typeof setTimeout> | undefined;
+  const searchChips = [...root.querySelectorAll<HTMLButtonElement>('[data-status-chip]')];
+  const resultPanel = root.querySelector<HTMLElement>('[data-job-results]');
+  const createHeader = document.querySelector<HTMLElement>('[data-create-header]');
   const actionMenus: Array<() => void> = [];
   const clearActionMenus = () => { actionMenus.splice(0).forEach(dispose => dispose()); root.querySelector('[data-action-menus]')?.replaceChildren(); };
   const listError=root.querySelector<HTMLElement>('[data-job-list-error]');
   let session: Session | undefined, job: Job | undefined, page = 1, epoch = 0;
+  let hasSaved=false;
   let busy = false, dirty = false, baseline = '', query = new URLSearchParams();
   let id = new URLSearchParams(location.search).get('id') ?? '';
   const notice = (message: string, tone: 'error' | 'success' = 'error') => {
-    feedback.textContent = message; feedback.dataset.tone = tone; feedback.hidden = false; senalDeAccion(tone === 'success' ? 'exito' : 'error');
+    feedback.classList.toggle('ui-alert',tone === 'error'); feedback.setAttribute('role',tone === 'error'?'alert':'status'); feedback.textContent = message; feedback.dataset.tone = tone; feedback.hidden = false; senalDeAccion(tone === 'success' ? 'exito' : 'error');
   };
   const failure = (error: unknown, retry = false) => {
     if (error instanceof ApiError && (error.status === 401 || ['ACCOUNT_INACTIVE', 'FORBIDDEN'].includes(error.code ?? ''))) {
@@ -53,7 +59,7 @@ export function initOfertas() {
   const updateDirty = () => {
     if (!form) return;
     dirty = JSON.stringify(read()) !== baseline;
-    el('[data-dirty-message]').textContent = dirty ? 'Tienes cambios sin guardar.' : 'Sin cambios pendientes.';
+    el('[data-dirty-message]').textContent = busy ? 'Guardando…' : dirty ? 'Cambios sin guardar.' : hasSaved ? 'Guardado' : 'Sin cambios pendientes.';
     el<HTMLButtonElement>('[data-discard-job]').disabled = busy || !dirty;
     el<HTMLButtonElement>('[data-publish-job]').disabled = busy || dirty || !job?.description || !job.requirements.length;
     el<HTMLButtonElement>('[data-close-job]').disabled = busy || dirty;
@@ -62,7 +68,6 @@ export function initOfertas() {
   const publication = () => {
     if (!form) return;
     el('[data-publication]').hidden = !job;
-    el('[data-individual-note]').hidden = session?.user.kind !== 'INDIVIDUAL';
     el('[data-editor-status]').textContent = labels[job?.status ?? 'DRAFT'] ?? job?.status ?? 'Borrador';
     el('[data-editor-status]').dataset.status = job?.status ?? 'DRAFT';
     el('[data-save-job]').textContent = job ? 'Guardar cambios' : 'Guardar borrador';
@@ -99,7 +104,7 @@ export function initOfertas() {
     }
     clearEditorDropdowns.forEach(dispose => dispose());
     clearEditorDropdowns = [...form.querySelectorAll<HTMLElement>('[data-editor-dropdown]')].map(initEditorDropdown);
-    baseline = JSON.stringify(read()); publication(); updateDirty();
+    baseline = JSON.stringify(read()); publication(); updateDirty();wizard?.sync();
     el('[data-job-editor]').hidden = false;
   };
   const fillDetail = (value: Job) => {
@@ -170,7 +175,7 @@ export function initOfertas() {
       if (!session || run !== epoch) return;
       await loadList();
       if (!session) return;
-      notice(action === 'close' ? 'Oferta cerrada. Las postulaciones existentes se conservan.' : 'Oferta eliminada.', 'success');
+      showToast(action === 'close' ? 'Las postulaciones existentes se conservan.' : 'La oferta fue eliminada.', 'success', {title:action === 'close'?'Oferta cerrada':'Oferta eliminada'});
       feedback.focus();
     } catch (error) {
       if (session) { failure(error); feedback.focus(); }
@@ -182,8 +187,8 @@ export function initOfertas() {
   }
   const loadList = async () => {
     const run = ++epoch, loading = el('[data-job-list-loading]'), list = el('[data-job-list]');
-    loading.hidden = false; clearActionMenus(); list.replaceChildren(); el('[data-job-empty]').hidden = true; listError && (listError.hidden = true);
-    listControls.forEach(control => control.hidden = true);
+    loading.hidden = false; if(owned){resultPanel?.setAttribute('aria-busy','true');if(createHeader)createHeader.hidden=false;} clearActionMenus(); list.replaceChildren(); el('[data-job-empty]').hidden = true; listError && (listError.hidden = true);
+    listControls.forEach(control => control.hidden = control===search ? false : true);
     el('[data-job-pagination]').hidden = true; el('[data-job-count]').textContent = '';
     feedback.hidden = true; recovery.hidden = true;
     const params = new URLSearchParams(query); params.set('page', String(page)); params.set('page_size', '20');
@@ -202,6 +207,17 @@ export function initOfertas() {
           text(fragment, '[data-job-status]', labels[item.status] ?? item.status);
           text(fragment, '[data-job-applicant-count]', typeof item.applicant_count === 'number' ? String(item.applicant_count) : 'No disponible');
           fragment.querySelector<HTMLElement>('[data-job-status]')!.dataset.status = item.status;
+          const row = fragment.querySelector<HTMLTableRowElement>('tr')!;
+          const titleLink = fragment.querySelector<HTMLAnchorElement>('[data-job-link]')!;
+          const quick = fragment.querySelector<HTMLAnchorElement>('[data-job-quick]');
+          if(quick){quick.href=href;quick.setAttribute('aria-label','Gestionar '+item.title);}
+          const partial = fragment.querySelector<HTMLElement>('[data-job-completeness]');
+          if(partial){partial.hidden=item.status!=='DRAFT'||(!!item.description&&item.requirements.length>0);partial.textContent='Completa la descripción y los requisitos antes de publicar.';}
+          row.addEventListener('click', event => {
+            if((event.target as Element).closest('a,button,input,select,textarea') || window.getSelection()?.toString())return;
+            if(event.ctrlKey||event.metaKey||event.shiftKey)window.open(href,'_blank','noopener');
+            else titleLink.click();
+          });
           const trigger = fragment.querySelector<HTMLButtonElement>('[data-actions-trigger]')!;
           const menuFragment = el<HTMLTemplateElement>('[data-action-menu-template]').content.cloneNode(true) as DocumentFragment;
           const menu = menuFragment.querySelector<HTMLElement>('[data-action-menu]')!;
@@ -240,13 +256,18 @@ export function initOfertas() {
       el('[data-job-count]').textContent = `${result.total} ${result.total === 1 ? 'oferta encontrada' : 'ofertas encontradas'}`;
       const empty = result.items.length === 0;
       el('[data-job-empty]').hidden = !empty;
-      listControls.forEach(control => control.hidden = empty && !query.toString());
+      listControls.forEach(control => control.hidden = control===search ? false : empty);
+      if(owned){
+        if(createHeader)createHeader.hidden=empty&&!query.toString();
+        const emptyCreate=root.querySelector<HTMLElement>('[data-empty-create]'),emptyReset=root.querySelector<HTMLElement>('[data-empty-reset]');
+        if(emptyCreate)emptyCreate.hidden=!!query.toString();if(emptyReset)emptyReset.hidden=!query.toString();
+      }
       if (empty) {
         text(root, '[data-empty-title]', query.toString() ? 'No encontramos ofertas con esos filtros' : owned ? 'Tu próxima contratación empieza aquí' : 'Aún no hay ofertas publicadas');
         text(root, '[data-empty-text]', query.toString() ? 'Prueba con otro cargo o limpia los filtros para ver las ofertas disponibles.' : owned ? 'Crea tu primera oferta. Puedes guardarla como borrador y completarla cuando estés listo.' : 'Vuelve más adelante para conocer nuevas oportunidades.');
       }
       const pages = Math.max(1, Math.ceil(result.total / result.page_size));
-      el('[data-job-pagination]').hidden = pages <= 1 && page === 1;
+      el('[data-job-pagination]').hidden = owned ? empty : pages <= 1 && page === 1;
       el('[data-page-label]').textContent = `Página ${page} de ${pages}`;
       el<HTMLButtonElement>('[data-page-prev]').disabled = page <= 1;
       el<HTMLButtonElement>('[data-page-next]').disabled = page >= pages;
@@ -255,7 +276,7 @@ export function initOfertas() {
       else if (listError) { feedback.hidden = true; recovery.hidden = true; listError.hidden = false; }
       else failure(error, true);
     } }
-    finally { if (run === epoch) loading.hidden = true; }
+    finally { if (run === epoch) {loading.hidden = true;resultPanel?.removeAttribute('aria-busy');} }
   };
   const load = async () => {
     if (!session) return;
@@ -284,6 +305,20 @@ export function initOfertas() {
     busy = value; el<HTMLFieldSetElement>('[data-job-fields]').disabled = value;
     form?.setAttribute('aria-busy', String(value)); updateDirty();
   };
+  if(form){
+    const actions=form.querySelector<HTMLElement>('[data-job-actions]')!;
+    const container=root.querySelector<HTMLElement>('[data-job-editor]')!;
+    const size=new ResizeObserver(()=>container.style.paddingBottom=(actions.offsetHeight+24)+'px');
+    size.observe(actions);
+    form.addEventListener('focusin',event=>{
+      const target=event.target;
+      if(!(target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement))return;
+      requestAnimationFrame(()=>{
+        if(target.getBoundingClientRect().bottom>actions.getBoundingClientRect().top)target.scrollIntoView({block:'center',behavior:'instant'});
+      });
+    });
+window.addEventListener('pagehide',()=>size.disconnect());
+  }
   form?.addEventListener('input', updateDirty);
   form?.addEventListener('change', updateDirty);
   form?.querySelectorAll<HTMLButtonElement>('[data-description-format]').forEach(button => button.addEventListener('click', () => {
@@ -308,13 +343,13 @@ export function initOfertas() {
     try {
       const saved = job ? await ofertas.update(job.id, body) : await ofertas.create(body);
       if (run !== epoch || !session) return;
-      job = saved; id = saved.id; fillEditor(); notice('Oferta guardada. Tus cambios ya están disponibles.', 'success');
+      job = saved; id = saved.id;hasSaved=true;fillEditor();wizard?.markSaved();feedback.hidden=true;
       if (creating) {
         history.replaceState(null, '', `/reclutador/editar-oferta?id=${encodeURIComponent(id)}`);
         document.querySelector('h1')!.textContent = 'Gestionar oferta';
       }
-      feedback.focus();
-    } catch (error) { if (run === epoch) { failure(error); feedback.focus(); } }
+      el('[data-dirty-message]').focus({preventScroll:true});
+    } catch (error) { if (run === epoch) { failure(error);feedback.focus();feedback.scrollIntoView({block:'center',behavior:'instant'}); } }
     finally { if (session) { setBusy(false); publication(); } }
   });
   root.querySelector('[data-discard-job]')?.addEventListener('click', async () => {
@@ -330,16 +365,16 @@ export function initOfertas() {
       if (!accepted || busy || !job || dirty) return;
       if (action === 'close' && !await confirm('Confirma el cierre', 'El cierre no puede deshacerse. Las postulaciones existentes se conservarán.', 'Sí, cerrar oferta')) return;
       const actionButton=event.currentTarget as HTMLButtonElement;
-      const shimmerTimeout=window.setTimeout(()=>{ actionButton.classList.add('q-button-loading'); actionButton.setAttribute('aria-busy','true'); },220);
+      const shimmerTimeout=window.setTimeout(()=>{ actionButton.classList.add('ui-button-loading'); actionButton.setAttribute('aria-busy','true'); },220);
       const run = epoch; setBusy(true); senalDeAccion('progreso');
       try {
         const value = await ofertas.transition(job.id, action);
         if (run !== epoch || !session) return;
         job = value; fillEditor();
-        notice(action === 'publish' ? 'Oferta publicada. Los postulantes ya pueden consultarla.' : 'Oferta cerrada. Ya no aparece entre las oportunidades disponibles.', 'success');
+        showToast(action === 'publish' ? 'Los postulantes ya pueden consultarla.' : 'Ya no aparece entre las oportunidades disponibles.', 'success', {title:action === 'publish'?'Oferta publicada':'Oferta cerrada'});
         feedback.focus();
       } catch (error) { if (run === epoch) { failure(error); feedback.focus(); } }
-      finally { window.clearTimeout(shimmerTimeout); actionButton.classList.remove('q-button-loading'); actionButton.removeAttribute('aria-busy'); if (session) setBusy(false); }
+      finally { window.clearTimeout(shimmerTimeout); actionButton.classList.remove('ui-button-loading'); actionButton.removeAttribute('aria-busy'); if (session) setBusy(false); }
     });
   }
   root.querySelector('[data-finish-job]')?.addEventListener('click', async () => {
@@ -356,19 +391,36 @@ export function initOfertas() {
     finally { if (session) setBusy(false); }
   });
   search?.addEventListener('submit', event => {
-    event.preventDefault(); if (busy) return; query = new URLSearchParams();
+    event.preventDefault(); if (busy || !session) return; clearTimeout(searchTimer); query = new URLSearchParams();
     const data = new FormData(search);
     for (const name of ['q', 'status']) { const value = String(data.get(name) ?? '').trim(); if (value) query.set(name, value); }
     page = 1; void load();
   });
-  root.querySelector('[data-reset-search]')?.addEventListener('click', () => { if (busy) return; search?.reset(); statusFilter?.reset(); query = new URLSearchParams(); page = 1; void load(); });
+  if(search){
+    const field=search.querySelector<HTMLInputElement>('[name=q]')!;
+    field.addEventListener('input',()=>{clearTimeout(searchTimer);searchTimer=setTimeout(()=>search.requestSubmit(),300);});
+    searchChips.forEach(chip=>chip.addEventListener('click',()=>{
+      if(busy)return;
+      const status=search.elements.namedItem('status') as HTMLInputElement;
+      status.value=chip.dataset.statusChip??'';
+      searchChips.forEach(item=>item.setAttribute('aria-pressed',String(item===chip)));
+      search.requestSubmit();
+    }));
+  }
+  const resetSearch = () => {
+    if(busy || !session)return;clearTimeout(searchTimer);search?.reset();statusFilter?.reset();
+    searchChips.forEach(chip=>chip.setAttribute('aria-pressed',String(chip.dataset.statusChip==='')));
+    query=new URLSearchParams();page=1;void load();
+  };
+  root.querySelector('[data-empty-reset]')?.addEventListener('click',resetSearch);
+  root.querySelector('[data-reset-search]')?.addEventListener('click',resetSearch);
   root.querySelector('[data-page-prev]')?.addEventListener('click', () => { if (!busy && page > 1) { page--; void load(); } });
   root.querySelector('[data-page-next]')?.addEventListener('click', () => { if (busy) return; page++; void load(); });
   root.querySelector('[data-job-list-retry]')?.addEventListener('click', () => void loadList());
   el('[data-job-retry]').addEventListener('click', () => void load());
   document.addEventListener('qori:session', event => { session = (event as CustomEvent<Session>).detail; void load(); });
   document.addEventListener('qori:session-cleared', () => {
-    epoch++; session = undefined; job = undefined; dirty = false; busy = false; form?.reset(); dialog?.close();
+    if(createHeader)createHeader.hidden=true;clearTimeout(searchTimer);epoch++; session = undefined; job = undefined;hasSaved=false; dirty = false; busy = false; form?.reset();wizard?.reset(); dialog?.close();
     clearActionMenus(); root.querySelector('[data-job-list]')?.replaceChildren();
     root.querySelector('[data-job-detail]')?.setAttribute('hidden', '');
     root.querySelector('[data-job-editor]')?.setAttribute('hidden', '');

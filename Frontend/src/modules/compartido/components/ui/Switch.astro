@@ -1,0 +1,6 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+type Props = Omit<HTMLAttributes<'input'>,'type'> & { label?:string };
+const {label,class:className,...attrs}=Astro.props;
+---
+{label ? <label class="ui-switch-label"><span>{label}</span><input {...attrs} type="checkbox" role="switch" class:list={['ui-switch',className]} /></label> : <input {...attrs} type="checkbox" role="switch" class:list={['ui-switch',className]} />}

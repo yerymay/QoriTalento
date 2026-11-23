@@ -1,0 +1,11 @@
+
+.application-tracking{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;text-align:center;}
+.application-tracking li{position:relative;min-width:0;}
+.application-tracking li:not(:last-child)::after{content:"";position:absolute;top:1rem;left:calc(50% + 1.5rem);width:calc(100% - 2rem);height:1px;background:var(--ui-border);}
+.tracking-marker{position:relative;z-index:1;display:grid;place-items:center;margin:auto;width:2rem;height:2rem;border:1px solid var(--ui-border);border-radius:50%;background:var(--color-panel);}
+.application-tracking [data-state=complete] .tracking-marker,.application-tracking [aria-current=step] .tracking-marker{background:var(--color-sky-700);color:white;border-color:var(--color-sky-700);}
+.application-tracking p{overflow-wrap:anywhere;}
+.application-success-check path{stroke-dasharray:24;stroke-dashoffset:0;}
+[data-wizard-success]:not([hidden]) .application-success-check path{animation:application-check 350ms var(--ease-ui-out) both;}
+@keyframes application-check{from{stroke-dashoffset:24;opacity:0;}to{stroke-dashoffset:0;opacity:1;}}
+@media(prefers-reduced-motion:reduce){[data-wizard-success]:not([hidden]) .application-success-check path{animation:none;}}

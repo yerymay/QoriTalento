@@ -1,6 +1,8 @@
 import { ApiError } from '../compartido/services/api';
 export const escape = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]!));
 const paths = {
+  grip: 'M9 5h.01M15 5h.01M9 12h.01M15 12h.01M9 19h.01M15 19h.01',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
   plus: 'M12 5v14M5 12h14',
   clock: 'M12 8v4l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   check: 'm5 12 4 4L19 6',
@@ -11,7 +13,7 @@ const paths = {
   alert: 'M12 8v5m0 3h.01M12 3 2 21h20L12 3Z',
   trash: 'M3 6h18M9 6V3h6v3M5 6l1 15h12l1-15M10 10v7M14 10v7',
 } as const;
-export const icon = (name: keyof typeof paths) => '<svg class="ex-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + paths[name] + '"/></svg>';
+export const icon = (name: keyof typeof paths) => '<svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="' + paths[name] + '"/></svg>';
 export function failure(error: unknown, target: HTMLElement) {
   target.textContent = error instanceof Error ? error.message : 'No se pudo completar la acción. Intenta de nuevo.';
   target.dataset.tone = 'error'; target.hidden = false;

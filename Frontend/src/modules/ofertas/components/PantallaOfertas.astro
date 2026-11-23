@@ -1,4 +1,7 @@
 ---
+import Button from '../../compartido/components/ui/Button.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Panel from '../../compartido/components/ui/Panel.astro';
 import Espacio from '../../auth/components/Espacio.astro';
 import Listado from './Listado.astro';
 import Editor from './Editor.astro';
@@ -7,15 +10,15 @@ import '../ofertas.css';
 interface Props { role: 'RECRUITER' | 'CANDIDATE'; view?: 'list' | 'new' | 'edit' | 'detail' }
 const { role, view = 'list' } = Astro.props;
 const owned = role === 'RECRUITER';
-const title = view === 'new' ? 'Nueva oferta' : view === 'edit' ? 'Gestionar oferta' : view === 'detail' ? 'Una oportunidad para crecer' : owned ? 'Mis ofertas de empleo' : 'Encuentra tu próxima oportunidad';
+const title = view === 'new' ? 'Nueva oferta' : view === 'edit' ? 'Gestionar oferta' : view === 'detail' ? 'Una oportunidad para crecer' : owned ? 'Mis ofertas' : 'Encuentra tu próxima oportunidad';
 const description = view === 'list' ? owned ? 'Gestiona cada oportunidad, desde el borrador hasta el cierre.' : 'Tu talento merece un lugar donde crecer.' : view === 'detail' ? 'Conoce el cargo y lo que busca el equipo.' : 'Define el perfil que necesita tu equipo.';
 ---
-<Espacio view="home" role={role} title={title} description={description}>
+<Espacio view="home" role={role} title={title} description={description} parentHref={owned && (view==='new'||view==='edit')?'/reclutador/ofertas':undefined} parentLabel={owned && (view==='new'||view==='edit')?'Mis ofertas':undefined}>
+  {owned && view === 'list' && <Button slot="page-actions" as="a" variant="primary" data-create-header hidden href="/reclutador/nueva-oferta">Crear oferta</Button>}
   <div data-ofertas data-job-view={view} data-job-owned={String(owned)} class="q-ofertas space-y-5">
-    {owned && view === 'list' && <div class="flex justify-end"><a href="/reclutador/nueva-oferta" class="q-primary inline-flex items-center">Crear oferta</a></div>}
-    <div data-job-feedback class="q-notice" role="status" tabindex="-1" hidden></div>
-    <div data-job-recovery class="flex flex-wrap gap-3" hidden><button data-job-retry type="button" class="q-secondary" data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link"><span data-i18n="revisado.afbd45731e06272b">Volver al listado</span></a></div>
-    <div data-job-loading class="q-card space-y-4 p-6" role="status" hidden><p><span data-i18n="revisado.03a61ec8d9305473">Cargando oferta…</span></p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></div>
+    <Alert as="div" data-job-feedback class="ui-alert" role="status" tabindex="-1" hidden></Alert>
+    <div data-job-recovery class="flex flex-wrap gap-3" hidden><Button variant="secondary" data-job-retry type="button" class="ui-button--secondary" data-i18n="texto.UmVpbnRlbnRhcg">Reintentar</Button><a href={owned ? '/reclutador/ofertas' : '/postulante/ofertas'} class="q-link"><span data-i18n="revisado.afbd45731e06272b">Volver al listado</span></a></div>
+    <Panel as="div" data-job-loading class="ui-panel space-y-4 p-6" role="status" hidden><p><span data-i18n="revisado.03a61ec8d9305473">Cargando oferta…</span></p><div class="h-10 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div><div class="h-36 animate-pulse rounded bg-slate-200 dark:bg-slate-800"></div></Panel>
     {view === 'list' ? <Listado owned={owned} /> : view === 'detail' ? <Detalle /> : <Editor wizard={view === 'new'} />}
   </div>
 </Espacio>

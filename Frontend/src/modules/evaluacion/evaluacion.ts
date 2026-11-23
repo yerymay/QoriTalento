@@ -28,7 +28,7 @@ export function initEvaluation(){
     const v=view,e=v.evaluation;
     root!.querySelector<HTMLAnchorElement>('[data-evaluation-back]')!.href='/reclutador/postulantes?job='+encodeURIComponent(v.job_id);
     root!.querySelector<HTMLAnchorElement>('[data-evaluation-cv]')!.href='/reclutador/cv?application='+encodeURIComponent(id);
-    const summary='<section class="q-card space-y-4 p-5 sm:p-6" aria-labelledby="evaluation-summary"><h2 id="evaluation-summary" class="break-words text-xl font-semibold">'+esc(v.job_title)+'</h2>'+(v.candidate_name?'<p class="font-medium">Postulante: '+esc(v.candidate_name)+'</p>':'')+
+    const summary='<section class="ui-panel space-y-4 p-5 sm:p-6" aria-labelledby="evaluation-summary"><h2 id="evaluation-summary" class="break-words text-xl font-semibold">'+esc(v.job_title)+'</h2>'+(v.candidate_name?'<p class="font-medium">Postulante: '+esc(v.candidate_name)+'</p>':'')+
       '<p>'+(v.profile_max===60?'Con examen: perfil hasta 60 puntos y examen hasta 40.':'Sin examen publicado: perfil sobre 100 puntos.')+' Las modalidades no son directamente equivalentes.</p>'+
       '<dl class="grid gap-4 sm:grid-cols-3"><div><dt class="text-slate-600 dark:text-slate-300">Perfil revisado</dt><dd class="mt-1 text-lg font-semibold tabular-nums">'+number(v.profile_points)+' / '+v.profile_max+'</dd></div>'+
       '<div><dt class="text-slate-600 dark:text-slate-300">Examen</dt><dd class="mt-1 text-lg font-semibold tabular-nums">'+(v.exam_count?(v.exam_points===null?'Pendiente':number(v.exam_points)+' / 40'):'No corresponde')+'</dd></div>'+
@@ -38,20 +38,20 @@ export function initEvaluation(){
     const grades='<section class="space-y-3" aria-labelledby="objective-title"><h2 id="objective-title" class="text-xl font-semibold">Calificación objetiva del examen</h2>'+
       (v.grades.length?'<ul class="divide-y divide-slate-200 dark:divide-slate-700">'+v.grades.map(g=>'<li class="py-3"><p class="font-medium">'+esc(g.title)+'</p><p>'+g.correct+' de '+g.total+' respuestas correctas · '+number(g.percent)+' % · '+g.unanswered+' sin respuesta válida.</p></li>').join('')+'</ul>':'<p>'+(v.exam_count?'Aún no hay intentos finalizados. Las respuestas guardadas se califican al finalizar el intento.':'Esta oferta no tiene un examen publicado.')+'</p>')+'</section>';
     if(!e){
-      content.innerHTML=summary+grades+'<section class="q-card space-y-4 p-5 sm:p-6"><h2 class="text-xl font-semibold">Revisión por requisito</h2><p>'+
+      content.innerHTML=summary+grades+'<section class="ui-panel space-y-4 p-5 sm:p-6"><h2 class="text-xl font-semibold">Revisión por requisito</h2><p>'+
         (!v.confirmed?'Espera a que el postulante confirme su perfil. Puedes consultar el expediente.':!v.requirement_count?'Define los requisitos de la oferta antes de evaluar.':'Prepara el desglose con pesos iguales. Después puedes pedir sugerencias o revisar la evidencia manualmente.')+
-        '</p><button type="button" class="q-primary" data-prepare '+(!v.confirmed||!v.requirement_count?'disabled':'')+'>Preparar evaluación</button></section>';
+        '</p><button type="button" class="ui-button--primary" data-prepare '+(!v.confirmed||!v.requirement_count?'disabled':'')+'>Preparar evaluación</button></section>';
       content.querySelector('[data-prepare]')?.addEventListener('click',()=>void mutate(()=>evaluationApi.prepare(id),'Evaluación preparada. Revisa cada requisito.'));
       return;
     }
     content.innerHTML=summary+grades+
       '<form data-evaluation-form class="space-y-6"><fieldset data-evaluation-fields class="min-w-0 space-y-6" '+(v.stale?'disabled':'')+'>'+
       '<div class="flex flex-wrap items-start justify-between gap-4"><div><h2 class="text-xl font-semibold">Revisión por requisito</h2><p class="mt-2 max-w-prose">Cumple aporta el 100 % del peso; cumple parcialmente, el 50 %; no cumple, el 0 %. Sin evidencia suficiente mantiene el total pendiente, incluso con peso cero.</p></div>'+
-      '<button data-assist type="button" class="q-secondary">Solicitar sugerencias de Ollama</button></div>'+
+      '<button data-assist type="button" class="ui-button--secondary">Solicitar sugerencias de Ollama</button></div>'+
       '<p>Perfil confirmado · versión '+esc(e.profile_version_id)+'. Pesos de esta evaluación: deben sumar '+e.profile_max+' puntos.</p>'+
       e.criteria.map((c,i)=>'<fieldset data-criterion="'+i+'" class="min-w-0 space-y-4 border-t border-slate-200 py-5 dark:border-slate-700"><legend class="max-w-full break-words pt-4 text-lg font-semibold">'+esc(c.text)+'</legend>'+
         '<div class="grid gap-6 lg:grid-cols-2"><section aria-label="Sugerencia para '+esc(c.text)+'" class="min-w-0 space-y-3"><h3 class="font-semibold">Sugerencia de Ollama</h3>'+
-        (c.suggestion?'<p>'+esc(labels[c.suggestion.rating])+' · pendiente de tu revisión</p><ul class="list-disc space-y-2 break-words pl-5">'+evidence(c.suggestion)+'</ul><p class="max-w-prose break-words">'+esc(c.suggestion.explanation)+'</p><button type="button" data-use="'+i+'" class="q-secondary">Usar como borrador de revisión</button>':
+        (c.suggestion?'<p>'+esc(labels[c.suggestion.rating])+' · pendiente de tu revisión</p><ul class="list-disc space-y-2 break-words pl-5">'+evidence(c.suggestion)+'</ul><p class="max-w-prose break-words">'+esc(c.suggestion.explanation)+'</p><button type="button" data-use="'+i+'" class="ui-button--secondary">Usar como borrador de revisión</button>':
         '<p class="text-slate-600 dark:text-slate-300">Todavía no se ha solicitado una sugerencia. Puedes revisar el perfil manualmente.</p>')+'</section>'+
         '<div class="min-w-0 space-y-4"><div class="grid gap-4 sm:grid-cols-[1fr_9rem]"><label class="block"><span class="mb-2 block font-medium">Tu valoración</span><select data-rating class="q-input w-full"><option value="">Sin revisar</option>'+
         Object.entries(labels).map(([key,label])=>'<option value="'+key+'" '+(c.review?.rating===key?'selected':'')+'>'+label+'</option>').join('')+'</select></label>'+
@@ -62,7 +62,7 @@ export function initEvaluation(){
       '<div class="space-y-4 border-t border-slate-200 pt-5 dark:border-slate-700"><p data-weight-total class="font-medium"></p>'+
       '<label class="flex min-h-11 cursor-pointer items-start gap-3"><input data-human-confirm type="checkbox" required class="mt-1 h-5 w-5 shrink-0 rounded text-sky-700 focus:ring-sky-600"><span>He contrastado las valoraciones con la evidencia. Guardar esta revisión no selecciona ni descarta al postulante.</span></label>'+
       '<p data-unsaved class="text-slate-600 dark:text-slate-300">Los puntos mostrados corresponden a la última revisión guardada.</p>'+
-      '<button type="submit" class="q-primary">Guardar revisión</button></div></fieldset></form>';
+      '<button type="submit" class="ui-button--primary">Guardar revisión</button></div></fieldset></form>';
     const form=content.querySelector<HTMLFormElement>('[data-evaluation-form]')!;
     const update=()=>{
       const sum=Array.from(form.querySelectorAll<HTMLInputElement>('[data-weight]')).reduce((n,input)=>n+Number(input.value),0);
@@ -105,14 +105,14 @@ export function initEvaluation(){
     const previous=buttons.map(button=>button.disabled);
     buttons.forEach(button=>button.disabled=true);if(fieldset)fieldset.disabled=true;
     notice('Procesando la solicitud… La comparación local puede tardar hasta dos minutos.');
-    const timer=setTimeout(()=>{buttons.forEach(b=>{b.classList.add('q-button-loading');b.setAttribute('aria-busy','true');});},220);
+    const timer=setTimeout(()=>{buttons.forEach(b=>{b.classList.add('ui-button-loading');b.setAttribute('aria-busy','true');});},220);
     try{
       const result=await work();if(run!==epoch||!active)return;
       view=result;dirty=false;retry.hidden=true;render();notice(success,false,true);
     }catch(error){if(run===epoch&&active)fail(error);}
     finally{
       clearTimeout(timer);
-      if(run===epoch){busy=false;buttons.forEach((button,i)=>{button.disabled=previous[i]!;button.classList.remove('q-button-loading');button.removeAttribute('aria-busy');});if(fieldset)fieldset.disabled=!!view?.stale;}
+      if(run===epoch){busy=false;buttons.forEach((button,i)=>{button.disabled=previous[i]!;button.classList.remove('ui-button-loading');button.removeAttribute('aria-busy');});if(fieldset)fieldset.disabled=!!view?.stale;}
     }
   }
   async function load(){

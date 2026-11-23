@@ -1,0 +1,6 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+interface Props { role?:HTMLAttributes<'div'>['role']; as?:'div'|'p'|'section'; tone?:'info'|'success'|'warning'|'error'; title?:string; class?:string; [key:string]:unknown }
+const {as:Tag='div',tone='info',title,class:className,role=tone==='error'?'alert':'status',...attrs}=Astro.props;
+---
+<Tag {...attrs} role={role} data-tone={tone} class:list={['ui-alert',className]}>{title && <strong class="block">{title}</strong>}<slot />{Astro.slots.has("action") && <div class="ui-alert-actions"><slot name="action" /></div>}</Tag>

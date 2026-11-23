@@ -1,0 +1,5 @@
+---
+interface Props { tone?:'neutral'|'info'|'success'|'warning'|'error'; class?:string; [key:string]:unknown }
+const {tone='neutral',class:className,...attrs}=Astro.props;
+---
+<span {...attrs} data-tone={tone} class:list={['ui-badge',className]}><slot /></span>

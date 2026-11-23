@@ -1,8 +1,13 @@
+import { sonidoHabilitado, vibracionHabilitada } from '../compartido/preferencias-senal';
 import { crearMotorVoz, crearPanelVoz } from '../compartido/entrada-voz';
 import { coincidirOpcion, dividirOrdenes, interpretarOferta, normalizar, type CampoLista, type CampoTexto } from '../compartido/voz-comandos';
 
 const VENTANA_MS = 5000; // tiempo en que un clic se considera "a la vez" que la voz
-const TEXTO: Record<CampoTexto, { nombre: string; modo: 'reemplazar' | 'agregar' | 'linea' }> = {
+type CampoOferta = CampoTexto | 'work_schedule' | 'responsibilities' | 'other_benefits';
+const TEXTO: Record<CampoOferta, { nombre: string; modo: 'reemplazar' | 'agregar' | 'linea' }> = {
+  work_schedule: { nombre: 'Jornada', modo: 'reemplazar' },
+  responsibilities: { nombre: 'Funciones', modo: 'linea' },
+  other_benefits: { nombre: 'Otros beneficios', modo: 'linea' },
   title: { nombre: 'Cargo', modo: 'reemplazar' },
   location: { nombre: 'Ubicación', modo: 'reemplazar' },
   description: { nombre: 'Descripción', modo: 'agregar' },
@@ -11,7 +16,7 @@ const TEXTO: Record<CampoTexto, { nombre: string; modo: 'reemplazar' | 'agregar'
   education_required: { nombre: 'Formación académica', modo: 'agregar' },
 };
 const LISTA: Record<CampoLista, string> = { area: 'Área', modality: 'Modalidad' };
-const CAMPOS = Object.keys(TEXTO) as CampoTexto[];
+const CAMPOS = Object.keys(TEXTO) as CampoOferta[];
 const LISTAS = Object.keys(LISTA) as CampoLista[];
 
 /** Formulario "Nueva oferta" / "Gestionar oferta": completar por voz o por teclado y clic. */
@@ -21,20 +26,38 @@ export function initVozOferta() {
   if (!raiz || !form) return;
 
   const panel = crearPanelVoz(raiz);
-  const texto = (campo: CampoTexto) => form.querySelector<HTMLInputElement | HTMLTextAreaElement>('#' + campo)!;
+  const microphones=[...form.querySelectorAll<HTMLButtonElement>('[data-field-voice]')];
+  const feedback=raiz.querySelector<HTMLElement>('[data-voz-feedback]')!,status=raiz.querySelector<HTMLElement>('[data-voz-estado]')!;
+  let voiceEpoch=0;
+  let active=false,targeted=false,activeField='',listField:CampoLista|null=null;
+  const sync=()=>{
+    microphones.forEach(button=>{
+      const listening=panel.boton.dataset.escuchando==='true'&&button.dataset.fieldVoice===activeField;
+      button.dataset.escuchando=String(listening);button.setAttribute('aria-pressed',String(listening));
+      const label=button.title.replace(/^Detener dictado: /,'').replace(/^Dictar /,'');
+      button.setAttribute('aria-label',listening?'Detener dictado: '+label:'Dictar '+label);
+    });
+    feedback.hidden=!status.textContent;
+    feedback.dataset.tone=status.dataset.tipo==='error'?'error':status.dataset.tipo==='aviso'?'warning':'info';
+  };
+  raiz.querySelector<HTMLInputElement>('[data-voz-sonido]')!.checked=sonidoHabilitado();
+  raiz.querySelector<HTMLInputElement>('[data-voz-vibracion]')!.checked=vibracionHabilitada();
+  new MutationObserver(sync).observe(raiz,{subtree:true,attributes:true,attributeFilter:['data-escuchando','data-tipo'],childList:true});
+
+  const texto = (campo: CampoOferta) => form.querySelector<HTMLInputElement | HTMLTextAreaElement>('#' + campo)!;
   const lista = (campo: CampoLista) => form.querySelector<HTMLSelectElement>('#' + campo)!;
   const opcionesDe = (campo: CampoLista) => Array.from(lista(campo).options).filter(o => o.value).map(o => o.value);
   const etiquetaOpcion = (campo: CampoLista, valor: string) => Array.from(lista(campo).options).find(o => o.value === valor)?.text || 'Sin selección';
   const ocupado = () => !!form.querySelector<HTMLFieldSetElement>('[data-job-fields]')?.disabled;
 
-  let ultimoCampo: CampoTexto | null = null;
+  let ultimoCampo: CampoOferta | null = null;
   let aplicando = false; // evita tratar como "clic del usuario" los cambios que hace este código
   let foto: Record<string, string> = {};
   const intenciones: Partial<Record<CampoLista, { valor: string; en: number }>> = {};
 
   form.addEventListener('focusin', evento => {
     const id = (evento.target as HTMLElement).id;
-    if ((CAMPOS as string[]).includes(id)) ultimoCampo = id as CampoTexto;
+    if ((CAMPOS as string[]).includes(id)) ultimoCampo = id as CampoOferta;
   });
 
   const tomarFoto = () => {
@@ -42,7 +65,7 @@ export function initVozOferta() {
   };
   const enfocarTeclado = () => (ultimoCampo ? texto(ultimoCampo) : texto('title')).focus();
 
-  function ponerTexto(campo: CampoTexto, valor: string) {
+  function ponerTexto(campo: CampoOferta, valor: string) {
     const el = texto(campo);
     el.value = valor;
     el.dispatchEvent(new Event('input', { bubbles: true })); // el formulario recalcula "cambios sin guardar"
@@ -57,7 +80,7 @@ export function initVozOferta() {
     } finally { aplicando = false; }
   }
 
-  async function aplicarTexto(campo: CampoTexto, dicho: string) {
+  async function aplicarTexto(campo: CampoOferta, dicho: string) {
     const el = texto(campo);
     const { nombre, modo } = TEXTO[campo];
     const actual = el.value;
@@ -136,13 +159,23 @@ export function initVozOferta() {
   }
 
   async function procesar(dicho: string) {
+    if(!active)return;
     if (ocupado()) { panel.responder('El formulario se está guardando. Intenta de nuevo en un momento.', 'aviso'); return; }
+    if(targeted&&activeField){
+      // El micrófono pertenece al campo: sus palabras nunca cambian otro campo.
+      const literal=dicho.replace(/^(?:escribir|dictar)\s+/i,'').trim();
+      if(!literal)return;
+      if(listField)await aplicarLista(listField,literal);
+      else await aplicarTexto(activeField as CampoOferta,literal);
+      return;
+    }
     const orden = interpretarOferta(dicho, { area: opcionesDe('area'), modality: opcionesDe('modality') });
     switch (orden.tipo) {
       case 'texto': await aplicarTexto(orden.campo, orden.valor); return;
       case 'lista': await aplicarLista(orden.campo, orden.valor); return;
       case 'dictado': {
-        const permitido = ultimoCampo && (orden.explicito || TEXTO[ultimoCampo].modo !== 'reemplazar');
+        if(listField){await aplicarLista(listField,orden.valor);return;}
+        const permitido = ultimoCampo && (targeted || orden.explicito || TEXTO[ultimoCampo].modo !== 'reemplazar');
         if (!ultimoCampo || !permitido) {
           panel.responder(`No reconocí el campo, así que no escribí nada. Empieza con su nombre: “cargo …”, “ubicación …”, “modalidad …”.`, 'error');
           return;
@@ -162,12 +195,15 @@ export function initVozOferta() {
     alParcial: dicho => panel.mostrarParcial(dicho),
     alEstado: valor => {
       panel.marcarEscuchando(valor);
-      if (valor) panel.responder('Te escucho. Di un campo y su contenido, por ejemplo “cargo diseñador de producto”. Pulsa Detener al terminar.', 'info');
+      if (valor) panel.responder('Escuchando. Dicta el contenido del campo; pulsa de nuevo el micrófono para detener.', 'info');
     },
     alResultado: dicho => {
+      if(!active)return;
+      const run=voiceEpoch;
       cola = cola.then(async () => {
+        if(!active||run!==voiceEpoch)return;
         // Una frase de corrido puede traer varias órdenes: se separan y se aplican una por una.
-        const ordenes = dividirOrdenes(dicho, { area: opcionesDe('area'), modality: opcionesDe('modality') });
+        const ordenes = targeted ? [dicho] : dividirOrdenes(dicho, { area: opcionesDe('area'), modality: opcionesDe('modality') });
         for (const orden of ordenes) await procesar(orden);
       }).catch(() => undefined);
     },
@@ -180,8 +216,37 @@ export function initVozOferta() {
   });
 
   panel.alPulsar(() => {
+    if(!active||ocupado())return;
+    raiz.querySelector<HTMLInputElement>('[data-voz-sonido]')!.checked=sonidoHabilitado();
+    raiz.querySelector<HTMLInputElement>('[data-voz-vibracion]')!.checked=vibracionHabilitada();
     if (motor.estaEscuchando()) { motor.detener(); return; }
     tomarFoto();
     motor.iniciar();
   });
+  microphones.forEach(button=>button.addEventListener('click',()=>{
+    if(!active||ocupado())return;
+    const field=button.dataset.fieldVoice!;
+    if(motor.estaEscuchando()&&activeField===field){motor.detener();sync();return;}
+    if(motor.estaEscuchando())motor.detener();
+    activeField=field;targeted=true;listField=LISTAS.includes(field as CampoLista)?field as CampoLista:null;
+    if(CAMPOS.includes(field as CampoOferta))ultimoCampo=field as CampoOferta;
+    (form.querySelector<HTMLElement>('#'+field)??button).focus();
+    panel.boton.click();sync();
+  }));
+  form.addEventListener('input',()=>{
+    if((form.querySelector<HTMLElement>('[data-wizard-step]:not([hidden])')&&!microphones.find(button=>button.dataset.fieldVoice===activeField)?.getClientRects().length)&&motor.estaEscuchando())motor.detener();
+  });
+  const stopOnSave=new MutationObserver(()=>{if(ocupado())motor.detener();});
+  stopOnSave.observe(form.querySelector('[data-job-fields]')!,{attributes:true,attributeFilter:['disabled']});
+  const stopOnStep=new MutationObserver(()=>{if(motor.estaEscuchando()&&!microphones.find(button=>button.dataset.fieldVoice===activeField)?.getClientRects().length)motor.detener();});
+  form.querySelectorAll('[data-wizard-step]').forEach(step=>stopOnStep.observe(step,{attributes:true,attributeFilter:['hidden']}));
+  document.addEventListener('qori:session',()=>{active=true;});
+  document.addEventListener('qori:session-cleared',()=>{
+    voiceEpoch++;active=false;motor.destruir();ultimoCampo=null;activeField='';listField=null;foto={};for(const key of LISTAS)delete intenciones[key];
+    raiz.querySelector<HTMLDialogElement>('dialog')?.close();
+    raiz.querySelectorAll('[data-voz-estado],[data-voz-parcial],[data-voz-dialogo-opciones],[data-voz-dialogo-texto]').forEach(el=>el.textContent='');
+    raiz.querySelector<HTMLElement>('[data-voz-deshacer]')!.hidden=true;feedback.hidden=true;
+  });
+  window.addEventListener('pagehide',()=>{motor.destruir();stopOnSave.disconnect();stopOnStep.disconnect();});
+
 }

@@ -1,88 +1,51 @@
-import { senalDeAccion } from '../compartido/preferencias-senal';
-import { initApplicationWizard } from './wizard';
-import { postulaciones, type Application } from './postulaciones.service';
-import { ofertas } from '../ofertas/ofertas.service';
-import { ApiError } from '../compartido/services/api';
-import type { Session } from '../auth/auth.service';
-const labels: Record<string,string> = { PENDING:'Pendiente de evaluación', IN_REVIEW:'En revisión', SHORTLISTED:'Preseleccionado', ADVANCES:'Avanza', NOT_ADVANCES:'No avanza' };
-export function initPostulaciones() {
-  const root = document.querySelector<HTMLElement>('[data-applications]'); if (!root) return;
-  if (root.dataset.view === 'form') { initApplicationWizard(root); return; }
-  const el = <T extends HTMLElement = HTMLElement>(s:string) => root.querySelector<T>(s)!;
-  const input = root.querySelector<HTMLInputElement>('[data-file]'), dialog = el<HTMLDialogElement>('[data-app-confirm]');
-  const notice = el('[data-app-notice]'), loading = el('[data-app-loading]'), recovery = el('[data-app-recovery]');
-  const params = new URLSearchParams(location.search), jobId = params.get('id') ?? '', applicationId = params.get('application') ?? '';
-  let session: Session | undefined, file: File | undefined, active: AbortController | undefined, current: Application | undefined, title = '', epoch = 0;
-  const say = (message:string, error = false) => { notice.textContent = message; notice.dataset.tone = error ? 'error' : 'success'; notice.hidden = false; notice.focus(); senalDeAccion(error ? 'error' : 'exito'); };
-  const failure = (error:unknown) => {
-    if (error instanceof ApiError && (error.status === 401 || error.code === 'FORBIDDEN')) { document.dispatchEvent(new CustomEvent('qori:auth-error', {detail:error})); return; }
-    say(error instanceof Error ? error.message : 'No se pudo completar la operación.', true);
-  };
-  const choose = (value:File | undefined) => {
-    file = undefined; const error = el('[data-file-error]'), name = el('[data-filename]'); error.hidden = true; name.hidden = true;
-    if (value && (!value.name.toLowerCase().endsWith('.pdf') || (value.type && value.type !== 'application/pdf') || value.size > 5_000_000 || value.size === 0)) {
-      error.textContent = 'Selecciona un PDF de hasta 5 MB.'; error.hidden = false;
-    } else if (value) { file = value; name.textContent = `Seleccionado: ${value.name}`; name.hidden = false; }
-    el<HTMLButtonElement>('[data-submit]').disabled = !file || !!active;
-  };
-  const load = async () => {
-    const run = ++epoch; loading.hidden = false; notice.hidden = true; recovery.hidden = true;
-    try {
-      if (root.dataset.view === 'list') {
-        const result = await postulaciones.list(); if (run !== epoch || !session) return;
-        const list = el('[data-app-list]'); list.replaceChildren(); el('[data-app-empty]').hidden = result.items.length > 0;
-        for (const item of result.items) {
-          const fragment = el<HTMLTemplateElement>('[data-card]').content.cloneNode(true) as DocumentFragment;
-          fragment.querySelector('[data-card-title]')!.textContent = item.title;
-          fragment.querySelector('[data-card-meta]')!.textContent = `Postulación ${item.id} · ${new Intl.DateTimeFormat('es-PE',{dateStyle:'medium'}).format(new Date(item.created_at))}`;
-          fragment.querySelector('[data-card-status]')!.textContent = item.status ? labels[item.status] ?? item.status : 'Estado pendiente';
-          fragment.querySelector('[data-card-file]')!.textContent = item.filename ? `CV: ${item.filename}` : 'CV no disponible';
-          const replace = fragment.querySelector<HTMLAnchorElement>('[data-card-replace]')!;
-          const review = fragment.querySelector<HTMLAnchorElement>('[data-card-cv]')!;
-          review.href = `/postulante/cv?application=${encodeURIComponent(item.id)}`;
-          const tracking = fragment.querySelector<HTMLDetailsElement>('[data-tracking]')!;
-          const trackingDate = fragment.querySelector<HTMLElement>('[data-tracking-date]')!;
-          const date = item.submitted_at || item.created_at;
-          trackingDate.textContent = date && !Number.isNaN(new Date(date).getTime()) ? 'Registrada el ' + new Intl.DateTimeFormat('es-PE', { dateStyle: 'medium' }).format(new Date(date)) : 'Fecha no disponible';
-          fragment.querySelector<HTMLElement>('[data-tracking-status]')!.textContent = item.status ? labels[item.status] ?? 'Estado no disponible' : 'Estado no disponible';
-          tracking.addEventListener('toggle', () => { tracking.querySelector<HTMLElement>('[data-tracking-toggle]')!.textContent = tracking.open ? 'Ocultar seguimiento' : 'Ver seguimiento'; });
-          if (item.status === 'PENDING') { replace.hidden = false; replace.href = `/postulante/postular?application=${encodeURIComponent(item.id)}`; }
-          list.append(fragment);
-        }
-      } else {
-        if (applicationId) { const result = await postulaciones.list(); current = result.items.find(a => a.id === applicationId); if (!current) throw new Error('No se encontró la postulación.'); title = current.title; if (current.status !== 'PENDING') throw new Error('El CV solo puede reemplazarse mientras la postulación esté pendiente de evaluación.'); }
-        else { const job = await ofertas.detail(false, jobId); title = job.title; }
-        if (run !== epoch || !session) return;
-        el('[data-title]').textContent = title; el('[data-meta]').textContent = current ? 'Actualizar currículum' : `Oferta QT-${jobId}`;
-        el('[data-submit]').textContent = current ? 'Actualizar CV' : 'Enviar postulación'; el('[data-form-content]').hidden = false;
+import {initApplicationWizard} from './wizard';
+import {postulaciones} from './postulaciones.service';
+import {ApiError} from '../compartido/services/api';
+import {initMenus} from '../compartido/components/ui/menu';
+import type {Session} from '../auth/auth.service';
+
+const labels:Record<string,string>={PENDING:'Pendiente de evaluación',IN_REVIEW:'En revisión',SHORTLISTED:'Preseleccionado',ADVANCES:'Avanza',NOT_ADVANCES:'No avanza'};
+export function initPostulaciones(){
+  const root=document.querySelector<HTMLElement>('[data-applications]');if(!root)return;
+  if(root.dataset.view==='form'){initApplicationWizard(root);return;}
+  const get=<T extends HTMLElement=HTMLElement>(selector:string)=>root.querySelector<T>(selector)!;
+  const loading=get('[data-app-loading]'),notice=get('[data-app-notice]'),recovery=get('[data-app-recovery]'),list=get('[data-app-list]');
+  let session:Session|undefined,epoch=0,disposeMenus=()=>{};
+  const date=(value:string|null)=>value&&!Number.isNaN(Date.parse(value))?new Intl.DateTimeFormat('es-PE',{dateStyle:'medium'}).format(new Date(value)):'Fecha no disponible';
+  const load=async()=>{
+    const run=++epoch;loading.hidden=false;notice.hidden=true;recovery.hidden=true;disposeMenus();list.replaceChildren();get('[data-app-empty]').hidden=true;
+    try{
+      const result=await postulaciones.list();if(run!==epoch||!session)return;
+      get('[data-app-empty]').hidden=!!result.items.length;
+      for(const item of result.items){
+        const fragment=get<HTMLTemplateElement>('[data-card]').content.cloneNode(true) as DocumentFragment;
+        const find=<T extends HTMLElement=HTMLElement>(selector:string)=>fragment.querySelector<T>(selector)!;
+        find('[data-card-title]').textContent=item.title;
+        find('[data-card-meta]').textContent='Postulación '+item.id+' · '+date(item.created_at);
+        find('[data-card-status]').textContent=item.status?labels[item.status]??'Estado no disponible':'Estado pendiente';
+        find('[data-card-file]').textContent=item.filename?'CV: '+item.filename:'CV no disponible';
+        find<HTMLAnchorElement>('[data-card-cv]').href='/postulante/cv?application='+encodeURIComponent(item.id);
+        find<HTMLAnchorElement>('[data-card-cv]').setAttribute('aria-label','Revisar datos del CV de '+item.title);
+        const replace=find<HTMLAnchorElement>('[data-card-replace]');replace.hidden=item.status!=='PENDING';replace.href='/postulante/postular?application='+encodeURIComponent(item.id);
+        find<HTMLAnchorElement>('[data-card-job]').href='/postulante/oferta?id='+encodeURIComponent(item.job_id);
+        find('[data-tracking-date]').textContent='Registrada el '+date(item.submitted_at||item.created_at);
+        find('[data-tracking-status]').textContent=item.status?labels[item.status]??'Estado no disponible':'Estado no disponible';
+        const tracking=find('[data-tracking]');
+        find('[data-card-tracking]').addEventListener('click',()=>{tracking.focus();tracking.scrollIntoView({block:'center',behavior:'instant'});});
+        const menu=find('[data-card-menu]');menu.id='application-menu-'+item.id;
+        find('[data-ui-menu-trigger]').setAttribute('aria-controls',menu.id);
+        find('[data-ui-menu-trigger]').setAttribute('aria-label','Opciones de '+item.title);
+        list.append(fragment);
       }
-    } catch (error) { if (run === epoch) { failure(error); recovery.hidden = false; } }
-    finally { if (run === epoch) loading.hidden = true; }
+      disposeMenus=initMenus(root);
+    }catch(error){
+      if(run!==epoch||!session)return;
+      if(error instanceof ApiError&&(error.status===401||error.status===403)){document.dispatchEvent(new CustomEvent('qori:auth-error',{detail:error}));return;}
+      notice.textContent=error instanceof Error?error.message:'No se pudieron cargar las postulaciones.';notice.dataset.tone='error';notice.setAttribute('role','alert');notice.hidden=false;recovery.hidden=false;
+    }finally{if(run===epoch)loading.hidden=true;}
   };
-  input?.addEventListener('change', () => choose(input.files?.[0]));
-  const drop = root.querySelector<HTMLElement>('[data-drop]');
-  drop?.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('border-sky-600'); });
-  drop?.addEventListener('dragleave', () => drop.classList.remove('border-sky-600'));
-  drop?.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('border-sky-600'); choose(e.dataTransfer?.files[0]); });
-  root.querySelector('[data-submit]')?.addEventListener('click', async () => {
-    if (!file || active || !session) return;
-    const selected = file; el('[data-confirm-copy]').textContent = `${current ? 'Actualizarás tu CV para' : 'Enviarás tu postulación a'} ${title} con el archivo ${selected.name}.`;
-    dialog.returnValue = 'cancel'; dialog.showModal(); await new Promise<void>(resolve => dialog.addEventListener('close', () => resolve(), {once:true}));
-    if (dialog.returnValue !== 'confirm' || !session || active) { if (session && !active) senalDeAccion('cancelacion'); return; }
-    active = new AbortController(); senalDeAccion('progreso'); const run = epoch, controller = active;
-    el<HTMLButtonElement>('[data-submit]').disabled = true; el('[data-cancel-upload]').hidden = false; el('[data-progress-wrap]').hidden = false;
-    try {
-      const progress = (value:number|null) => { const bar = el<HTMLProgressElement>('[data-progress]'); if (value === null) bar.removeAttribute('value'); else bar.value = value; el('[data-progress-label]').textContent = value === 100 ? 'Leyendo currículum…' : 'Enviando archivo…'; };
-      const result = await (current ? postulaciones.replace(current.id, selected, controller.signal, progress) : postulaciones.send(jobId, selected, controller.signal, progress));
-      if (run !== epoch || !session) return;
-      location.assign(`/postulante/cv?application=${encodeURIComponent(result.id)}`);
-      file = undefined; if (input) input.value = ''; el('[data-form-content]').hidden = true; say(current ? 'CV actualizado correctamente.' : 'Postulación registrada. Puedes consultar su estado en Mis postulaciones.');
-      recovery.hidden = false; el('[data-app-retry]').hidden = true;
-    } catch (error) { if (run === epoch) { failure(error); if (error instanceof ApiError && error.status === 0) say('No pudimos confirmar el resultado. Consulta Mis postulaciones antes de volver a enviar.', true); } }
-    finally { if (active === controller) active = undefined; if (run === epoch) { el('[data-progress-wrap]').hidden = true; el('[data-cancel-upload]').hidden = true; el<HTMLButtonElement>('[data-submit]').disabled = !file; } }
-  });
-  root.querySelector('[data-cancel-upload]')?.addEventListener('click', () => active?.abort());
-  el('[data-app-retry]').addEventListener('click', () => void load());
-  document.addEventListener('qori:session', e => { session = (e as CustomEvent<Session>).detail; void load(); });
-  document.addEventListener('qori:session-cleared', () => { epoch++; active?.abort(); session = undefined; file = undefined; dialog.close(); root.querySelector('[data-app-list]')?.replaceChildren(); if (input) input.value = ''; });
+  get('[data-app-retry]').addEventListener('click',()=>void load());
+  document.addEventListener('qori:session',event=>{session=(event as CustomEvent<Session>).detail;void load();});
+  document.addEventListener('qori:session-cleared',()=>{epoch++;session=undefined;disposeMenus();list.replaceChildren();notice.hidden=true;recovery.hidden=true;get('[data-app-empty]').hidden=true;});
+  window.addEventListener('pagehide',()=>disposeMenus());
 }

@@ -1,4 +1,7 @@
-﻿<button data-theme type="button" class="q-secondary" aria-label="Cambiar tema claro u oscuro" data-i18n="texto.VGVtYQ">Tema</button>
+---
+import Button from '../../compartido/components/ui/Button.astro';
+---
+<Button variant="secondary" data-theme type="button" class="ui-button--secondary" aria-label="Cambiar tema claro u oscuro" data-i18n="texto.VGVtYQ">Tema</Button>
 <script>
   document.querySelectorAll<HTMLButtonElement>('[data-theme]').forEach(button=>{
     const update=()=>{

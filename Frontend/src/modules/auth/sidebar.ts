@@ -36,5 +36,8 @@ export function initSidebar(root: HTMLElement) {
     if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   });
+  const collapse=root.querySelector<HTMLButtonElement>('[data-sidebar-collapse]')!;
+  aside.querySelectorAll<HTMLElement>('.q-nav').forEach(link=>{const label=link.textContent?.trim();if(label){link.setAttribute('title',label);link.setAttribute('aria-label',label);}});
+  collapse.addEventListener('click',()=>{const collapsed=root.classList.toggle('sidebar-collapsed');collapse.setAttribute('aria-expanded',String(!collapsed));collapse.setAttribute('aria-label',collapsed?'Expandir navegación':'Contraer navegación');});
   sync();
 }

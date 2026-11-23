@@ -1,4 +1,5 @@
 ---
+import Button from './ui/Button.astro';
 /**
  * Panel reutilizable de entrada por voz: botón de micrófono, estado visible,
  * opciones de sonido/vibración, "Deshacer" y tarjeta de aclaración.
@@ -17,10 +18,10 @@ const id = `voz-${nombre}`;
 <section {...atributos} data-voz-panel={nombre} aria-labelledby={`${id}-titulo`} class="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/60">
   <div class="flex flex-wrap items-center gap-3">
     <h3 id={`${id}-titulo`} class="font-semibold">{titulo}</h3>
-    <button data-voz-boton data-escuchando="false" type="button" aria-keyshortcuts="Alt+V" class="q-secondary inline-flex items-center gap-2 data-[escuchando=true]:ring-2 data-[escuchando=true]:ring-red-600 motion-safe:data-[escuchando=true]:animate-pulse aria-disabled:cursor-not-allowed aria-disabled:opacity-60">
+    <Button variant="secondary" data-voz-boton data-escuchando="false" type="button" aria-keyshortcuts="Alt+V" class="ui-button--secondary inline-flex items-center gap-2 data-[escuchando=true]:ring-2 data-[escuchando=true]:ring-red-600 motion-safe:data-[escuchando=true]:animate-pulse aria-disabled:cursor-not-allowed aria-disabled:opacity-60">
       <svg aria-hidden="true" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"></rect><path d="M5 11a7 7 0 0 0 14 0M12 18v3"></path></svg>
       <span data-voz-boton-texto>{textoBoton}</span><span class="sr-only"> (atajo Alt + V)</span>
-    </button>
+    </Button>
     <button data-voz-deshacer type="button" class="q-link" hidden>Deshacer el último cambio por voz</button>
   </div>
   <p data-voz-estado data-tipo="info" role="status" aria-live="polite" class="font-medium text-slate-700 data-[tipo=aviso]:text-amber-800 data-[tipo=error]:text-red-800 data-[tipo=exito]:text-emerald-800 dark:text-slate-200 dark:data-[tipo=aviso]:text-amber-200 dark:data-[tipo=error]:text-red-200 dark:data-[tipo=exito]:text-emerald-200">Puedes escribir o hablar. Si la voz falla, seguirás con el teclado sin perder nada.</p>
@@ -40,6 +41,6 @@ const id = `voz-${nombre}`;
     <h2 id={`${id}-dlg-titulo`} data-voz-dialogo-titulo class="text-xl font-semibold"></h2>
     <p id={`${id}-dlg-texto`} data-voz-dialogo-texto class="my-4 leading-relaxed"></p>
     <div data-voz-dialogo-opciones class="grid gap-3"></div>
-    <button data-voz-dialogo-cancelar type="button" class="q-secondary mt-4 w-full">No cambiar nada</button>
+    <Button variant="secondary" data-voz-dialogo-cancelar type="button" class="ui-button--secondary mt-4 w-full">No cambiar nada</Button>
   </dialog>
 </section>

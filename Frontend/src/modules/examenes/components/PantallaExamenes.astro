@@ -1,4 +1,8 @@
 ---
+import Skeleton from '../../compartido/components/ui/Skeleton.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Button from '../../compartido/components/ui/Button.astro';
 import Espacio from '../../auth/components/Espacio.astro';
 import '../examenes.css';
 interface Props { role: 'RECRUITER' | 'CANDIDATE'; view?: 'list' | 'editor' | 'attempt' }
@@ -8,14 +12,14 @@ const description = view === 'editor' ? 'Convierte las habilidades del puesto en
 ---
 <Espacio view="exams" role={role} title={title} description={description}>
   <div data-exams data-ex-view={view} data-ex-role={role} class="space-y-5">
-    <div data-ex-notice class="q-notice" role="status" tabindex="-1" hidden></div>
-    <div data-ex-loading role="status" class="ex-panel space-y-5 p-6"><p data-i18n="texto.Q2FyZ2FuZG8gZXZhbHVhY2lvbmVzPw">Cargando evaluaciones…</p><div aria-hidden="true" class="h-9 animate-pulse rounded bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div><div aria-hidden="true" class="h-28 animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800"></div></div>
-    <button data-ex-retry class="q-secondary" type="button" hidden data-i18n="texto.Vm9sdmVyIGEgY2FyZ2Fy">Volver a cargar</button>
+    <Alert as="div" data-ex-notice class="ui-alert" role="status" tabindex="-1" hidden></Alert>
+    <Panel as="div" data-ex-loading role="status" class="ui-panel space-y-5 p-6"><p data-i18n="texto.Q2FyZ2FuZG8gZXZhbHVhY2lvbmVzPw">Cargando evaluaciones…</p><Skeleton heights={["2.25rem","7rem"]} announce={false} /></Panel>
+    <Button variant="secondary" data-ex-retry class="ui-button--secondary" type="button" hidden data-i18n="texto.Vm9sdmVyIGEgY2FyZ2Fy">Volver a cargar</Button>
     <div data-ex-content></div>
     <dialog data-ex-confirm aria-labelledby="ex-confirm-title" aria-describedby="ex-confirm-copy" class="m-auto w-[calc(100%-2rem)] max-w-lg rounded-xl bg-white p-6 text-slate-900 shadow-xl backdrop:bg-slate-950/60 dark:bg-slate-900 dark:text-white">
       <h2 id="ex-confirm-title" data-ex-confirm-title class="text-xl font-semibold"></h2>
       <p id="ex-confirm-copy" data-ex-confirm-copy class="my-5 leading-relaxed"></p>
-      <form method="dialog" class="flex flex-wrap justify-end gap-3"><button class="q-secondary" value="cancel" autofocus data-i18n="texto.Q2FuY2VsYXI">Cancelar</button><button data-ex-confirm-action class="q-primary" value="confirm" data-i18n="texto.Q29uZmlybWFy">Confirmar</button></form>
+      <form method="dialog" class="flex flex-wrap justify-end gap-3"><Button variant="secondary" type="submit" class="ui-button--secondary" value="cancel" autofocus data-i18n="texto.Q2FuY2VsYXI">Cancelar</Button><Button variant="primary" type="submit" data-ex-confirm-action class="ui-button--primary" value="confirm" data-i18n="texto.Q29uZmlybWFy">Confirmar</Button></form>
     </dialog>
   </div>
 </Espacio>

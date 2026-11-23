@@ -32,7 +32,7 @@ try {
   await page.locator('[data-wizard-prev]').click(); await page.locator('[data-wizard-prev]').click();
   assert.equal(await page.locator('#description').inputValue(), 'Diseñar experiencias accesibles.');
   await page.locator('[data-save-job]').click();
-  await expect(page.locator('[data-job-feedback]')).toContainText('Oferta guardada');
+  await expect(page.locator('[data-dirty-message]')).toHaveText('Guardado');
   assert.equal(saved.work_schedule, 'Tiempo completo'); assert.deepEqual(saved.benefits, ['Horario flexible']);
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);

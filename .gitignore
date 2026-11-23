@@ -1,6 +1,10 @@
 # No reemplazar .gitignore existente sin comparar.
 README-COMENZAR.md
-AGENTS.MD
+AGENTS.md
+DESING.md
+PRODUCT.md
+README-COMENZAR.md
+skills-lock.json
 node_modules/
 **/node_modules/
 **/dist/

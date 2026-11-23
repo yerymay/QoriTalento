@@ -14,20 +14,22 @@ const { title } = Astro.props;
     <script is:inline>
       try {
         const chosen = localStorage.getItem('qori-theme');
-        const dark = chosen ? chosen === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        const dark = chosen === 'dark' || (chosen !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.classList.toggle('dark', dark);
         const contraste = localStorage.getItem('qori-contrast');
         if (contraste === 'high' || (contraste !== 'normal' && matchMedia('(prefers-contrast: more)').matches)) document.documentElement.dataset.contraste = 'alto';
       } catch { /* El sistema funciona sin persistencia de tema */ }
     </script>
   </head>
-  <body class="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-50">
+  <body class="min-h-screen bg-canvas text-slate-900 dark:text-slate-50">
     <a href="#contenido" class="q-skip">Saltar al contenido</a>
     <slot />
     <Toast />
     <script>
       import { iniciarIdiomas } from '../modules/compartido/i18n';
       iniciarIdiomas();
+      import { iniciarApariencia } from '../modules/compartido/apariencia';
+      iniciarApariencia();
     </script>
   </body>
 </html>

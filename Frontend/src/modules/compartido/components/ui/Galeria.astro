@@ -1,0 +1,94 @@
+---
+import Button from './Button.astro';
+import Panel from './Panel.astro';
+import Badge from './Badge.astro';
+import Switch from './Switch.astro';
+import Alert from './Alert.astro';
+import Skeleton from './Skeleton.astro';
+import EmptyState from './EmptyState.astro';
+import Menu from './Menu.astro';
+const variants = ['primary','secondary','ghost','danger','icon'] as const;
+const names = {primary:'Principal',secondary:'Secundario',ghost:'Discreto',danger:'Peligro',icon:'Solo icono'};
+const states = ['Reposo','Hover','Foco','Presionado','Carga','Éxito','Deshabilitado'];
+---
+<header data-ui-topbar class="sticky top-0 z-20 border-b border-slate-200 bg-panel px-5 py-4 dark:border-slate-700">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+    <span class="font-semibold">Qori Talento · Componentes</span>
+    <Switch label="Tema oscuro" data-gallery-theme />
+  </div>
+</header>
+<main id="contenido" class="mx-auto max-w-6xl space-y-10 px-5 py-8 sm:py-12">
+  <header><h1 class="text-3xl font-bold sm:text-4xl">Componentes de interfaz</h1><p class="mt-3 max-w-2xl text-slate-600 dark:text-slate-300">Galería temporal de desarrollo. Colores Sky, fuente Inter y estados compartidos para las pantallas de Qori Talento.</p></header>
+  <section aria-labelledby="layers-title">
+    <h2 id="layers-title" class="mb-4 text-2xl font-semibold">Capas y profundidad</h2>
+    <div class="grid gap-5 sm:grid-cols-3">
+      <div class="rounded-panel bg-canvas p-6"><h3 class="font-semibold">Canvas</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Fondo de la aplicación.</p></div>
+      <Panel class="p-6"><h3 class="font-semibold">Panel · sombra 1</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Contenido de trabajo con borde sutil.</p></Panel>
+      <div class="rounded-floating bg-floating p-6 shadow-2"><h3 class="font-semibold">Flotante · sombra 2</h3><p class="mt-2 text-slate-600 dark:text-slate-300">Menús y notificaciones.</p></div>
+    </div>
+    <p class="mt-4 text-sm text-slate-600 dark:text-slate-300">Sombra 3 reservada para diálogos. Radios: 8 / 12 px. Espaciado: 8 / 16 / 24 / 32 px. Movimiento: 160 / 200 ms, desactivado con movimiento reducido.</p>
+  </section>
+  <section aria-labelledby="buttons-title">
+    <h2 id="buttons-title" class="text-2xl font-semibold">Button</h2><p class="mt-2 text-slate-600 dark:text-slate-300">Estados de referencia; los controles habilitados también responden al puntero y al teclado.</p>
+    <div class="mt-6 space-y-6">
+      {variants.map(variant => <div><h3 class="mb-3 font-semibold">{names[variant]}</h3><div class="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
+        {states.map((state,i)=><div class="flex flex-col items-start gap-2"><span class="text-sm text-slate-600 dark:text-slate-300">{state}</span><Button variant={variant} loading={i===4} success={i===5} disabled={i===6} data-preview={i===1?'hover':i===2?'focus':i===3?'pressed':undefined} aria-label={variant==='icon'?state+': editar ejemplo':undefined}>{variant==='icon'?<svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="m15 4 5 5M4 20l5-1L20 8a2 2 0 0 0-5-5L4 14z"/></svg>:i===4?'Guardando':i===5?'Guardado':variant==='danger'?'Eliminar':'Guardar'}</Button></div>)}
+      </div></div>)}
+    </div>
+  </section>
+  <section class="grid gap-8 md:grid-cols-2" aria-label="Etiquetas e interruptores">
+    <div><h2 class="mb-4 text-2xl font-semibold">Badge</h2><div class="flex flex-wrap gap-3"><Badge>Borrador</Badge><Badge tone="info">En revisión</Badge><Badge tone="success">Confirmado</Badge><Badge tone="warning">Pendiente</Badge><Badge tone="error">Error</Badge></div></div>
+    <div><h2 class="mb-4 text-2xl font-semibold">Switch</h2><div class="max-w-sm space-y-2"><Switch label="Desactivado" /><Switch label="Activado" checked /><Switch label="Deshabilitado" disabled /><Switch label="Activado y deshabilitado" checked disabled /></div></div>
+  </section>
+  <section aria-labelledby="alerts-title"><h2 id="alerts-title" class="mb-4 text-2xl font-semibold">Alert y validación</h2>
+    <div class="grid items-start gap-4 md:grid-cols-2">
+      <Alert title="Información de apoyo">La decisión final corresponde al reclutador.</Alert>
+      <Alert tone="success" title="Perfil confirmado">Los datos están listos para la revisión.</Alert>
+      <Alert tone="warning" title="Revisión pendiente">Falta evidencia para uno de los requisitos.</Alert>
+      <Alert tone="error" title="No se pudo cargar la información" data-gallery-alert>Comprueba tu conexión y vuelve a intentarlo.<Button slot="action" variant="secondary" data-demo-retry>Reintentar</Button></Alert>
+    </div>
+    <div class="mt-5 max-w-sm"><label for="demo-email" class="mb-2 block font-medium">Correo de ejemplo</label><input id="demo-email" class="q-input" value="correo-incompleto" aria-invalid="true" aria-describedby="demo-email-error" /><p id="demo-email-error" class="ui-field-error mt-2 text-red-800 dark:text-red-200">Ingresa un correo válido, por ejemplo nombre@gmail.com.</p></div>
+  </section>
+  <section aria-labelledby="toast-title"><h2 id="toast-title" class="text-2xl font-semibold">Toast</h2><p class="mt-2 max-w-2xl text-slate-600 dark:text-slate-300">Hasta tres avisos bajo la cabecera. Éxito: cinco segundos, con pausa al pasar el puntero o enfocar. Error y advertencia: cierre manual.</p>
+    <div class="mt-4 flex flex-wrap gap-3"><Button data-demo-toast="success">Probar éxito</Button><Button variant="secondary" data-demo-toast="error">Probar error</Button><Button variant="secondary" data-demo-toast="warning">Probar advertencia</Button><Button variant="ghost" data-demo-toast="stack">Probar pila</Button></div>
+  </section>
+  <section class="grid gap-8 md:grid-cols-2" aria-label="Menús y guardado">
+    <div><h2 class="mb-4 text-2xl font-semibold">Menu</h2><div class="flex justify-start"><Menu id="gallery-menu" label="Abrir opciones"><button type="button" role="menuitem" data-demo-action="Editar">Editar ejemplo</button><button type="button" role="menuitem" data-demo-action="Duplicar">Duplicar ejemplo</button><button type="button" role="menuitem" disabled>No disponible</button></Menu></div><p data-menu-result role="status" class="mt-3 text-sm text-slate-600 dark:text-slate-300">Flechas, Inicio, Fin, Escape y Tab.</p></div>
+    <div><h2 class="mb-4 text-2xl font-semibold">Guardado en línea</h2><Button variant="secondary" data-demo-save>Guardar borrador de ejemplo</Button><p data-demo-save-status role="status" class="mt-3 text-slate-600 dark:text-slate-300">Sin cambios pendientes.</p></div>
+  </section>
+  <section aria-labelledby="states-title"><h2 id="states-title" class="mb-4 text-2xl font-semibold">Los cinco estados</h2>
+    <div class="space-y-5">
+      <Panel class="p-6"><h3 class="mb-3 font-semibold">Ideal</h3><div class="flex flex-wrap items-center justify-between gap-4"><p>El perfil confirmado está disponible para revisión.</p><Badge tone="success">Completo</Badge></div></Panel>
+      <Panel><EmptyState title="Todavía no hay postulaciones" description="Cuando recibas una postulación, podrás revisar el perfil desde aquí."><Button variant="secondary" data-demo-empty>Probar estado con contenido</Button></EmptyState></Panel>
+      <Panel class="p-6"><h3 class="mb-3 font-semibold">Parcial</h3><p class="mb-3">Experiencia confirmada. Formación pendiente.</p><Alert tone="warning" title="Evidencia incompleta">Completa la revisión antes de tomar una decisión.</Alert></Panel>
+      <Panel class="p-6"><h3 class="mb-4 font-semibold">Carga · Skeleton</h3><Skeleton /></Panel>
+      <Alert tone="error" title="Error de carga">No se pudo consultar el contenido de este ejemplo.<Button slot="action" variant="secondary" data-demo-retry>Reintentar</Button></Alert>
+    </div>
+  </section>
+</main>
+<script>
+import { showToast } from '../../services/toast';
+const theme=document.querySelector<HTMLInputElement>('[data-gallery-theme]')!;
+theme.checked=document.documentElement.classList.contains('dark');
+theme.addEventListener('change',()=>{document.documentElement.classList.toggle('dark',theme.checked);try{localStorage.setItem('qori-theme',theme.checked?'dark':'light');}catch{}});
+document.querySelectorAll<HTMLButtonElement>('[data-demo-toast]').forEach(button=>button.addEventListener('click',()=>{
+ const tone=button.dataset.demoToast;
+ if(tone==='stack'){for(let i=1;i<=3;i++)showToast('Ejemplo de notificación '+i,'success',{title:'Acción completada '+i});}
+ else if(tone==='error')showToast('No se guardó el ejemplo. Puedes volver a intentarlo.','error',{title:'Error de guardado',action:{label:'Reintentar',run:()=>showToast('El ejemplo se guardó correctamente.','success')}});
+ else if(tone==='warning')showToast('Revisa los datos pendientes de este ejemplo.','warning');
+ else showToast('El ejemplo se guardó correctamente.','success',{title:'Cambios guardados'});
+}));
+document.querySelectorAll<HTMLElement>('[data-demo-retry]').forEach(button=>button.addEventListener('click',()=>{const box=button.closest<HTMLElement>('.ui-alert')!;box.dataset.tone='success';box.setAttribute('role','status');box.textContent='Contenido de ejemplo recuperado.';}));
+document.querySelectorAll<HTMLElement>('[data-demo-action]').forEach(button=>button.addEventListener('click',()=>{document.querySelector('[data-menu-result]')!.textContent=button.dataset.demoAction+' seleccionado en el ejemplo.';}));
+document.querySelector('[data-demo-empty]')?.addEventListener('click',event=>{const box=(event.currentTarget as HTMLElement).closest('.ui-empty')!;box.innerHTML='<h3 class="text-xl font-semibold">Postulación de ejemplo</h3><p>Perfil listo para revisión.</p>';});
+document.querySelector<HTMLButtonElement>('[data-demo-save]')?.addEventListener('click',event=>{const button=event.currentTarget as HTMLButtonElement;const status=document.querySelector('[data-demo-save-status]')!;button.disabled=true;status.textContent='Guardando…';setTimeout(()=>{status.textContent='Guardado';button.disabled=false;},800);});
+</script>
+<style>
+[data-preview="hover"].ui-button--primary { background:var(--color-sky-800); }
+[data-preview="hover"].ui-button--danger { background:var(--color-red-800); }
+[data-preview="hover"]:is(.ui-button--secondary,.ui-button--ghost,.ui-button--icon) { background:var(--color-slate-100); }
+:global(.dark) [data-preview="hover"]:is(.ui-button--secondary,.ui-button--ghost,.ui-button--icon) { background:var(--color-slate-800); }
+[data-preview="focus"] {outline:2px solid var(--color-sky-600);outline-offset:3px;}
+[data-preview="pressed"] {transform:scale(.97);}
+@media(prefers-reduced-motion:reduce){[data-preview="pressed"]{transform:none;}}
+</style>

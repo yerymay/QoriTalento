@@ -1,4 +1,6 @@
 ---
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
 import Espacio from '../../auth/components/Espacio.astro';
 ---
 <Espacio view="home" role="RECRUITER" title="Evaluación del postulante" description="Contrasta la evidencia del perfil y revisa cada requisito antes de guardar tu valoración.">
@@ -12,8 +14,8 @@ import Espacio from '../../auth/components/Espacio.astro';
       <div aria-hidden="true" class="h-28 animate-pulse rounded-xl bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div>
       <div aria-hidden="true" class="h-48 animate-pulse rounded-xl bg-slate-200 motion-reduce:animate-none dark:bg-slate-700"></div>
     </div>
-    <p data-evaluation-message role="status" tabindex="-1" class="q-notice" hidden></p>
-    <button data-evaluation-retry type="button" class="q-secondary" hidden>Volver a cargar</button>
+    <Alert as="p" data-evaluation-message role="status" tabindex="-1" class="ui-alert" hidden></Alert>
+    <Button variant="secondary" data-evaluation-retry type="button" class="ui-button--secondary" hidden>Volver a cargar</Button>
     <div data-evaluation-content class="space-y-6"></div>
   </div>
 </Espacio>

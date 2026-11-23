@@ -1,8 +1,10 @@
 ---
+import Panel from '../../compartido/components/ui/Panel.astro';
+import Button from '../../compartido/components/ui/Button.astro';
 import { fields } from '../../cv/cv.service';
 import Stepper from '../../compartido/components/Stepper.astro';
 ---
-<section data-form-content class="q-card overflow-hidden shadow-sm" hidden aria-labelledby="application-job-title">
+<Panel as="section" data-form-content class="ui-panel overflow-hidden shadow-sm" hidden aria-labelledby="application-job-title">
   <header class="border-b border-slate-200 p-5 dark:border-slate-700 sm:p-8">
     <p data-meta class="mb-2 text-sm text-slate-600 dark:text-slate-300"></p>
     <h2 id="application-job-title" data-title class="break-words text-xl font-bold sm:text-2xl"></h2>
@@ -25,7 +27,7 @@ import Stepper from '../../compartido/components/Stepper.astro';
             <progress data-upload-progress aria-label="Progreso de carga del currículum" max="100" class="mt-3 h-2 w-full accent-sky-700"></progress>
             <p class="mt-4 text-sm leading-relaxed text-slate-600 dark:text-slate-300">Tu postulación aún no se ha enviado. Podrás revisar tus datos antes de confirmarla.</p>
           </div>
-          <p id="cv-error" data-file-error role="alert" class="text-red-700 dark:text-red-300" hidden></p>
+          <p id="cv-error" data-file-error aria-live="polite" class="ui-field-error text-red-700 dark:text-red-300" hidden></p>
           <div data-file-selected class="flex items-center gap-3 rounded-lg bg-sky-50 p-4 text-sky-900 dark:bg-sky-950 dark:text-sky-100" hidden>
             <svg aria-hidden="true" class="h-6 w-6 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H5v20h14V7l-5-5ZM14 2v6h5M8 12h8M8 16h6"/></svg>
             <div class="min-w-0"><p data-filename class="break-all font-medium"></p><p data-filesize class="text-sm"></p></div>
@@ -34,16 +36,11 @@ import Stepper from '../../compartido/components/Stepper.astro';
         </section>
         <section data-wizard-step="2" aria-labelledby="review-heading" class="space-y-6" hidden>
           <div><h3 id="review-heading" tabindex="-1" class="text-xl font-semibold"><span data-i18n="revisado.6c6617b228a6c9e7">Revisar información extraída</span></h3><p class="mt-2 text-slate-600 dark:text-slate-300">Puedes corregir cualquier campo. Los datos no detectados se muestran vacíos.</p></div>
-          <div class="q-notice flex items-start gap-3" role="note">
-            <svg aria-hidden="true" class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></svg>
-            <p>Hemos prellenado estos datos desde tu CV. Por favor, verifica que la información sea correcta antes de continuar.</p>
-          </div>
-          <p data-extraction-warning class="text-sm text-amber-800 dark:text-amber-200" hidden></p>
           <div class="grid gap-5 md:grid-cols-2">
             {fields.filter(field => ['name','email','phone','summary'].includes(field.key)).map(field => <div class="min-w-0 space-y-2">
               <label for={'application-' + field.key} class="block font-medium">{field.key === 'email' ? 'Correo electrónico' : field.label}{field.key === 'name' && ' *'}</label>
-              {field.multiline ? <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="3" class="q-input" placeholder="Resumen profesional o último cargo"></textarea> : <input id={'application-' + field.key} data-profile-field={field.key} type={field.type ?? 'text'} required={field.key === 'name'} minlength={field.key === 'name' ? 2 : undefined} maxlength={field.max} autocomplete={field.key === 'name' ? 'name' : field.key === 'email' ? 'email' : 'tel'} class="q-input" placeholder={field.key === 'name' ? 'Nombre y apellidos' : field.key === 'email' ? 'nombre@correo.com' : '+51 987 654 321'} />}
-              <p data-field-origin={field.key} class="text-sm text-slate-600 dark:text-slate-300"></p>
+              {field.multiline ? <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="3" class="q-input" placeholder="Describe tu experiencia profesional"></textarea> : <input id={'application-' + field.key} data-profile-field={field.key} type={field.type ?? 'text'} required={field.key === 'name'} minlength={field.key === 'name' ? 2 : undefined} maxlength={field.max} autocomplete={field.key === 'name' ? 'name' : field.key === 'email' ? 'email' : 'tel'} class="q-input" placeholder={field.key === 'name' ? 'Escribe tu nombre completo' : field.key === 'email' ? 'Ejemplo: nombre@dominio.com' : 'Ejemplo: +51 900 000 000'} />}
+              <span data-field-origin={field.key} class="ui-badge"></span>
             </div>)}
           </div>
           <details class="group rounded-lg border border-slate-200 dark:border-slate-700">
@@ -51,7 +48,7 @@ import Stepper from '../../compartido/components/Stepper.astro';
             <div class="grid gap-5 border-t border-slate-200 p-4 dark:border-slate-700 md:grid-cols-2">
               {fields.filter(field => !['name','email','phone','summary'].includes(field.key)).map(field => <div class="min-w-0 space-y-2">
                 <label for={'application-' + field.key} class="block font-medium">{field.label}</label>
-                <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="4" class="q-input"></textarea>
+                <textarea id={'application-' + field.key} data-profile-field={field.key} maxlength={field.max} rows="4" class="q-input" placeholder={'Añade ' + field.label.toLowerCase() + '; separa cada entrada con una línea vacía.'}></textarea><span data-field-origin={field.key} class="ui-badge"></span>
               </div>)}
             </div>
           </details>
@@ -73,19 +70,19 @@ import Stepper from '../../compartido/components/Stepper.astro';
         <div data-progress-wrap class="mt-6" role="status" hidden><p data-progress-label class="text-sm font-medium"></p><progress data-progress max="100" class="mt-2 h-2 w-full accent-sky-700"></progress></div>
       </div>
       <footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-slate-50/70 px-5 py-5 dark:border-slate-700 dark:bg-slate-800/30 sm:px-8">
-        <button data-back type="button" class="q-secondary disabled:cursor-not-allowed disabled:opacity-50" disabled><span data-i18n="revisado.f9618693ab0e05f9">Atrás</span></button>
+        <Button variant="secondary" data-back type="button" class="ui-button--secondary disabled:cursor-not-allowed disabled:opacity-50" disabled><span data-i18n="revisado.f9618693ab0e05f9">Atrás</span></Button>
         <span data-step-status role="status" class="sr-only sm:not-sr-only text-sm text-slate-600 dark:text-slate-300"><span data-i18n="revisado.e345ef48215c15f9">Paso 1 de 3</span></span>
-        <button data-next type="submit" class="q-primary min-w-0 max-sm:flex-1" disabled data-i18n="texto.U2lndWllbnRl">Siguiente</button>
+        <Button variant="primary" data-next type="submit" class="ui-button--primary min-w-0 max-sm:flex-1" disabled>Siguiente</Button>
       </footer>
     </fieldset>
   </form>
-</section>
-<section data-wizard-success class="q-card space-y-4 p-6 sm:p-8" hidden tabindex="-1" aria-labelledby="application-success-title">
-  <svg aria-hidden="true" class="h-12 w-12 text-emerald-700 dark:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/></svg>
-  <h2 id="application-success-title" class="text-2xl font-semibold" data-i18n="texto.UG9zdHVsYWNpP24gcmVnaXN0cmFkYQ">Postulación registrada</h2>
+</Panel>
+<Panel as="section" data-wizard-success class="ui-panel ui-empty space-y-4 p-6 sm:p-8" hidden tabindex="-1" aria-labelledby="application-success-title">
+  <svg aria-hidden="true" class="application-success-check h-16 w-16 text-emerald-700 dark:text-emerald-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="m7 12 3 3 7-7"/></svg>
+  <h2 id="application-success-title" class="text-2xl font-semibold">Postulación registrada</h2>
   <p data-success-copy class="text-slate-600 dark:text-slate-300"></p>
-  <a href="/postulante/postulaciones" class="q-primary inline-flex items-center"><span data-i18n="revisado.dd67c99e5930c066">Ver mis postulaciones</span></a>
-</section>
+  <Button as="a" variant="primary" href="/postulante/postulaciones" class="ui-button--primary inline-flex items-center"><span data-i18n="revisado.dd67c99e5930c066">Ver mis postulaciones</span></Button>
+</Panel>
 <style>
   [data-drop][data-dragging="true"] { border-color:var(--color-sky-600); }
 </style>

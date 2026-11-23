@@ -1,7 +1,10 @@
-﻿<button data-contrast-toggle type="button" aria-pressed="false" title="Alto contraste" class="q-secondary inline-flex min-w-11 items-center justify-center gap-2">
+---
+import Button from './ui/Button.astro';
+---
+<Button variant="secondary" data-contrast-toggle type="button" aria-pressed="false" title="Alto contraste" class="ui-button--secondary inline-flex min-w-11 items-center justify-center gap-2">
   <svg aria-hidden="true" class="h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"></circle><path d="M12 3v18"></path><path d="M12 3a9 9 0 0 1 0 18Z" fill="currentColor"></path></svg>
   <span class="sr-only lg:not-sr-only">Alto contraste</span>
-</button>
+</Button>
 <script>
   const clave = 'qori-contrast';
   const raiz = document.documentElement;

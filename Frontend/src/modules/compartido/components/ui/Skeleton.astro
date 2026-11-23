@@ -1,0 +1,8 @@
+---
+interface Props { lines?: number; heights?: string[]; label?: string; announce?: boolean; class?: string }
+const {lines=3, heights, label='Cargando contenido…', announce=true, class:className} = Astro.props;
+---
+<div role={announce ? 'status' : undefined} aria-hidden={!announce || undefined} class:list={['space-y-3',className]}>
+  {announce && <span class="sr-only">{label}</span>}
+  {Array.from({length:heights?.length ?? lines},(_,i)=><div aria-hidden="true" class="ui-skeleton" style={`width:${heights?'100%':i===lines-1?'65%':'100%'};height:${heights?.[i] ?? (i===0?'2rem':'1rem')}`} />)}
+</div>

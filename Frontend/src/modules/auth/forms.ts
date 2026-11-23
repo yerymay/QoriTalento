@@ -1,6 +1,6 @@
 import { senalDeAccion, volumenSenal, sonidoHabilitado } from '../compartido/preferencias-senal';
 import { initRegistrationDropdowns } from './dropdown';
-import { showToast, queueToast } from '../compartido/services/toast';
+import { showToast } from '../compartido/services/toast';
 import { auth, homeFor, type Role } from './auth.service';
 import { detenerSenal, type EstadoSenal } from '../compartido/senal-multimodal';
 export function initAuthForm() {
@@ -26,7 +26,7 @@ export function initAuthForm() {
     if(!estadoLogin){alFinalizar?.();return;}
     estadoLogin.dispatchEvent(new CustomEvent('qori:senal',{detail:{estado,mensaje,sonido:sonidoHabilitado(),volumen:volumenSenal(),alFinalizar}}));
   };
-  const show=(text:string,tone:'error'|'success')=>{showToast(text,tone);};
+  const show=(text:string,tone:'error'|'success')=>{if(tone==='success'){showToast(text,tone);return;}message.textContent=text;message.dataset.tone='error';message.setAttribute('role','alert');message.hidden=false;};
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
     const roleSummary=form.parentElement?.querySelector<HTMLElement>('[data-role-summary]');if(roleSummary)roleSummary.textContent=recruiter?'Reclutador':'Postulante';
@@ -123,7 +123,7 @@ export function initAuthForm() {
       if(registration){senalDeAccion('progreso');const selected=String(data.role) as Role;delete data.role;delete data.confirm_password;if(selected==='CANDIDATE')delete data.kind;
         const result=await auth.register(selected,data);complete=true;password.value='';if(confirmation)confirmation.value='';show(result.message,'success');senalDeAccion('exito');
         form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select').forEach(input=>input.disabled=true);
-      }else{const session=await auth.login(data);complete=true;password.value='';queueToast('Sesión iniciada correctamente.','success');await new Promise<void>(resolve=>senalLogin('exito','Sesión iniciada correctamente.',resolve));location.assign(homeFor(session.user.role));}
+      }else{const session=await auth.login(data);complete=true;password.value='';await new Promise<void>(resolve=>senalLogin('exito','Sesión iniciada correctamente.',resolve));location.assign(homeFor(session.user.role));}
     }catch(error){const textoError=error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.';if(registration){show(textoError,'error');senalDeAccion('error');}else senalLogin('error',textoError);}
     finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?(registration?'Cuenta registrada':'Sesión iniciada'):registration?'Crear cuenta':'Iniciar sesión';submit.disabled=complete;validate();}
   });

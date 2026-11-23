@@ -1,6 +1,15 @@
-﻿---
 ---
-<section class="q-card max-w-4xl p-5 sm:p-7" aria-labelledby="idioma-titulo">
+import Switch from '../../compartido/components/ui/Switch.astro';
+import Panel from '../../compartido/components/ui/Panel.astro';
+---
+<div data-settings class="settings-layout"><nav aria-label="Secciones de configuración" class="settings-nav"><a data-settings-link href="#apariencia">Apariencia</a><a data-settings-link href="#idioma">Idioma</a><a data-settings-link href="#sonido">Sonido y vibración</a><a data-settings-link href="#cuenta">Cuenta</a></nav><div class="min-w-0"><Panel id="apariencia" data-settings-panel class="p-5 sm:p-7" aria-labelledby="apariencia-title">
+<h2 id="apariencia-title" class="text-xl font-semibold">Apariencia</h2><p class="mt-2 text-slate-600 dark:text-slate-300">Elige cómo se ve Qori Talento en este navegador.</p>
+<fieldset class="mt-6"><legend class="mb-3 font-medium">Tema de la interfaz</legend>
+<div class="settings-themes">{[['light','Claro'],['dark','Oscuro'],['system','Sistema']].map(([value,label])=><label class="settings-theme"><input type="radio" name="settings-theme" value={value} class="settings-theme-input" /><span aria-hidden="true" class:list={['theme-preview', 'theme-preview--'+value]}><span class="preview-sidebar"></span><span class="preview-content"><span></span><span></span></span></span><span>{label}</span></label>)}</div>
+<p class="mt-3 text-sm text-slate-600 dark:text-slate-300">Sistema se adapta a la preferencia de tu dispositivo.</p></fieldset>
+<label class="mt-7 flex min-h-16 cursor-pointer items-center justify-between gap-5 border-t border-slate-200 pt-5 dark:border-slate-700"><span><span class="block font-medium">Alto contraste</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">Refuerza los bordes y la legibilidad de los controles.</span></span><Switch data-config-contrast /></label>
+<p class="mt-5 text-sm text-slate-600 dark:text-slate-300">Los cambios se aplican y guardan automáticamente.</p></Panel>
+<Panel id="idioma" data-settings-panel hidden as="section" class="p-5 sm:p-7" aria-labelledby="idioma-titulo">
   <h2 id="idioma-titulo" class="text-xl font-semibold" data-i18n="idioma.titulo">Idioma</h2>
   <p class="mt-2 text-slate-600 dark:text-slate-300" data-i18n="idioma.ayuda">Elige el idioma de la interfaz en este navegador.</p>
   <label for="idioma-interfaz" class="mt-5 block font-medium" data-i18n="idioma.etiqueta">Idioma de la interfaz</label>
@@ -10,22 +19,25 @@
     <option value="qu">Quechua chanca (en revisión)</option>
   </select>
   <p class="mt-3 text-sm text-slate-600 dark:text-slate-300" data-i18n="idioma.pendiente">La traducción de algunas pantallas está pendiente.</p>
-</section>
-<section class="q-card max-w-4xl p-5 sm:p-7" aria-labelledby="preferencias-senales">
+</Panel>
+<Panel id="sonido" data-settings-panel hidden as="section" class="p-5 sm:p-7" aria-labelledby="preferencias-senales">
   <h2 id="preferencias-senales" class="text-xl font-semibold" data-i18n="ajustes.titulo">Sonido y vibración</h2>
   <p class="mt-2 max-w-2xl text-slate-600 dark:text-slate-300" data-i18n="ajustes.descripcion">Elige cómo recibir las señales al realizar acciones. Los mensajes en pantalla seguirán disponibles.</p>
   <div class="mt-5 divide-y divide-slate-200 dark:divide-slate-700">
-    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium" data-i18n="ajustes.sonido">Sonido</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.sonidoAyuda">Reproducir sonidos de progreso y resultado, incluido el inicio de sesión.</span></span><input data-config-sound type="checkbox" class="h-5 w-5 shrink-0 accent-sky-700" /></label>
+    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium" data-i18n="ajustes.sonido">Sonido</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.sonidoAyuda">Reproducir sonidos de progreso y resultado, incluido el inicio de sesión.</span></span><Switch data-config-sound /></label>
     <div class="py-4">
       <div class="flex items-center justify-between gap-4"><label for="volumen-senal" class="font-medium" data-i18n="ajustes.volumen">Volumen del sonido</label><output data-volume-value for="volumen-senal" class="text-sm tabular-nums text-slate-600 dark:text-slate-300">35%</output></div>
       <input id="volumen-senal" data-config-volume type="range" min="0" max="100" step="1" value="35" aria-describedby="volumen-ayuda" class="mt-2 h-11 w-full cursor-pointer accent-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600" />
       <p id="volumen-ayuda" class="text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.volumenAyuda">Ajusta el volumen de las señales de audio.</p>
     </div>
-    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium" data-i18n="ajustes.vibracion">Vibración</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.vibracionAyuda">Vibrar cuando el dispositivo y el navegador lo permitan.</span></span><input data-config-vibration type="checkbox" class="h-5 w-5 shrink-0 accent-sky-700" /></label>
+    <label class="flex min-h-16 cursor-pointer items-center justify-between gap-5 py-3"><span><span class="block font-medium" data-i18n="ajustes.vibracion">Vibración</span><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.vibracionAyuda">Vibrar cuando el dispositivo y el navegador lo permitan.</span></span><Switch data-config-vibration /></label>
   </div>
   <p class="mt-4 text-sm text-slate-600 dark:text-slate-300" data-i18n="ajustes.guardado">Los cambios se guardan en este navegador.</p>
-</section>
+</Panel>
+<Panel id="cuenta" data-settings-panel hidden class="p-5 sm:p-7"><h2 class="text-xl font-semibold">Cuenta</h2><p class="mt-3 text-slate-600 dark:text-slate-300">Consulta y actualiza tus datos personales y de contacto.</p><a href="/perfil" class="q-link mt-4">Ir a Mi perfil</a></Panel><Panel id="ayuda" data-settings-panel hidden class="p-5 sm:p-7"><h2 class="text-xl font-semibold">Ayuda</h2><dl class="mt-5 space-y-6"><div><dt class="font-medium">¿Dónde encuentro mis procesos?</dt><dd class="mt-2 text-slate-600 dark:text-slate-300">Usa las opciones del grupo Reclutamiento. Se muestran según el rol de tu cuenta.</dd></div><div><dt class="font-medium">¿Cómo cambio mis preferencias?</dt><dd class="mt-2 text-slate-600 dark:text-slate-300">Elige Apariencia, Idioma o Sonido y vibración. Los cambios se guardan en este navegador.</dd></div><div><dt class="font-medium">¿Cómo cierro sesión?</dt><dd class="mt-2 text-slate-600 dark:text-slate-300">Abre el menú con tu nombre en la esquina superior y elige Cerrar sesión.</dd></div></dl><a href="#apariencia" class="q-link mt-6">Volver a Apariencia</a></Panel></div></div>
 <script>
+  import { initConfiguracion } from "../configuracion";
+  initConfiguracion();
   import { configurarSonido, sonidoHabilitado, configurarVibracion, vibracionHabilitada, configurarVolumen, volumenSenal } from '../../compartido/preferencias-senal';
   const sonido = document.querySelector<HTMLInputElement>('[data-config-sound]')!;
   const vibracion = document.querySelector<HTMLInputElement>('[data-config-vibration]')!;
