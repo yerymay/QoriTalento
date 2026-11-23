@@ -1,0 +1,9 @@
+---
+import Button from '../../compartido/components/ui/Button.astro';
+interface Props {register?:boolean}
+const {register=false}=Astro.props;
+---
+<Button variant="primary" data-submit type="submit" class="w-full auth-submit" aria-live="polite">
+ <span class="auth-button-icon" aria-hidden="true"><span data-submit-spinner hidden><svg class="auth-spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="12" cy="12" r="9" opacity=".3"/><path d="M12 3a9 9 0 0 1 9 9"/></svg></span><span data-submit-check hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m5 12 4 4L19 6"/></svg></span></span>
+ <span data-submit-label>{register?'Crear cuenta':'Iniciar sesión'}</span>
+</Button>

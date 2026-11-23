@@ -1,0 +1,9 @@
+---
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+---
+<Alert data-message tone="error" role="alert" class="auth-error" hidden>
+  <strong data-error-title class="block"></strong>
+  <p data-error-detail class="mt-1"></p>
+  <Button slot="action" variant="secondary" type="button" data-auth-retry hidden>Reintentar</Button>
+</Alert>

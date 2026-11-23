@@ -1,0 +1,27 @@
+[data-auth-form]{--auth-field-bg:white;--auth-field-text:var(--color-slate-900);}
+.dark [data-auth-form=login]{--auth-field-bg:var(--color-slate-950);--auth-field-text:white;}
+.dark [data-auth-form=register]{--auth-field-bg:var(--color-panel);--auth-field-text:white;}
+[data-auth-form] input:is(:autofill,:-webkit-autofill){box-shadow:0 0 0 1000px var(--auth-field-bg) inset;-webkit-text-fill-color:var(--auth-field-text);caret-color:var(--auth-field-text);}
+.auth-submit{height:3rem;position:relative;}
+.auth-button-icon{position:absolute;left:1rem;width:1.25rem;height:1.25rem;}
+.auth-button-icon svg{width:100%;height:100%;}
+.auth-spinner{animation:auth-spin .8s linear infinite;}
+.auth-error:not([hidden]){animation:auth-alert-in 200ms ease-out;}
+[data-auth-form] [data-field-error]:not([hidden])::before{content:"!";display:inline-grid;place-items:center;width:1rem;height:1rem;border:1px solid currentColor;border-radius:50%;font-size:.75rem;margin-right:.5rem;}
+@keyframes auth-spin{to{transform:rotate(360deg)}}
+@keyframes auth-alert-in{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.auth-spinner,.auth-error:not([hidden]){animation:none;}[data-auth-form] label{transition:none;}}
+:root[data-contraste=alto] [data-auth-form]{--auth-field-bg:var(--hc-fondo);--auth-field-text:var(--hc-texto);}
+
+[data-appearance=system] [data-auth-form] .auth-submit[data-state]:disabled{opacity:1;background:var(--hc-texto,var(--color-sky-700));color:var(--hc-fondo,white);}
+[data-appearance=system] [data-auth-form] .auth-submit[data-state=busy]:disabled{cursor:wait;}
+
+/* Aviso compacto que mantiene el error junto a los campos. */
+[data-auth-form] .auth-error.ui-alert{padding:.625rem .75rem .625rem 2.5rem;font-size:.875rem;line-height:1.4;background:color-mix(in srgb,var(--color-red-50) 50%,var(--auth-field-bg));border-color:color-mix(in srgb,var(--color-red-500) 30%,transparent);}
+.dark [data-auth-form] .auth-error.ui-alert{background:color-mix(in srgb,var(--color-red-950) 38%,var(--auth-field-bg));border-color:color-mix(in srgb,var(--color-red-400) 40%,transparent);}
+[data-auth-form] .auth-error.ui-alert::before{left:.75rem;top:.75rem;width:1rem;height:1rem;}
+[data-auth-form] .auth-error [data-error-detail]{margin-top:.125rem;}
+[data-auth-form] .auth-error .ui-alert-actions{margin-top:.25rem;}
+[data-auth-form] .auth-error .ui-alert-actions:has([hidden]){display:none;}
+[data-auth-form] .auth-error .ui-alert-actions .ui-button{margin-top:0;}
+@media(forced-colors:active){[data-auth-form] .auth-error.ui-alert{border:1px solid CanvasText;}}

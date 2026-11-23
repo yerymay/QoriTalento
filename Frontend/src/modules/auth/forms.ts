@@ -1,8 +1,6 @@
-import { senalDeAccion, volumenSenal, sonidoHabilitado } from '../compartido/preferencias-senal';
 import { initRegistrationDropdowns } from './dropdown';
-import { showToast } from '../compartido/services/toast';
 import { auth, homeFor, type Role } from './auth.service';
-import { detenerSenal, type EstadoSenal } from '../compartido/senal-multimodal';
+import { ApiError } from '../compartido/services/api';
 export function initAuthForm() {
   const form=document.querySelector<HTMLFormElement>('[data-auth-form]');if(!form)return;
   const registration=form.dataset.authForm==='register';
@@ -15,18 +13,26 @@ export function initAuthForm() {
   const kind=form.elements.namedItem('kind') as HTMLInputElement|null;
   const phone=form.elements.namedItem('phone') as HTMLInputElement|null;
   let busy=false, complete=false;
-  const estadoLogin=form.querySelector<HTMLElement>('#login-estado');
-  const sonidoLogin=form.querySelector<HTMLInputElement>('[data-login-sound]');
-  const claveSonido='qori-login-sonido';
-  if(sonidoLogin){
-    try { const preferencia=localStorage.getItem(claveSonido); if(preferencia!==null)sonidoLogin.checked=preferencia==='true'; } catch { /* La preferencia funciona durante esta sesión. */ }
-    sonidoLogin.addEventListener('change',()=>{ if(!sonidoLogin.checked)detenerSenal(); try { localStorage.setItem(claveSonido,String(sonidoLogin.checked)); } catch { /* El almacenamiento es opcional. */ } });
-  }
-  const senalLogin=(estado:EstadoSenal,mensaje:string,alFinalizar?:()=>void)=>{
-    if(!estadoLogin){alFinalizar?.();return;}
-    estadoLogin.dispatchEvent(new CustomEvent('qori:senal',{detail:{estado,mensaje,sonido:sonidoHabilitado(),volumen:volumenSenal(),alFinalizar}}));
+  const label=submit.querySelector<HTMLElement>('[data-submit-label]')!;
+  const spinner=submit.querySelector<HTMLElement>('[data-submit-spinner]')!;
+  const check=submit.querySelector<HTMLElement>('[data-submit-check]')!;
+  const retry=form.querySelector<HTMLButtonElement>('[data-auth-retry]')!;
+  const buttonState=(state:'idle'|'busy'|'success')=>{
+    submit.dataset.state=state;spinner.hidden=state!=='busy';check.hidden=state!=='success';
+    submit.disabled=state!=='idle';submit.setAttribute('aria-busy',String(state==='busy'));
+    label.textContent=state==='busy'?(registration?'Creando cuenta…':'Iniciando sesión…'):state==='success'?(registration?'Cuenta registrada':'Acceso correcto'):(registration?'Crear cuenta':'Iniciar sesión');
   };
-  const show=(text:string,tone:'error'|'success')=>{if(tone==='success'){showToast(text,tone);return;}message.textContent=text;message.dataset.tone='error';message.setAttribute('role','alert');message.hidden=false;};
+  const showError=(error:unknown)=>{
+    const status=error instanceof ApiError?error.status:500;
+    const credentials=!registration&&(status===401||status===400||status===404);
+    const title=credentials?'Correo o contraseña incorrectos':status===0?'Sin conexión':status===429?'Demasiados intentos':registration?'No se pudo crear la cuenta':'No se pudo iniciar sesión';
+    const detail=credentials?'Revisa tus datos y vuelve a intentarlo.':status===0?'Revisa tu conexión y vuelve a escribir la contraseña para reintentar.':status===429?'Espera un minuto antes de volver a intentarlo.':'Intenta nuevamente en unos momentos.';
+    message.querySelector<HTMLElement>('[data-error-title]')!.textContent=title;
+    const detailElement=message.querySelector<HTMLElement>('[data-error-detail]')!;
+    detailElement.textContent=detail;detailElement.hidden=credentials;
+    retry.hidden=!(status===0||status>=500);message.hidden=false;
+  };
+  retry.addEventListener('click',()=>{if(password.value)form.requestSubmit();else password.focus();});
   const validate=()=>{
     const recruiter=role?.value==='RECRUITER';
     const roleSummary=form.parentElement?.querySelector<HTMLElement>('[data-role-summary]');if(roleSummary)roleSummary.textContent=recruiter?'Reclutador':'Postulante';
@@ -41,19 +47,8 @@ export function initAuthForm() {
     if(phone){phone.required=needsPhone;phone.disabled=!needsPhone;}
     if(confirmation)confirmation.setCustomValidity(confirmation.value && confirmation.value!==password.value?'Las contraseñas no coinciden.':'');
     form.querySelectorAll<HTMLButtonElement>('[data-dropdown-trigger]').forEach(button=>button.disabled=complete);
-    if(registration)submit.disabled=busy || complete || !form.checkValidity();
-    const rules: Record<string, boolean> = {
-      length: password.value.length>=8,
-      lowercase: /[a-záéíóúñü]/.test(password.value),
-      special: /[^\p{L}\p{N}\s]/u.test(password.value),
-    };
-    form.querySelectorAll<HTMLElement>('[data-password-rule]').forEach(item=>{
-      const met=rules[item.dataset.passwordRule ?? ''] ?? false;
-      item.classList.toggle('text-emerald-700',met);
-      item.classList.toggle('dark:text-emerald-300',met);
-      const status=item.querySelector<HTMLElement>('[data-rule-status]');
-      if(status)status.textContent=met?'Cumplido':'Pendiente';
-    });
+    submit.disabled=busy || complete;
+
   };
   form.addEventListener('input',validate);form.addEventListener('change',validate);
   const showFieldError=(input:HTMLInputElement)=>{
@@ -61,19 +56,18 @@ export function initAuthForm() {
     if(!error)return;
     const invalid=!input.validity.valid;
     const field=input.closest<HTMLElement>('[data-validation-field]');
-    const success=!!field && input.type==='email' && !invalid && !!input.value;
-    if(field)field.dataset.validation=invalid?'error':success?'success':'';
-    error.hidden=!invalid && !success;
+    if(field)field.dataset.validation=invalid?'error':'';
+    error.hidden=!invalid;
     error.textContent=!invalid?'':input.validity.customError?input.validationMessage:input.validity.valueMissing?'Completa este campo.':input.type==='email'?'Ingresa un correo válido, por ejemplo nombre@gmail.com.':`Revisa este campo${input.minLength>0?`; mínimo ${input.minLength} caracteres`:''}.`;
-    if(success)error.textContent='Formato de correo válido.';
     input.setAttribute('aria-invalid',String(invalid));
   };
   form.addEventListener('focusout',event=>{
     if(event.target instanceof HTMLInputElement)showFieldError(event.target);
   });
-  form.addEventListener('input',event=>{
-    if(event.target instanceof HTMLInputElement && event.target.hasAttribute('aria-invalid'))showFieldError(event.target);
-    if(event.target===password && confirmation?.hasAttribute('aria-invalid'))showFieldError(confirmation);
+  form.addEventListener('input',()=>{
+    form.querySelectorAll<HTMLInputElement>('[aria-invalid="true"]').forEach(input=>{
+      if(input.validity.valid)showFieldError(input);
+    });
   });
   form.querySelectorAll<HTMLButtonElement>('[data-password]').forEach(button=>button.addEventListener('click',()=>{
     const input=button.closest<HTMLElement>('[data-validation-field]')?.querySelector<HTMLInputElement>('input');
@@ -109,23 +103,39 @@ export function initAuthForm() {
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy || complete)return;
     validate();
-    if(registration && !form.reportValidity())return;
-    if(!registration && !form.checkValidity()){
-      senalLogin('error','Revisa los campos marcados antes de continuar.');
+    if(!form.checkValidity()){
       form.querySelectorAll<HTMLInputElement>('input').forEach(showFieldError);
       form.querySelector<HTMLElement>(':invalid')?.focus();
       return;
     }
-    busy=true;submit.disabled=true;submit.textContent=registration?'Registrando…':'Iniciando sesión…';form.setAttribute('aria-busy','true');message.hidden=true;
-    if(!registration)senalLogin('progreso','Iniciando sesión.');
     const data=Object.fromEntries(new FormData(form));
+    busy=true;buttonState('busy');form.setAttribute('aria-busy','true');message.hidden=true;
+    const controls=[...form.querySelectorAll<HTMLInputElement|HTMLButtonElement>('input,button')];
+    const wasDisabled=controls.map(control=>control.disabled);controls.forEach(control=>control.disabled=true);
     try {
-      if(registration){senalDeAccion('progreso');const selected=String(data.role) as Role;delete data.role;delete data.confirm_password;if(selected==='CANDIDATE')delete data.kind;
-        const result=await auth.register(selected,data);complete=true;password.value='';if(confirmation)confirmation.value='';show(result.message,'success');senalDeAccion('exito');
-        form.querySelectorAll<HTMLInputElement|HTMLSelectElement>('input,select').forEach(input=>input.disabled=true);
-      }else{const session=await auth.login(data);complete=true;password.value='';await new Promise<void>(resolve=>senalLogin('exito','Sesión iniciada correctamente.',resolve));location.assign(homeFor(session.user.role));}
-    }catch(error){const textoError=error instanceof Error?error.message:'No se pudo completar la operación. Intenta de nuevo.';if(registration){show(textoError,'error');senalDeAccion('error');}else senalLogin('error',textoError);}
-    finally{busy=false;form.removeAttribute('aria-busy');submit.textContent=complete?(registration?'Cuenta registrada':'Sesión iniciada'):registration?'Crear cuenta':'Iniciar sesión';submit.disabled=complete;validate();}
+      if(registration){
+        const selected=String(data.role) as Role;delete data.role;delete data.confirm_password;if(selected==='CANDIDATE')delete data.kind;
+        await auth.register(selected,data);complete=true;
+      }else{
+        const session=await auth.login(data);complete=true;buttonState('success');
+        await new Promise(resolve=>setTimeout(resolve,300));
+        location.assign(homeFor(session.user.role));
+      }
+      password.value='';if(confirmation)confirmation.value='';
+      buttonState('success');
+    }catch(error){
+      password.value='';password.type='password';if(confirmation){confirmation.value='';confirmation.type='password';}
+      form.querySelectorAll<HTMLButtonElement>('[data-password]').forEach(button=>{
+        button.setAttribute('aria-pressed','false');const label='Mostrar contraseña'+(button.closest('[data-validation-field]')?.querySelector('input')?.id==='confirm_password'?' de confirmación':'');
+        button.setAttribute('aria-label',label);button.title=label;
+      });
+      showError(error);
+    }finally{
+      busy=false;form.removeAttribute('aria-busy');
+      if(!complete){controls.forEach((control,index)=>control.disabled=wasDisabled[index]!);buttonState('idle');validate();password.focus();}
+      else buttonState('success');
+    }
   });
+
   validate();
 }

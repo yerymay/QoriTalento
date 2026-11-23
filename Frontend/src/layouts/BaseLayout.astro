@@ -1,11 +1,11 @@
 ﻿---
 import '../styles/global.css';
 import Toast from '../modules/compartido/components/Toast.astro';
-interface Props { title: string }
-const { title } = Astro.props;
+interface Props { title: string; systemAppearance?: boolean }
+const { title, systemAppearance=false } = Astro.props;
 ---
 <!doctype html>
-<html lang="es">
+<html lang="es" data-appearance={systemAppearance?'system':undefined}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,10 +13,11 @@ const { title } = Astro.props;
     <title>{title}</title>
     <script is:inline>
       try {
-        const chosen = localStorage.getItem('qori-theme');
+        const system = document.documentElement.dataset.appearance === 'system';
+        const chosen = system ? 'system' : localStorage.getItem('qori-theme');
         const dark = chosen === 'dark' || (chosen !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
         document.documentElement.classList.toggle('dark', dark);
-        const contraste = localStorage.getItem('qori-contrast');
+        const contraste = system ? null : localStorage.getItem('qori-contrast');
         if (contraste === 'high' || (contraste !== 'normal' && matchMedia('(prefers-contrast: more)').matches)) document.documentElement.dataset.contraste = 'alto';
       } catch { /* El sistema funciona sin persistencia de tema */ }
     </script>

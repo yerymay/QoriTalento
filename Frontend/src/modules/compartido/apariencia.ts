@@ -14,10 +14,11 @@ export function temaActual(): Tema {
 }
 
 function pintar() {
-  const preferencia = temaActual();
+  const system = document.documentElement.dataset.appearance === 'system';
+  const preferencia = system ? 'system' : temaActual();
   document.documentElement.classList.toggle('dark',
     preferencia === 'dark' || (preferencia === 'system' && mediaTema().matches));
-  const alto = contraste === 'high' ||
+  const alto = system ? matchMedia('(prefers-contrast: more)').matches : contraste === 'high' ||
     (contraste === null && matchMedia('(prefers-contrast: more)').matches);
   if (alto) document.documentElement.dataset.contraste = 'alto';
   else delete document.documentElement.dataset.contraste;
