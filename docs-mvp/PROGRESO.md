@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-06):** infraestructura verificada contra MariaDB local; Etapa 0 completada. M01 permite registro e inicio de sesión inmediato, sin aprobación externa. M02 permite a cualquier reclutador publicar varias ofertas propias, sin cuota ni moderación previa. M03 cuenta con registro, consulta y reemplazo de CV; sigue pendiente automatizar la eliminación según la política aprobada. M04 cuenta con extracción clásica, corrección y confirmación del perfil y revisión privada del reclutador con notas, verificado con pruebas y MariaDB. La precisión en un conjunto representativo de CV reales, M05-M08 y la validación IHC integral siguen pendientes.
+**Estado actual (2026-11-25):** infraestructura y bases M01–M04 implementadas. La copia local también contiene M05 (exámenes), M06 (evaluación indicativa con revisión humana) y M07 (resultados y flujo de selección aprobado sin reversión). M07 fue comprobado con pruebas API, MariaDB y navegador; ver evidencia al final. Siguen pendientes la validación de precisión/rúbrica y umbrales de B-06, B-07, retención automatizada, cierre IHC integral y M08.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -23,7 +23,7 @@
 - [x] M04: base funcional de extracción, corrección y confirmación del perfil, revisión de PDF y notas; verificada con pruebas automatizadas, MariaDB y navegador. Pendiente medir precisión sobre CV representativos; B-07 sigue abierta.
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
 - [ ] M06: calificación objetiva y evaluación asistida con Ollama. B-06 aprobada parcialmente: fórmula 60/40 con examen o perfil sobre 100 sin examen, y preguntas filtro como apoyo; aprobados niveles por requisito y pesos ajustables; pendientes umbrales y validación.
-- [ ] M07: resultados y decisión humana.
+- [ ] M07: resultados y decisión humana implementados en el alcance aprobado; RSF26/27/29 verificados. Pendientes ranking/umbrales de B-06 y validación IHC integral. Ver evidencia del 2026-11-25.
 - [ ] M08: consulta, actualización y seguimiento de estados.
 - [ ] Validación IHC: tareas con usuarios, heurísticas, responsive, accesibilidad, recuperación y cinco estados UI.
 
@@ -360,3 +360,14 @@ Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en
 - Alert con entrada de opacidad y desplazamiento de 8 px en 200 ms; spinner y transiciones respetan prefers-reduced-motion. El botón conserva su color primario durante ejecución/éxito y los colores de alto contraste cuando el sistema lo solicita.
 - Verificación: npm run check (109 archivos, 0 errores/advertencias/sugerencias), npm run build (20 rutas), git diff --check, auth-ui.browser.mjs y regresión configuracion.browser.mjs aprobados. API simulada, sin crear cuentas ni sesiones reales; temporizador de 300 ms comprobado con reloj virtual.
 - Entrega visual: 64 capturas en .impeccable/review/auth, con galería index.html. Login y registro × 1440/390 px × claro/oscuro × reposo, campo inválido, respuesta inválida, red, límite, servidor, ejecución y éxito. Sin desbordamiento horizontal; inspección de distribución, foco y contraste en ambos temas.
+
+## Evidencia — M07, resultados y selección humana (2026-11-25)
+
+- B-08 aprobada expresamente en conversación: PENDING → IN_REVIEW → SHORTLISTED; finales ADVANCES/NOT_ADVANCES desde cualquiera de los tres estados activos, propietario exclusivamente y sin reversión.
+- Implementadas cuatro capas, cuatro operaciones documentadas en OpenAPI 0.7.0 y una pantalla /reclutador/resultados con ficha lateral, confirmación, motivo opcional, autor/fecha e historial. Se reutilizan resultados indicativos M06; no se habilitan rankings, niveles ni decisiones automáticas.
+- No hay cambios de esquema: se utilizan recruitment_decisions y application_status_events existentes, con transacción y bloqueo para impedir doble decisión. Bloqueo de procesos finalizados, comprobación de estado esperado y recuperación ante 409.
+- Backend: check/build correctos; 128 pruebas aprobadas, 9 MySQL optativas omitidas. M07: 14 pruebas API/servicio. TypeScript estricto de las pruebas M07 correcto. Prueba MySQL M07 separada: 1 aprobada contra MariaDB real; aislamiento, búsqueda literal, rollback y concurrencia con datos sintéticos propios eliminados.
+- Frontend: Astro check 0 errores, 0 advertencias, 0 hints; build 21 rutas. Prueba de navegador con API simulada aprobada: cinco estados, filtros, ficha, decisiones, cancelación, fallo sin pérdida, conflicto, foco tras guardar/409/cierre, perfil pendiente distinguido de cero y limpieza por expiración. Contraste mínimo medido 7.04:1 en muestras de campos, resultados y badges en las cuatro variantes; no es auditoría integral.
+- DESIGN.md proporcionado por el usuario, guardado localmente (ignorado por la configuración Git existente). Se preservan Inter/Sky y tokens compartidos; plantillas de lista/detalle, estados y foco. Capturas verificadas: .impeccable/review/m07-1440-light.png, m07-1440-dark.png, m07-390-light.png, m07-390-dark.png, m07-detail-desktop.png y m07-detail-mobile-dark.png.
+- Salud local: /health responde OK, db-check connected=true, página de resultados responde 200. No se consultó ni desplegó la versión en nube.
+- RSF26, RSF27 y RSF29 marcados con esta evidencia. RSF28 y requisitos UI dependientes de compatibilidad/ranking siguen parciales; M07 no se declara íntegramente cerrado por B-06 e IHC. M08 pendiente. Ver M07-IMPLEMENTACION.md.

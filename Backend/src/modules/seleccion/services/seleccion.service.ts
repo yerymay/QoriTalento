@@ -33,7 +33,7 @@ export class SeleccionService {
       items.push({...record,allowed_actions:allowedActions(record),results:view?{
         grades:view.grades.map(g=>({title:g.title,percent:g.percent})),exam_count:view.exam_count,
         profile_points:view.stale?null:view.profile_points,profile_max:view.profile_max,
-        total:view.total,pending:view.pending,stale:view.stale,reviewed:!!view.evaluation?.reviewed_at,
+        total:view.total,pending:view.pending,stale:view.stale,reviewed:!!view.evaluation?.criteria.some(c=>c.review&&c.review.rating!=='INSUFFICIENT_EVIDENCE'),
       }:null});
     }
     return {...result,items,page:query.page,page_size:query.page_size,indicative:true,ranking_enabled:false};

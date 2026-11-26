@@ -56,10 +56,10 @@
 
 ### Módulo 07 — Resultados y selección
 
-- [ ] **RSF26 — Visualización de resultados por postulante.** El sistema debe mostrar al reclutador el resultado obtenido por cada postulante de la oferta, agrupados de manera que permita comparar a los evaluados.
-- [ ] **RSF27 — Ficha de resultados del postulante.** El sistema debe presentar en una sola vista la información extraída del currículum, el resultado del examen y la calificación obtenida, de modo que el reclutador tenga el expediente completo del postulante.
+- [x] **RSF26 — Visualización de resultados por postulante.** El sistema debe mostrar al reclutador el resultado obtenido por cada postulante de la oferta, agrupados de manera que permita comparar a los evaluados.
+- [x] **RSF27 — Ficha de resultados del postulante.** El sistema debe presentar en una sola vista la información extraída del currículum, el resultado del examen y la calificación obtenida, de modo que el reclutador tenga el expediente completo del postulante.
 - [ ] **RSF28 — Revisión y selección de postulantes.** El sistema debe permitir al reclutador revisar los postulantes de una oferta y decidir cuáles cumplen con el perfil requerido, siguiendo el orden de resultados como apoyo y no como decisión automática.
-- [ ] **RSF29 — Registro del resultado final.** El sistema debe registrar la decisión final sobre cada postulante, dejando constancia de si avanza o no avanza en el proceso de selección.
+- [x] **RSF29 — Registro del resultado final.** El sistema debe registrar la decisión final sobre cada postulante, dejando constancia de si avanza o no avanza en el proceso de selección.
 
 ### Módulo 08 — Seguimiento
 

@@ -90,3 +90,7 @@ Sin autorización adicional: enviar OTP reales, permitir cambios de estado arbit
 `evaluacion` mantiene controladores HTTP, servicio de calificación/revisión, interfaces de repositorio/asistente y adaptadores MySQL/Ollama. Las dependencias se inyectan en `server.ts`; `app.ts` monta las cuatro rutas. Ollama se consulta fuera de transacciones y su respuesta se valida contra referencias del perfil confirmado; la persistencia vuelve a verificar versión y fuentes antes de escribir. El historial usa `m06_evaluation_revisions`, creado por una migración separada, sin alterar el esquema inicial.
 
 El frontend compone la ruta con `EvaluacionPostulante.astro` y concentra UI/API en `modules/evaluacion/`. La autorización explícita de M06 prepara la fórmula indicativa con revisión humana; los rankings, umbrales y validación real de B-06, así como la reevaluación de B-07, siguen fuera del alcance implementado. Ver [M06-IMPLEMENTACION.md](M06-IMPLEMENTACION.md).
+
+### M07 — resultados y selección (2026-11-25)
+
+Cuatro capas en modules/seleccion; interfaces SeleccionRepository y EvaluacionRepository inyectadas en server.ts y montaje en app.ts. La pantalla /reclutador/resultados compone modules/seleccion, con ficha en la misma página. Estado, decisión e historial se persisten atómicamente en tablas existentes. El flujo B-08 aprobado no permite reversión ni decisiones automáticas. Ver [M07-IMPLEMENTACION.md](M07-IMPLEMENTACION.md).

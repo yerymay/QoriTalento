@@ -22,7 +22,7 @@ export function initSelection(){
     const heading=node('div','','space-y-2');heading.append(node('h3',r.name,'text-xl font-semibold break-words'),node('p',r.email,'selection-muted break-all'),badge(r.status));container.append(heading);
     const results=section('Resultados');const dl=node('dl','','selection-definition');
     metric('Modalidad',v.exam_count?'Perfil + examen':'Solo perfil',dl);
-    metric('Perfil',v.stale?'Revisión desactualizada':number(v.profile_points)+' / '+v.profile_max,dl);
+    metric('Perfil',v.stale?'Revisión desactualizada':!v.evaluation?.criteria.some(c=>c.review&&c.review.rating!=='INSUFFICIENT_EVIDENCE')?'Por revisar':number(v.profile_points)+' / '+v.profile_max,dl);
     for(const g of v.grades)metric(g.title,number(g.percent)+' / 100',dl);
     if(v.exam_count&&!v.grades.length)metric('Examen','Pendiente',dl);
     metric('Total indicativo',v.total===null?'Pendiente':number(v.total)+' / 100',dl);results.append(dl);
@@ -50,7 +50,7 @@ export function initSelection(){
     for(const r of el('results-rows').children)r.setAttribute('aria-selected',String((r as HTMLElement).dataset.id===id));
     if(focus){document.getElementById('selection-detail-title')!.focus();el('detail').scrollIntoView({block:'nearest'});}
     try{const data=await selectionApi.detail(id);if(!active||run!==detailRun)return;fillDetail(data);}
-    catch(e){if(!active||run!==detailRun||unauthorized(e))return;el('detail-error-copy').textContent=errorText(e);el('detail-error').hidden=false;}
+    catch(e){if(!active||run!==detailRun||unauthorized(e))return;el('detail-error-copy').textContent=errorText(e);el('detail-error').hidden=false;if(active)document.getElementById('selection-detail-title')!.focus();}
     finally{if(run===detailRun)el('detail-loading').hidden=true;}
   }
   function row(item:ResultRow){
@@ -102,10 +102,10 @@ export function initSelection(){
     const save=el<HTMLButtonElement>('decision-save');save.disabled=true;save.textContent='Guardando…';el<HTMLButtonElement>('decision-cancel').disabled=true;action.disabled=true;reason.disabled=true;el('save-error').hidden=true;
     try{
       await selectionApi.decide(current.record.id,action.value as State,current.record.status!,['ADVANCES','NOT_ADVANCES'].includes(action.value)?reason.value.trim():'');
-      if(!active||run!==detailRun)return;dialog.close();showToast('El estado y su historial se guardaron.','success',{title:'Decisión registrada'});await Promise.all([load(),openDetail(current.record.id,false)]);
+      if(!active||run!==detailRun)return;dialog.close();showToast('El estado y su historial se guardaron.','success',{title:'Decisión registrada'});await Promise.all([load(),openDetail(current.record.id,false)]);if(active)document.getElementById('selection-detail-title')!.focus();
     }catch(err){
       if(!active||run!==detailRun||unauthorized(err))return;
-      if(err instanceof ApiError&&err.status===409){dialog.close();await openDetail(current.record.id,false);el('detail-error-copy').textContent=errorText(err);el('detail-error').hidden=false;}
+      if(err instanceof ApiError&&err.status===409){dialog.close();await openDetail(current.record.id,false);el('detail-error-copy').textContent=errorText(err);el('detail-error').hidden=false;if(active)document.getElementById('selection-detail-title')!.focus();}
       else{el('save-error-copy').textContent=errorText(err)+' Conservamos tu decisión para que puedas reintentar.';el('save-error').hidden=false;el('save-error').focus();}
     }finally{saving=false;save.disabled=false;save.textContent='Confirmar y guardar';el<HTMLButtonElement>('decision-cancel').disabled=false;action.disabled=false;reason.disabled=false;}
   });
@@ -120,7 +120,7 @@ export function initSelection(){
   el<HTMLSelectElement>('mobile-order').addEventListener('change',()=>{const order=el<HTMLSelectElement>('mobile-order').value.split(':');sort=order[0]!;direction=order[1]!;filter();});
   el('list-retry').addEventListener('click',()=>{if(job.value)void load();else void loadJobs();});
   el('detail-retry').addEventListener('click',()=>{if(selected)void openDetail(selected);});
-  el('detail-close').addEventListener('click',()=>{const id=selected;close();const button=root.querySelector<HTMLButtonElement>('tr[data-id="'+id+'"] button');button?.focus();});
+  el('detail-close').addEventListener('click',()=>{const id=selected;close();const button=root.querySelector<HTMLButtonElement>('tr[data-id="'+id+'"] button');(button??search).focus();});
   el('prev').addEventListener('click',()=>{if(page>1){page--;close();void load();}});
   el('next').addEventListener('click',()=>{page++;close();void load();});
   document.addEventListener('qori:session',()=>{if(active)return;active=true;void loadJobs();});
