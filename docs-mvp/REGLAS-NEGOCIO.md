@@ -23,7 +23,7 @@
 | B-05 | Cantidad de intentos, versión de examen, edición y borde de expiración | operación completa M05 |
 | B-06 | Decisión parcial aprobada 2026-11-22: fórmula según exista examen y preguntas de apoyo; pendientes validación y umbrales. | puntuación IA real hasta completar y validar la rúbrica |
 | B-07 | Reevaluación tras actualizar perfil confirmado | M04/M06 |
-| B-08 | Parcialmente aprobada 2026-11-06: estados para duplicados y reemplazo, y finalización explícita. Pendientes: transiciones completas, actores y reversión. | M07/M08 y finalización del proceso |
+| B-08 | Flujo M07 aprobado 2026-11-25: propietario, transiciones activas y decisiones finales sin reversión; M08 consulta ese estado e historial. Ver ampliación al final. | no bloquea el alcance implementado M07/M08; no autoriza cambios arbitrarios |
 | B-09 | Permisos de jefe RRHH frente a propiedad individual | M01/M07 |
 | B-10 | Ratificación de constitución y métricas RNF | formalidad documental |
 

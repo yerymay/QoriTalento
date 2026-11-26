@@ -1,0 +1,35 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+import Skeleton from '../../compartido/components/ui/Skeleton.astro';
+import '../seguimiento.css';
+---
+<Espacio view="applications" role="CANDIDATE" title="Mis postulaciones" description="Consulta el estado y los avances registrados en cada proceso.">
+  <Button slot="page-actions" as="a" href="/postulante/ofertas">Explorar oportunidades</Button>
+  <div data-tracking-root class="space-y-6">
+    <form data-tracking-filters role="search" aria-label="Filtrar mis postulaciones" class="grid items-end gap-4 sm:grid-cols-2">
+      <label class="block space-y-2"><span class="block font-medium">Buscar oferta</span><span class="relative block"><svg aria-hidden="true" class="ui-icon pointer-events-none absolute left-3 top-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input data-tracking-search type="search" class="q-input pl-10" maxlength="160" placeholder="Nombre de la oferta" autocomplete="off" /></span></label>
+      <label class="block space-y-2"><span class="block font-medium">Estado de mi postulación</span><select data-tracking-filter class="q-input"><option value="">Todos los estados</option><option value="PENDING">Pendiente de evaluación</option><option value="IN_REVIEW">En revisión</option><option value="SHORTLISTED">Preseleccionado</option><option value="ADVANCES">Avanza</option><option value="NOT_ADVANCES">No avanza</option></select></label>
+    </form>
+    <div class="flex flex-wrap items-center justify-between gap-2"><p data-tracking-sync class="text-sm text-slate-600 dark:text-slate-300">Consultando tus postulaciones…</p><Button data-tracking-refresh variant="secondary"><svg aria-hidden="true" class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 7v5h-5M4 17v-5h5M6 7a7 7 0 0 1 13 2M5 15a7 7 0 0 0 13 2"/></svg>Actualizar</Button></div>
+    <p data-tracking-live class="sr-only" role="status"></p>
+    <Alert data-app-notice tone="error" title="No se pudo actualizar el seguimiento" hidden><p data-tracking-error-copy></p><Button slot="action" data-app-retry variant="secondary">Reintentar</Button></Alert>
+    <div data-tracking-grid class="tracking-layout">
+      <section data-tracking-list-panel class="ui-panel min-w-0 overflow-hidden" aria-label="Mis postulaciones">
+        <div data-app-loading role="status" class="space-y-5 p-6"><p>Cargando postulaciones…</p><Skeleton heights={['5rem','5rem','5rem']} announce={false} /></div>
+        <div data-app-empty class="px-6 py-12 text-center" hidden><svg class="ui-icon mx-auto mb-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M5 3h14v18H5zM8 8h8M8 12h8M8 16h5"/></svg><h2 data-tracking-empty-title class="text-xl font-semibold">Tu primera postulación te espera</h2><p data-tracking-empty-copy class="mt-2 text-slate-600 dark:text-slate-300">Encuentra una oferta y consulta aquí su avance.</p><a data-tracking-empty-link href="/postulante/ofertas" class="q-link mt-4">Explorar ofertas</a><Button data-tracking-clear variant="secondary" class="mt-4" hidden>Limpiar filtros</Button></div>
+        <div data-app-list></div>
+        <footer data-tracking-footer class="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4 dark:border-slate-700" hidden><p data-tracking-count class="text-sm text-slate-600 dark:text-slate-300"></p><div class="flex gap-2"><Button data-tracking-prev variant="ghost">Anterior</Button><Button data-tracking-next variant="ghost">Siguiente</Button></div></footer>
+      </section>
+      <section data-tracking-detail class="ui-panel tracking-detail min-w-0 p-5 sm:p-6" aria-labelledby="tracking-detail-title" hidden>
+        <div class="mb-5 flex items-start justify-between gap-3"><h2 id="tracking-detail-title" tabindex="-1" class="text-xl font-semibold">Seguimiento de mi postulación</h2><Button data-tracking-close variant="ghost">Cerrar</Button></div>
+        <div data-tracking-detail-loading role="status" class="space-y-4"><p>Cargando el historial…</p><Skeleton heights={['4rem','5rem','7rem']} announce={false} /></div>
+        <Alert data-tracking-detail-error tone="error" title="No se pudo actualizar el historial" hidden><p data-tracking-detail-error-copy></p><Button data-tracking-detail-retry slot="action" variant="secondary">Reintentar historial</Button></Alert>
+        <div data-tracking-detail-content class="space-y-6"></div>
+      </section>
+    </div>
+    <p class="text-sm text-slate-600 dark:text-slate-300">El seguimiento se actualiza cada 30 segundos mientras esta página está visible. También puedes usar Actualizar.</p>
+  </div>
+</Espacio>
+<script>import { initSeguimiento } from '../seguimiento'; initSeguimiento();</script>

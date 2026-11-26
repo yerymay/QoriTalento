@@ -63,9 +63,9 @@
 
 ### Módulo 08 — Seguimiento
 
-- [ ] **RSF30 — Consulta de postulaciones por oferta.** El sistema debe mostrar al reclutador todas las postulaciones recibidas para una oferta determi- nada, con la información necesaria para gestionarlas en conjunto.
-- [ ] **RSF31 — Actualización del estado de una postulación.** El sistema debe permitir al reclutador cambiar el estado de una postulación a medida que avan- za por las etapas del proceso de selección (En revisión, Preseleccionado, Avanza, No avanza), quedando el estado visible para el postulante.
-- [ ] **RSF32 — Consulta del estado por el postulante.** El sistema debe permitir al postulante consultar en qué estado se encuentra su proceso de selec- ción, sin intervención del reclutador.
+- [x] **RSF30 — Consulta de postulaciones por oferta.** El sistema debe mostrar al reclutador todas las postulaciones recibidas para una oferta determi- nada, con la información necesaria para gestionarlas en conjunto.
+- [x] **RSF31 — Actualización del estado de una postulación.** El sistema debe permitir al reclutador cambiar el estado de una postulación a medida que avan- za por las etapas del proceso de selección (En revisión, Preseleccionado, Avanza, No avanza), quedando el estado visible para el postulante.
+- [x] **RSF32 — Consulta del estado por el postulante.** El sistema debe permitir al postulante consultar en qué estado se encuentra su proceso de selec- ción, sin intervención del reclutador.
 
 ## B. Requerimientos no funcionales del sistema (18)
 
@@ -99,7 +99,7 @@
 - [ ] **UI-RF-07.** La interfaz debe mostrar al postulante un temporizador regresivo siempre visible durante el examen, que cambie a color rojo cuando queden 60 segundos o menos y que, al llegar a cero, envíe el examen automáticamente y muestre un mensaje de confirmación. *(Origen: RSF21; prioridad original: Alta).* **DEC-05/06:** el frontend informa y solicita cierre, pero solo cuentan respuestas aceptadas por el servidor antes del límite.
 - [ ] **UI-RF-08.** La interfaz debe mostrar al reclutador una tabla de postulantes por oferta (calificación del examen, compatibilidad CV–oferta y puntaje final) con ordenamiento por columna, filtro por nivel de compatibilidad e insignia de color con texto (Alta: verde, Media: amarillo, Baja: rojo). *(Origen: RSF25, RSF26, RSF30; prioridad original: Alta).* **Pendiente B-06:** no mostrar nivel, score o filtros IA como reales antes de aprobar rúbrica.
 - [ ] **UI-RF-09.** La interfaz debe presentar, en una sola vista, la ficha del postulante con los datos extraídos del CV, el resultado del examen, la compatibilidad y el puntaje final, junto con los botones para preseleccionar o descartar. *(Origen: RSF27; prioridad original: Alta).*
-- [ ] **UI-RF-10.** La interfaz debe permitir al reclutador cambiar el estado de una postulación mediante un selector (En revisión, Preseleccionado, Avanza, No avanza) y mostrar al postulante el estado actual en una línea de progreso con la etapa vigente resaltada. *(Origen: RSF12, RSF31, RSF32; prioridad original: Media).*
+- [x] **UI-RF-10.** La interfaz debe permitir al reclutador cambiar el estado de una postulación mediante un selector (En revisión, Preseleccionado, Avanza, No avanza) y mostrar al postulante el estado actual en una línea de progreso con la etapa vigente resaltada. *(Origen: RSF12, RSF31, RSF32; prioridad original: Media).*
 - [x] **UI-RF-11.** La interfaz debe presentar un formulario de registro de cuenta (nombre, correo y contraseña) con un selector de rol (Reclutador o Postulante) y un indicador de fortaleza de la contraseña; el botón *Registrar* permanece deshabilitado hasta completar los campos obligatorios. *(Origen: RSF01; prioridad original: Alta).*
 - [ ] **UI-RF-12.** La interfaz debe ofrecer una pantalla de perfil con nombre, correo y datos de contacto editables; al pulsar *Guardar cambios* muestra la confirmación “Cambios guardados” y deja los campos en solo lectura. *(Origen: RSF03; prioridad original: Media).*
 - [ ] **UI-RF-13.** La interfaz debe mostrar un menú lateral (en móvil, un menú desplegable) con únicamente las opciones del rol activo, resaltar la sección vigente y mantener visible la opción *Cerrar sesión*. *(Origen: RSF04; prioridad original: Alta).*

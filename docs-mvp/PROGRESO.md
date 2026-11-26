@@ -2,7 +2,7 @@
 
 **Estado inicial del paquete:** infraestructura de ejemplo creada en archivos, pero no instalada ni probada contra tu MySQL local. Ningún requisito RSF/RSNF/UI marcado completo sin pruebas.
 
-**Estado actual (2026-11-25):** infraestructura y bases M01–M04 implementadas. La copia local también contiene M05 (exámenes), M06 (evaluación indicativa con revisión humana) y M07 (resultados y flujo de selección aprobado sin reversión). M07 fue comprobado con pruebas API, MariaDB y navegador; ver evidencia al final. Siguen pendientes la validación de precisión/rúbrica y umbrales de B-06, B-07, retención automatizada, cierre IHC integral y M08.
+**Estado actual (2026-11-25):** la copia local contiene los ocho módulos M01–M08 en su alcance implementado. M08 incorpora seguimiento propio e historial real conectado a las decisiones de M07, comprobado con API, MariaDB y navegador. Esto no cierra todos los requisitos del MVP: siguen pendientes la validación de precisión/rúbrica y umbrales B-06, B-07, retención automatizada y validación IHC integral. Ver evidencia y límites de cada módulo.
 
 ## Etapa 0 — Preparar y conectar
 
@@ -24,7 +24,7 @@
 - [ ] M05: exámenes con guardado por pregunta y plazo autoritativo.
 - [ ] M06: calificación objetiva y evaluación asistida con Ollama. B-06 aprobada parcialmente: fórmula 60/40 con examen o perfil sobre 100 sin examen, y preguntas filtro como apoyo; aprobados niveles por requisito y pesos ajustables; pendientes umbrales y validación.
 - [ ] M07: resultados y decisión humana implementados en el alcance aprobado; RSF26/27/29 verificados. Pendientes ranking/umbrales de B-06 y validación IHC integral. Ver evidencia del 2026-11-25.
-- [ ] M08: consulta, actualización y seguimiento de estados.
+- [x] M08: consulta por oferta y cambios aprobados mediante M07, seguimiento propio con historial real y etapa vigente. RSF30/31/32 y UI-RF-10 verificados; validación IHC integral pendiente por separado. Ver evidencia del 2026-11-25.
 - [ ] Validación IHC: tareas con usuarios, heurísticas, responsive, accesibilidad, recuperación y cinco estados UI.
 
 ## Propuestas pendientes
@@ -371,3 +371,14 @@ Se integraron se?ales de progreso, ?xito, error y cancelaci?n seg?n la acci?n en
 - DESIGN.md proporcionado por el usuario, guardado localmente (ignorado por la configuración Git existente). Se preservan Inter/Sky y tokens compartidos; plantillas de lista/detalle, estados y foco. Capturas verificadas: .impeccable/review/m07-1440-light.png, m07-1440-dark.png, m07-390-light.png, m07-390-dark.png, m07-detail-desktop.png y m07-detail-mobile-dark.png.
 - Salud local: /health responde OK, db-check connected=true, página de resultados responde 200. No se consultó ni desplegó la versión en nube.
 - RSF26, RSF27 y RSF29 marcados con esta evidencia. RSF28 y requisitos UI dependientes de compatibilidad/ranking siguen parciales; M07 no se declara íntegramente cerrado por B-06 e IHC. M08 pendiente. Ver M07-IMPLEMENTACION.md.
+
+
+## Evidencia — M08, seguimiento del postulante (2026-11-25)
+
+- Dos operaciones de lectura en cuatro capas y OpenAPI 0.8.0. Lista y detalle restringidos al postulante de la sesión, no-store, errores normalizados, filtros validados y exclusión explícita de notas, motivos privados, autor y scores. No requiere migración adicional.
+- La única pantalla modificada es /postulante/postulaciones: búsqueda, estado, paginación, ficha adaptable, progreso e historial real. No inventa etapas omitidas ni una decisión al cerrar/finalizar la oferta. Historial antiguo incompleto identificado como parcial.
+- Actualización manual y cada 30 segundos visible/conectado; conserva la última consulta ante fallos, recupera conexión, descarta respuestas tardías y limpia contenido al expirar la sesión. Se mantienen los accesos a CV, oferta, pruebas y reemplazo solo en PENDING.
+- Backend check/build correctos; suite 142 aprobadas y 10 MySQL optativas omitidas. M08 aporta 14 casos API/servicio; ambos archivos de pruebas pasan TypeScript estricto. Integración M08 separada en MariaDB: 1 aprobada con sesiones HTTP reales, M07 → M08, aislamiento, paginación, búsqueda literal y privacidad. Solo se crearon/eliminaron registros sintéticos propios.
+- Frontend check: 119 archivos, 0 errores/advertencias/sugerencias; build: 21 rutas. seguimiento.browser.mjs y regresión postulante-ui.browser.mjs aprobadas. Incluyen espera real de actualización periódica, teclado/foco, cinco estados UI y recuperación. Navegador con API simulada; integración real HTTP/MySQL verificada por separado.
+- Capturas 1440/390 claro/oscuro en .impeccable/review/m08-{1440,390}-{light,dark}.png; lista en m08-list-desktop.png y m08-list-mobile.png. Tokens Inter/Sky y componentes de DESIGN.md conservados.
+- RSF30 consulta de postulaciones por oferta se verifica con M07; RSF31 enlaza las decisiones M07 con la consulta M08; RSF32 y la línea de progreso UI-RF-10 se verifican en M08. El selector de M07 solo ofrece transiciones autorizadas por B-08. No se amplían reglas de negocio ni se declara terminada la validación IHC. Ver [M08-IMPLEMENTACION.md](M08-IMPLEMENTACION.md).

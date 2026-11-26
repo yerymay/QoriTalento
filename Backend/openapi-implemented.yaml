@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
   title: Qori Talento API — endpoints implementados
-  version: 0.7.0
+  version: 0.8.0
   description: >-
     Sistema, base M01 y M02: ofertas propias, requisitos y consulta de publicadas.
-    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05 implementa pruebas técnicas con publicación inmutable y reloj del servidor. M06 implementa calificación objetiva y revisión asistida por requisito con Ollama local y revisión humana; la fórmula 60/40 o perfil sobre 100 es indicativa y requiere validación para uso real. M07 incorpora resultados indicativos y selección humana sin reversión; M08 sigue pendiente.
+    Las cuentas se activan al registrarse, sin OTP ni aprobación externa. Cualquier reclutador puede publicar varias ofertas completas sin cuota ni moderación previa. M03 incluye postulaciones con PDF y reemplazo del CV pendiente. M04 extrae texto y propone datos editables, actualiza el perfil al confirmar y permite revisión privada con notas. M05 implementa pruebas técnicas con publicación inmutable y reloj del servidor. M06 implementa calificación objetiva y revisión asistida por requisito con Ollama local y revisión humana; la fórmula 60/40 o perfil sobre 100 es indicativa y requiere validación para uso real. M07 incorpora resultados indicativos y selección humana sin reversión; M08 permite al postulante consultar estados e historial propios, con aislamiento y sin datos internos de selección.
 servers:
   - url: /api/v1
 components:
@@ -18,6 +18,117 @@ components:
       schema: {type: string, enum: [web]}
       description: Cabecera obligatoria en mutaciones JSON y multipart; no se habilita CORS.
   schemas:
+    TrackingApplication:
+      type: object
+      required:
+        - id
+        - job_id
+        - title
+        - status
+        - job_status
+        - registered_at
+        - process_finished_at
+        - filename
+        - status_at
+        - final
+        - can_replace_cv
+      properties:
+        id:
+          type: string
+          pattern: ^[1-9][0-9]*$
+        job_id:
+          type: string
+          pattern: ^[1-9][0-9]*$
+        title:
+          type: string
+        status:
+          type: string
+          enum:
+            - PENDING
+            - IN_REVIEW
+            - SHORTLISTED
+            - ADVANCES
+            - NOT_ADVANCES
+          nullable: true
+        job_status:
+          type: string
+        registered_at:
+          type: string
+          format: date-time
+        process_finished_at:
+          type: string
+          format: date-time
+          nullable: true
+        filename:
+          type: string
+          nullable: true
+        status_at:
+          type: string
+          format: date-time
+          nullable: true
+        final:
+          type: boolean
+        can_replace_cv:
+          type: boolean
+    TrackingPage:
+      type: object
+      required:
+        - items
+        - total
+        - page
+        - page_size
+        - checked_at
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackingApplication"
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+          enum:
+            - 20
+        checked_at:
+          type: string
+          format: date-time
+    TrackingDetail:
+      type: object
+      required:
+        - application
+        - history
+        - history_complete
+        - checked_at
+      properties:
+        application:
+          $ref: "#/components/schemas/TrackingApplication"
+        history:
+          type: array
+          items:
+            type: object
+            required:
+              - status
+              - at
+            properties:
+              status:
+                type: string
+                enum:
+                  - PENDING
+                  - IN_REVIEW
+                  - SHORTLISTED
+                  - ADVANCES
+                  - NOT_ADVANCES
+                nullable: false
+              at:
+                type: string
+                format: date-time
+        history_complete:
+          type: boolean
+        checked_at:
+          type: string
+          format: date-time
     SelectionState:
       type: string
       enum:
@@ -3007,6 +3118,107 @@ paths:
         "404":
           $ref: "#/components/responses/Error"
         "409":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+
+  /candidate/applications/tracking:
+    get:
+      tags:
+        - Seguimiento M08
+      security:
+        - CookieSession: []
+      summary: Consultar y filtrar mis postulaciones
+      description: La identidad proviene de la sesión, no del formulario. Página de 20
+        registros ordenada por fecha/id descendentes. No expone motivos internos
+        ni puntuaciones.
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+            maxLength: 160
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - PENDING
+              - IN_REVIEW
+              - SHORTLISTED
+              - ADVANCES
+              - NOT_ADVANCES
+            nullable: false
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 999999
+            default: 1
+      responses:
+        "200":
+          description: Seguimiento privado del postulante autenticado
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingPage"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
+          $ref: "#/components/responses/Error"
+        "503":
+          $ref: "#/components/responses/Error"
+  /candidate/applications/{applicationId}/tracking:
+    get:
+      tags:
+        - Seguimiento M08
+      security:
+        - CookieSession: []
+      summary: Consultar estado e historial propios
+      description: Instantánea consistente de postulación e historial. Incluye
+        solamente estados y fechas persistidos, sin notas ni identidad del
+        reclutador. El registro se obtiene de submitted_at o created_at.
+        history_complete=false identifica registros parciales; no se inventan
+        etapas omitidas. El cierre de la oferta y la decisión individual son
+        independientes.
+      parameters:
+        - in: path
+          name: applicationId
+          required: true
+          schema:
+            type: string
+            pattern: ^[1-9][0-9]*$
+      responses:
+        "200":
+          description: Seguimiento privado del postulante autenticado
+          headers:
+            Cache-Control:
+              schema:
+                type: string
+                enum:
+                  - no-store
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrackingDetail"
+        "400":
+          $ref: "#/components/responses/Error"
+        "401":
+          $ref: "#/components/responses/Error"
+        "403":
+          $ref: "#/components/responses/Error"
+        "404":
           $ref: "#/components/responses/Error"
         "503":
           $ref: "#/components/responses/Error"

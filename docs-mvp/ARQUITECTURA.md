@@ -94,3 +94,10 @@ El frontend compone la ruta con `EvaluacionPostulante.astro` y concentra UI/API 
 ### M07 — resultados y selección (2026-11-25)
 
 Cuatro capas en modules/seleccion; interfaces SeleccionRepository y EvaluacionRepository inyectadas en server.ts y montaje en app.ts. La pantalla /reclutador/resultados compone modules/seleccion, con ficha en la misma página. Estado, decisión e historial se persisten atómicamente en tablas existentes. El flujo B-08 aprobado no permite reversión ni decisiones automáticas. Ver [M07-IMPLEMENTACION.md](M07-IMPLEMENTACION.md).
+
+
+### M08 — seguimiento propio (2026-11-25)
+
+Cuatro capas en modules/seguimiento, con SeguimientoRepository inyectado en server.ts y dos rutas de lectura montadas en app.ts. Las consultas restringen la propiedad por la sesión del postulante y leen estado/historial en una instantánea consistente. El DTO público excluye notas, motivos privados, actores y scores. No se requiere nueva migración.
+
+La ruta /postulante/postulaciones compone modules/seguimiento; lista y ficha adaptable, historial real y consulta cada 30 segundos cuando la página está visible y conectada. Los cambios de estado siguen en M07 con B-08 aprobado. Ver [M08-IMPLEMENTACION.md](M08-IMPLEMENTACION.md).

@@ -1,3 +1,5 @@
+import { createSeguimientoRoutes } from './modules/seguimiento/routes/seguimiento.routes.js';
+import type { SeguimientoRepository } from './modules/seguimiento/repositories/seguimiento.repository.js';
 import { createSeleccionRoutes } from './modules/seleccion/routes/seleccion.routes.js';
 import type { SeleccionRepository } from './modules/seleccion/repositories/seleccion.repository.js';
 import { createEvaluacionRoutes } from './modules/evaluacion/routes/evaluacion.routes.js';
@@ -24,7 +26,7 @@ import { env } from './config/env.js';
 import { createSystemRoutes } from './modules/system/routes/system.routes.js';
 import type { SystemRepository } from './modules/system/repositories/system.repository.js';
 
-export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository, cvRepository?: CvRepository, examenesRepository?: ExamenesRepository, evaluacionRepository?: EvaluacionRepository, evaluationAssistant?: EvaluationAssistant, seleccionRepository?: SeleccionRepository) {
+export function createApp(repository: SystemRepository, authRepository?: AuthRepository, ofertasRepository?: OfertasRepository, postulacionesRepository?: PostulacionesRepository, cvRepository?: CvRepository, examenesRepository?: ExamenesRepository, evaluacionRepository?: EvaluacionRepository, evaluationAssistant?: EvaluationAssistant, seleccionRepository?: SeleccionRepository, seguimientoRepository?: SeguimientoRepository) {
   const app = express();
   app.disable('x-powered-by');
   app.use((_req, res, next) => {
@@ -47,6 +49,8 @@ export function createApp(repository: SystemRepository, authRepository?: AuthRep
   if (authRepository && evaluacionRepository && evaluationAssistant) app.use('/api/v1', createEvaluacionRoutes(evaluacionRepository, new AuthService(authRepository, env.sessionIdleMinutes), evaluationAssistant));
 
   if (authRepository && evaluacionRepository && seleccionRepository) app.use('/api/v1', createSeleccionRoutes(seleccionRepository, new AuthService(authRepository, env.sessionIdleMinutes), evaluacionRepository));
+
+  if (authRepository && seguimientoRepository) app.use('/api/v1', createSeguimientoRoutes(seguimientoRepository, new AuthService(authRepository, env.sessionIdleMinutes)));
 
   const { controller } = createSystemRoutes(repository);
   app.get('/health', controller.health);

@@ -1,0 +1,26 @@
+@reference "../../styles/global.css";
+.tracking-layout {display:grid;gap:var(--spacing-ui-section);align-items:start;}
+.tracking-row {padding:var(--spacing-ui-section);border-bottom:1px solid var(--ui-border);cursor:pointer;}
+.tracking-row:last-child {border-bottom:0;}
+.tracking-row:hover {background:var(--ui-canvas);}
+.tracking-row[data-selected="true"] {@apply bg-sky-50 dark:bg-sky-950;}
+.tracking-badge {@apply inline-flex rounded-control bg-slate-100 px-2 py-1 text-sm font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200;}
+.tracking-badge[data-status="SHORTLISTED"] {@apply bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200;}
+.tracking-badge[data-status="ADVANCES"] {@apply bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200;}
+.tracking-badge[data-status="NOT_ADVANCES"] {@apply bg-red-50 text-red-800 dark:bg-red-950 dark:text-red-200;}
+.tracking-muted {color:var(--ui-muted);font-size:.875rem;}
+.tracking-progress {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem;}
+.tracking-progress li {min-width:0;position:relative;overflow-wrap:anywhere;}
+.tracking-progress li:not(:last-child)::after {content:"";position:absolute;top:1rem;left:2.5rem;right:-.5rem;height:1px;background:var(--ui-border);}
+.tracking-step {display:grid;place-items:center;width:2rem;height:2rem;border:1px solid var(--ui-border);border-radius:50%;background:var(--ui-panel);color:var(--ui-muted);font-variant-numeric:tabular-nums;}
+.tracking-progress [aria-current="step"] .tracking-step {@apply border-sky-700 bg-sky-700 font-semibold text-white;}
+.tracking-progress [data-visited="true"]:not([aria-current]) .tracking-step {@apply border-sky-700 text-sky-800 dark:border-sky-300 dark:text-sky-200;}
+.tracking-history {padding-left:1.25rem;list-style:disc;}
+.tracking-history li::marker {color:var(--color-sky-700);}
+.tracking-section {padding-top:var(--spacing-ui-group);border-top:1px solid var(--ui-border);overflow-wrap:anywhere;}
+.tracking-detail {animation:tracking-enter var(--ui-duration-enter) var(--ease-ui-out);}
+@keyframes tracking-enter {from{opacity:0;transform:translateX(1rem);}to{opacity:1;transform:translateX(0);}}
+@media(min-width:1280px) {.tracking-layout.has-detail {grid-template-columns:minmax(0,2fr) minmax(0,3fr);}}
+@media(max-width:1279px) {.tracking-layout.has-detail [data-tracking-list-panel]{display:none;}}
+@media(max-width:639px) {.tracking-progress{grid-template-columns:1fr;gap:1.5rem;}.tracking-progress li{display:grid;grid-template-columns:2rem 1fr;column-gap:1rem;}.tracking-progress li:not(:last-child)::after{top:2.5rem;bottom:-1rem;left:1rem;right:auto;width:1px;height:auto;}.tracking-progress .tracking-step{grid-row:1/3;}}
+@media(prefers-reduced-motion:reduce){.tracking-detail{animation:none;}}

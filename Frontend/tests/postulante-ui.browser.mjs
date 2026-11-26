@@ -13,17 +13,18 @@ await page.addInitScript(()=>{
 });
 let empty=false,failed=false,slow=false,expired=false;const queries=[];
 const job={id:'1',title:'Diseñador de producto',area:'Producto',location:'Abancay',description:'Diseña experiencias accesibles.',requirements:[],status:'PUBLISHED',published_at:'2026-11-22T12:00:00Z',experience_required:null,education_required:null};
-const application={id:'7',job_id:'1',title:job.title,status:'PENDING',filename:'CV.pdf',created_at:'2026-11-22T12:00:00Z',submitted_at:null};
+const application={id:'7',job_id:'1',title:job.title,status:'PENDING',filename:'CV.pdf',created_at:'2026-11-22T12:00:00Z',submitted_at:null,registered_at:'2026-11-22T12:00:00Z',status_at:'2026-11-22T12:00:00Z',job_status:'PUBLISHED',process_finished_at:null,final:false,can_replace_cv:true};
 await page.route('**/api/v1/**',async route=>{
  const url=new URL(route.request().url()),path=url.pathname.replace('/api/v1/','');
  const send=(status,body)=>route.fulfill({status,contentType:'application/json',body:JSON.stringify(body)});
  if(path==='me'||path==='auth/session/refresh')return expired?send(401,{error:{code:'SESSION_EXPIRED',message:'Tu sesión terminó.',request_id:'ui'}}):send(200,{user:{id:'1',name:'Ana Torres',email:'ana@example.test',role:'CANDIDATE',account_state:'ACTIVE',kind:null},expires_at:new Date(Date.now()+1800000).toISOString()});
  if(path==='jobs')queries.push(url.searchParams.get('q')??'');
  if(slow)await new Promise(r=>setTimeout(r,600));
- if(path==='jobs'||path==='applications'){
+ if(path==='jobs'||path==='applications'||path==='candidate/applications/tracking'){
   if(failed)return send(503,{error:{code:'UNAVAILABLE',message:'No se pudo cargar la información. Reintenta.',request_id:'ui'}});
-  return send(200,{items:empty?[]:[path==='jobs'?job:application],total:empty?0:1,page:1,page_size:20});
+  return send(200,{items:empty?[]:[path==='jobs'?job:application],total:empty?0:1,page:1,page_size:20,checked_at:new Date().toISOString()});
  }
+ if(path==='candidate/applications/7/tracking')return send(200,{application,history:[],history_complete:true,checked_at:new Date().toISOString()});
  return send(404,{error:{code:'NOT_FOUND',message:'Ruta no usada',request_id:'ui'}});
 });
 try{
@@ -49,9 +50,9 @@ try{
  await page.goto(base+'/postulante/postulaciones');await expect(page.locator('[data-app-list] article')).toHaveCount(1);
  empty=true;await page.reload();await expect(page.locator('[data-app-empty]')).toBeVisible();await expect(page.locator('[data-app-empty] a')).toHaveAttribute('href','/postulante/ofertas');
  failed=true;await page.reload();await expect(page.locator('[data-app-notice]')).toContainText('Reintenta');
- failed=false;empty=false;slow=true;await page.locator('[data-app-retry]').click();await expect(page.locator('[data-app-loading]')).toBeVisible();await expect(page.locator('[data-app-list] article')).toHaveCount(1);slow=false;
- await page.locator('[data-ui-menu-trigger]').click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
- await page.evaluate(()=>document.dispatchEvent(new CustomEvent('qori:session-cleared')));await expect(page.locator('[data-app-list] article')).toHaveCount(0);await expect(page.locator('[data-card-menu]')).toHaveCount(0);
+ failed=false;empty=false;slow=true;await page.locator('[data-app-retry]').click();await expect(page.locator('[data-tracking-refresh]')).toHaveAttribute('aria-busy','true');await expect(page.locator('[data-app-list] article')).toHaveCount(1);slow=false;
+ await page.locator('[data-open="7"]').click();await expect(page.locator('[data-tracking-detail-content]')).toContainText('Historial de mi postulación');assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+ await page.evaluate(()=>document.dispatchEvent(new CustomEvent('qori:session-cleared')));await expect(page.locator('[data-app-list] article')).toHaveCount(0);await expect(page.locator('[data-tracking-detail-content]')).toBeEmpty();
  expired=true;await page.reload();await expect(page.locator('[data-private]')).toBeHidden();
- assert.deepEqual(errors,[]);console.log('PASS: búsqueda automática/voz/deshacer/conflicto/permiso, teclado, vacío/error/reintento/carga, menú móvil y limpieza de sesión.');
+ assert.deepEqual(errors,[]);console.log('PASS: búsqueda automática/voz/deshacer/conflicto/permiso, teclado, vacío/error/reintento/carga, seguimiento móvil y limpieza de sesión.');
 }finally{await browser.close();}

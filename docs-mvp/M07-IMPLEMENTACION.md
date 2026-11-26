@@ -53,6 +53,6 @@ Capturas locales en `.impeccable/review/m07-{1440,390}-{light,dark}.png`, más d
 
 B-06 conserva pendientes los umbrales y validación para uso real; B-07 la reevaluación y B-09 permisos transversales. Los pesos de M06 pueden diferir entre postulantes, por lo que no constituyen una rúbrica común ni un ranking validado.
 
-RSF26, RSF27 y RSF29 verificados en el alcance descrito. RSF28 sigue parcial por la dependencia de ordenamiento por resultados; UI-RF-08/09/20 y el cierre integral de M07 requieren completar los aspectos pendientes y la validación IHC. M08 no se implementa: M07 registra el historial necesario, pero no añade una pantalla de seguimiento del postulante.
+RSF26, RSF27 y RSF29 verificados en el alcance descrito. RSF28 sigue parcial por la dependencia de ordenamiento por resultados; UI-RF-08/09/20 y el cierre integral de M07 requieren completar los aspectos pendientes y la validación IHC. M07 registra el historial necesario; el seguimiento del postulante se implementa por separado en [M08](M08-IMPLEMENTACION.md).
 
 La prueba de navegador usa API simulada y la persistencia se prueba por separado con MariaDB; no se afirma una sesión real de extremo a extremo en navegador.
