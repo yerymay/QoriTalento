@@ -1,0 +1,51 @@
+---
+import Espacio from '../../auth/components/Espacio.astro';
+import Alert from '../../compartido/components/ui/Alert.astro';
+import Button from '../../compartido/components/ui/Button.astro';
+import Skeleton from '../../compartido/components/ui/Skeleton.astro';
+import '../seleccion.css';
+---
+<Espacio view="results" role="RECRUITER" title="Resultados y comparación" description="Revisa los resultados y la evidencia antes de tomar una decisión.">
+  <div data-selection class="space-y-6">
+    <form data-filters class="grid items-end gap-4 md:grid-cols-3" role="search" aria-label="Filtrar resultados">
+      <label class="space-y-2"><span class="block font-medium">Oferta</span><select data-job class="q-input" aria-label="Oferta"><option value="">Cargando ofertas…</option></select></label>
+      <label class="space-y-2"><span class="block font-medium">Buscar postulante</span><span class="relative block"><svg class="ui-icon pointer-events-none absolute left-3 top-4 text-slate-500" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/></svg><input data-search class="q-input pl-10" type="search" maxlength="160" placeholder="Nombre o correo" autocomplete="off" /></span></label>
+      <label class="space-y-2"><span class="block font-medium">Estado de selección</span><select data-state class="q-input"><option value="">Todos los estados</option><option value="PENDING">Pendiente de evaluación</option><option value="IN_REVIEW">En revisión</option><option value="SHORTLISTED">Preseleccionado</option><option value="ADVANCES">Avanza</option><option value="NOT_ADVANCES">No avanza</option></select></label>
+    </form>
+    <label class="block space-y-2 md:hidden"><span class="block font-medium">Ordenar por</span><select data-mobile-order class="q-input"><option value="date:desc">Más recientes</option><option value="date:asc">Más antiguos</option><option value="name:asc">Nombre, A a Z</option><option value="name:desc">Nombre, Z a A</option><option value="status:asc">Estado</option></select></label>
+    <Alert data-list-error tone="error" title="No se pudieron cargar los resultados" hidden tabindex="-1"><p data-list-error-copy></p><Button slot="action" data-list-retry variant="secondary">Reintentar</Button></Alert>
+    <div data-selection-grid class="selection-grid">
+      <section data-results-panel class="ui-panel min-w-0 overflow-hidden" aria-label="Resultados de postulantes">
+        <div data-results-loading class="space-y-5 p-6" role="status"><p>Cargando resultados…</p><Skeleton heights={['3rem','4rem','4rem','4rem']} announce={false}/></div>
+        <div data-results-empty class="px-6 py-12 text-center" hidden><svg class="ui-icon mx-auto mb-4" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 4h16v16H4zM8 8h8M8 12h8M8 16h4"/></svg><h2 data-empty-title class="text-xl font-semibold">Aún no hay postulantes</h2><p data-empty-copy class="mx-auto mt-2 max-w-lg text-slate-600 dark:text-slate-300"></p><Button data-clear-filters variant="secondary" class="mt-4">Limpiar filtros</Button><a data-empty-jobs href="/reclutador/ofertas" class="q-link mt-4" hidden>Ir a mis ofertas</a></div>
+        <table data-results-table class="selection-table w-full" hidden>
+          <caption class="sr-only">Resultados indicativos por postulante. El orden no representa un ranking.</caption>
+          <thead><tr>
+            <th scope="col" aria-sort="none"><button type="button" data-sort="name">Postulante <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m7 9 5-5 5 5m0 6-5 5-5-5M12 4v16"/></svg></button></th>
+            <th scope="col" class="selection-metric text-right">Examen</th><th scope="col" class="selection-metric text-right">Perfil</th><th scope="col" class="selection-metric text-right">Total indicativo</th>
+            <th scope="col" aria-sort="none"><button type="button" data-sort="status">Estado <svg class="ui-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="m7 9 5-5 5 5m0 6-5 5-5-5M12 4v16"/></svg></button></th><th scope="col"><span class="sr-only">Ficha</span></th>
+          </tr></thead><tbody data-results-rows></tbody>
+        </table>
+        <footer data-results-footer class="flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 p-4 dark:border-slate-700" hidden><p data-result-count role="status" class="text-sm text-slate-600 dark:text-slate-300"></p><div class="flex items-center gap-2"><Button data-prev variant="ghost" aria-label="Página anterior">Anterior</Button><Button data-next variant="ghost" aria-label="Página siguiente">Siguiente</Button></div></footer>
+      </section>
+      <section data-detail class="ui-panel selection-detail min-w-0 p-5 sm:p-6" aria-labelledby="selection-detail-title" hidden>
+        <div class="mb-5 flex items-start justify-between gap-3"><h2 id="selection-detail-title" tabindex="-1" class="text-xl font-semibold">Ficha del postulante</h2><Button data-detail-close variant="ghost" aria-label="Cerrar ficha">Cerrar</Button></div>
+        <div data-detail-loading role="status"><p>Cargando expediente…</p><Skeleton heights={['4rem','6rem','6rem']} announce={false}/></div>
+        <Alert data-detail-error title="No se pudo cargar la ficha" tone="error" hidden><p data-detail-error-copy></p><Button data-detail-retry slot="action" variant="secondary">Reintentar ficha</Button></Alert>
+        <div data-detail-content class="space-y-6"></div>
+      </section>
+    </div>
+    <Alert title="La decisión es tuya" class="text-sm"><p>Los puntajes son indicativos. Revisa el CV y la evidencia de cada requisito; los pesos pueden variar entre evaluaciones. Los niveles de compatibilidad y el ranking todavía no están habilitados.</p></Alert>
+  </div>
+  <dialog data-decision-dialog aria-labelledby="decision-title" class="selection-dialog m-auto w-full max-w-lg rounded-floating bg-floating p-6 text-slate-900 shadow-3 backdrop:bg-slate-950/60 dark:text-slate-50">
+    <h2 id="decision-title" class="text-xl font-semibold">Registrar decisión</h2><p data-decision-person class="mt-2 break-words text-slate-600 dark:text-slate-300"></p>
+    <form data-decision-form class="mt-5 space-y-5">
+      <label class="block space-y-2"><span class="block font-medium">Acción de selección</span><select data-decision-state class="q-input"></select></label>
+      <label data-reason-label class="block space-y-2"><span class="block font-medium">Motivo <span class="font-normal text-slate-600 dark:text-slate-300">(opcional)</span></span><textarea data-decision-reason class="q-input" rows="3" maxlength="2000" placeholder="Deja constancia de la evidencia revisada."></textarea></label>
+      <Alert data-decision-warning title="Confirma antes de guardar"><p data-decision-warning-copy></p></Alert>
+      <Alert data-save-error tone="error" title="No se guardó la decisión" tabindex="-1" hidden><p data-save-error-copy></p></Alert>
+      <div class="flex flex-wrap justify-end gap-3"><Button data-decision-cancel type="button" variant="secondary">Cancelar</Button><Button data-decision-save type="submit" variant="primary">Confirmar y guardar</Button></div>
+    </form>
+  </dialog>
+</Espacio>
+<script>import { initSelection } from '../seleccion'; initSelection();</script>

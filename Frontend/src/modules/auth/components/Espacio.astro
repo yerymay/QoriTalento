@@ -8,7 +8,7 @@ import Marca from './Marca.astro';
 
 import MenuPerfil from './MenuPerfil.astro';
 import Perfil from './Perfil.astro';
-interface Props { view?:'profile'|'home'|'applications'|'settings'|'exams'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string; parentHref?:string; parentLabel?:string }
+interface Props { view?:'profile'|'home'|'applications'|'settings'|'exams'|'results'; role?:'CANDIDATE'|'RECRUITER'; title?:string; description?:string; parentHref?:string; parentLabel?:string }
 const {view='profile',role,title,description,parentHref,parentLabel}=Astro.props;
 ---
 <div data-workspace data-view={view} data-role={role} class="workspace-shell min-h-screen">
@@ -21,6 +21,7 @@ const {view='profile',role,title,description,parentHref,parentLabel}=Astro.props
       <a data-home href="/login" class="q-nav" hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 7V5a3 3 0 0 1 6 0v2M4 8h16v11H4V8Zm0 5h16"/></svg><span data-home-label>Ofertas</span></a>
       <a data-app-nav href="/postulante/postulaciones" class:list={["q-nav", {"bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200":view==="applications"}]} aria-current={view==="applications"?"page":undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5h6m-8 3h10M7 12h10M7 16h6M5 3h14v18H5V3Z"/></svg><span data-i18n="texto.TWlzIHBvc3R1bGFjaW9uZXM">Mis postulaciones</span></a>
       <a data-exam-nav href="/login" class:list={['q-nav', {'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='exams'}]} aria-current={view==='exams'?'page':undefined} hidden><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 4H5v17h14V4h-3M9 3h6v4H9zM8 12l2 2 5-5M8 18h8"/></svg><span data-i18n="texto.UHJ1ZWJhcyB0P2NuaWNhcw">Pruebas técnicas</span></a>
+      <a data-results-nav href="/reclutador/resultados" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='results'}]} aria-current={view==='results'?'page':undefined} hidden><svg class="h-5 w-5 shrink-0" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 4h16v16H4zM4 9h16M9 4v16m0-6h11"/></svg><span>Resultados y comparación</span></a>
       <p class="sidebar-group px-4 pb-2 pt-6 text-sm font-medium text-slate-600 dark:text-slate-300">Cuenta</p>
       <a href="/perfil" class:list={['q-nav',{'bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200':view==='profile'}]} aria-current={view==='profile'?'page':undefined}><svg aria-hidden="true" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg><span data-i18n="texto.TWkgcGVyZmls">Mi perfil</span></a>
     </nav>

@@ -13,7 +13,7 @@ export function initWorkspace(){
   let session:Session|undefined, refreshing=false, lastRefresh=0, loadingNow=false, examActive=false;
   const notice=(text:string,tone:'error'|'success'='error')=>{feedback.textContent=text;feedback.dataset.tone=tone;feedback.setAttribute('role',tone==='error'?'alert':'status');feedback.hidden=false;};
   document.addEventListener('qori:exam-active',event=>{examActive=!!(event as CustomEvent).detail;});
-  const clear=(preserveLocal=false)=>{profileMenu.close();el<HTMLButtonElement>('[data-profile-trigger]').disabled=true;el('[data-profile-name]').textContent='';el('[data-profile-email]').textContent='';el('[data-profile-role]').textContent='';content.hidden=true;el('[data-home]').hidden=true;el('[data-app-nav]').hidden=true;el('[data-exam-nav]').hidden=true;el('[data-user-name]').textContent='Sesión no disponible';el('[data-user-role]').textContent='';el('[data-user-avatar]').textContent='';session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared',{detail:{preserveLocal}}));};
+  const clear=(preserveLocal=false)=>{profileMenu.close();el<HTMLButtonElement>('[data-profile-trigger]').disabled=true;el('[data-profile-name]').textContent='';el('[data-profile-email]').textContent='';el('[data-profile-role]').textContent='';content.hidden=true;el('[data-home]').hidden=true;el('[data-app-nav]').hidden=true;el('[data-exam-nav]').hidden=true;el('[data-results-nav]').hidden=true;el('[data-user-name]').textContent='Sesión no disponible';el('[data-user-role]').textContent='';el('[data-user-avatar]').textContent='';session=undefined;expiry.close();confirm.close();document.dispatchEvent(new CustomEvent('qori:session-cleared',{detail:{preserveLocal}}));};
   const failure=(error:unknown)=>{
     el('[data-user-name]').textContent='Cuenta no disponible';el('[data-user-role]').textContent='';el<HTMLButtonElement>('[data-profile-trigger]').disabled=true;
     notice(error instanceof Error?error.message:'No se pudo completar la operación.');
@@ -30,7 +30,7 @@ export function initWorkspace(){
     el('[data-user-role]').textContent=user.role==='RECRUITER'?'Reclutador':'Postulante';
     el('[data-user-avatar]').textContent=user.name.trim().split(/\s+/u).slice(0,2).map(part=>Array.from(part)[0] ?? '').join('').toLocaleUpperCase('es');
     const home=el<HTMLAnchorElement>('[data-home]');home.href=homeFor(user.role);home.hidden=false;home.setAttribute('aria-label',user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades');
-    el<HTMLAnchorElement>('[data-exam-nav]').href=user.role==='RECRUITER'?'/reclutador/examenes':'/postulante/examenes';el('[data-exam-nav]').hidden=false;
+    el<HTMLAnchorElement>('[data-exam-nav]').href=user.role==='RECRUITER'?'/reclutador/examenes':'/postulante/examenes';el('[data-exam-nav]').hidden=false;el('[data-results-nav]').hidden=user.role!=='RECRUITER';
     el('[data-home-label]').textContent=user.role==='RECRUITER'?'Mis ofertas':'Buscar oportunidades';el('[data-app-nav]').hidden=user.role!=='CANDIDATE';
     if(root.dataset.view==='home'){home.setAttribute('aria-current','page');home.classList.add('bg-sky-50','text-sky-800','dark:bg-sky-950','dark:text-sky-200');}content.hidden=false;
     document.dispatchEvent(new CustomEvent('qori:session',{detail:session}));

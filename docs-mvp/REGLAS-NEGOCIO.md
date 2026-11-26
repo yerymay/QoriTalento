@@ -90,3 +90,7 @@ El SQL de `database/01_schema.sql` es una **propuesta inicial ejecutable** basad
 El usuario autorizó expresamente implementar la calificación objetiva y la comparación con el perfil confirmado mediante Ollama, con las cuatro valoraciones por requisito (cumple, parcial, no cumple y sin evidencia suficiente), evidencia, explicación, pesos ajustables y fórmula 60/40 o perfil sobre 100. La implementación distingue sugerencia de valoración humana y solo presenta un total indicativo cuando cada requisito está revisado con evidencia y el examen aplicable ha finalizado.
 
 Esta autorización no resuelve los umbrales, la validación previa al uso real de B-06 ni la reevaluación de B-07. Tampoco define una combinación de varios exámenes; se mantienen notas separadas y un total pendiente en ese caso. No autoriza rankings ni cambios automáticos de estado. Los pesos editados se guardan en la evaluación concreta, sin crear una rúbrica global para comparar postulantes.
+
+### B-08 — flujo M07 aprobado el 2026-11-25
+
+Aprobado expresamente por el usuario en esta conversación: solo el reclutador propietario puede mover PENDING a IN_REVIEW, IN_REVIEW a SHORTLISTED, y decidir ADVANCES o NOT_ADVANCES desde cualquiera de esos tres estados activos. Las decisiones finales requieren confirmación, registran autor y fecha y no admiten reversión en M07. Se bloquean acciones si el proceso ya finalizó. La aprobación no resuelve los umbrales/rankings de B-06, la reevaluación B-07 ni el acceso transversal B-09.

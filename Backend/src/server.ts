@@ -1,3 +1,4 @@
+import { MySqlSeleccionRepository } from './modules/seleccion/persistence/mysql-seleccion.repository.js';
 import { MySqlEvaluacionRepository } from './modules/evaluacion/persistence/mysql-evaluacion.repository.js';
 import { OllamaEvaluationAssistant } from './modules/evaluacion/persistence/ollama-evaluation.assistant.js';
 import { MySqlExamenesRepository } from './modules/examenes/persistence/mysql-examenes.repository.js';
@@ -16,6 +17,6 @@ import { MySqlSystemRepository } from './modules/system/persistence/mysql-system
 const repo = new MySqlSystemRepository(getMysqlPool());
 const exams = new MySqlExamenesRepository(getMysqlPool());
 startExamExpiryWorker(new ExamenesService(exams), () => console.error('No se pudo ejecutar el cierre de exámenes; se reintentará.'));
-createApp(repo, new MySqlAuthRepository(getMysqlPool()), new MySqlOfertasRepository(getMysqlPool()), new MySqlPostulacionesRepository(getMysqlPool()), new MySqlCvRepository(getMysqlPool()), exams, new MySqlEvaluacionRepository(getMysqlPool()), new OllamaEvaluationAssistant()).listen(env.port, '127.0.0.1', () => {
+createApp(repo, new MySqlAuthRepository(getMysqlPool()), new MySqlOfertasRepository(getMysqlPool()), new MySqlPostulacionesRepository(getMysqlPool()), new MySqlCvRepository(getMysqlPool()), exams, new MySqlEvaluacionRepository(getMysqlPool()), new OllamaEvaluationAssistant(), new MySqlSeleccionRepository(getMysqlPool())).listen(env.port, '127.0.0.1', () => {
   console.log(`Qori Talento API disponible localmente en http://127.0.0.1:${env.port}`);
 });
